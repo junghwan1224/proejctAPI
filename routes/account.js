@@ -40,17 +40,15 @@ router.post("/login", function(req, res, next) {
           expiresIn: "9999h"
         });
         res.cookie("user", token);
-        res
-          .status(200)
-          .send({ 
-            id: account.id, 
-            name: account.name, 
-            crn: account.crn,
-            phone: account.phone,
-            email: account.email,
-            mileage: account.mileage,
-            token: token 
-          });
+        res.status(200).send({
+          id: account.id,
+          name: account.name,
+          crn: account.crn,
+          phone: account.phone,
+          email: account.email,
+          mileage: account.mileage,
+          token: token
+        });
       } else {
         // password does not match
         res
@@ -86,57 +84,60 @@ router.get("/read", function(req, res, next) {
     });
 });
 
-router.post("/create", asyncHandler(async (req, res, next) => {
-  const { phone, crn } = req.body;
+router.post(
+  "/create",
+  asyncHandler(async (req, res, next) => {
+    const { phone, crn } = req.body;
 
-  const userByPhone = await Account.findOne({
-    where: { phone }
-  });
-
-  const userByCRN = await Account.findOne({
-    where: { crn }
-  });
-
-  if(! userByPhone && ! userByCRN) {
-    const account = await Account.create({
-      phone: req.body.phone,
-      password: req.body.password,
-      name: req.body.name,
-      crn: req.body.crn
+    const userByPhone = await Account.findOne({
+      where: { phone }
     });
-  
-    return res.status(201).send({ account, message: "가입 성공" });
-  }
 
-  else if(userByPhone && userByCRN) {
-    return res.status(403).send({ message: "이미 등록된 연락처와 사업자 등록번호입니다." });
-  }
+    const userByCRN = await Account.findOne({
+      where: { crn }
+    });
 
-  else if(userByPhone) {
-    return res.status(403).send({ message: "연락처가 이미 등록되어 있습니다." });
-  }
+    if (!userByPhone && !userByCRN) {
+      const account = await Account.create({
+        phone: req.body.phone,
+        password: req.body.password,
+        name: req.body.name,
+        crn: req.body.crn
+      });
 
-  else if(userByCRN) {
-    return res.status(403).send({ message: "사업자 등록번호가 이미 등록되어 있습니다." });
-  }
+      return res.status(201).send({ account, message: "가입 성공" });
+    } else if (userByPhone && userByCRN) {
+      return res
+        .status(403)
+        .send({ message: "이미 등록된 연락처와 사업자 등록번호입니다." });
+    } else if (userByPhone) {
+      return res
+        .status(403)
+        .send({ message: "연락처가 이미 등록되어 있습니다." });
+    } else if (userByCRN) {
+      return res
+        .status(403)
+        .send({ message: "사업자 등록번호가 이미 등록되어 있습니다." });
+    }
+  })
+);
 
-}));
+router.post(
+  "/certify",
+  asyncHandler(async (req, res) => {
+    const { phone } = req.body;
 
-router.post("/certify", asyncHandler(async(req, res) => {
-  const { phone } = req.body;
+    const user = await Account.findOne({
+      where: { phone }
+    });
 
-  const user = await Account.findOne({
-    where: { phone }
-  });
-
-  if(! user) {
-    return res.status(201).send({ message: "인증이 완료되었습니다." });
-  }
-
-  else {
-    return res.status(403).send({ message: "이미 가입된 연락처입니다." });
-  }
-}));
+    if (!user) {
+      return res.status(201).send({ message: "인증이 완료되었습니다." });
+    } else {
+      return res.status(403).send({ message: "이미 가입된 연락처입니다." });
+    }
+  })
+);
 
 router.get(
   "/get-address/",
@@ -151,14 +152,11 @@ router.get(
       where: { account_id: { [Op.in]: [user.dataValues.id] } }
     });
 
-    if(! address.length) {
+    if (!address.length) {
       return res.send({ message: "success", address: null });
-    }
-
-    else {
+    } else {
       return res.send({ message: "success", address: address[0].dataValues });
     }
-    
   })
 );
 
@@ -166,7 +164,7 @@ router.post(
   "/set-address",
   asyncHandler(async (req, res) => {
     const { id, addr_postcode, addr_primary, addr_detail } = req.body;
-    
+
     const address = await Address.findOne({
       where: { account_id: id }
     });
@@ -268,14 +266,17 @@ router.post(
   })
 );
 
-router.post("/delete-account", asyncHandler(async (req, res) => {
-  const { id } = req.body;
+router.post(
+  "/delete-account",
+  asyncHandler(async (req, res) => {
+    const { id } = req.body;
 
-  await Account.destroy({
-    where: { id }
-  });
+    await Account.destroy({
+      where: { id }
+    });
 
-  res.status(201).send({ message: "delete success" });
-}));
+    res.status(201).send({ message: "delete success" });
+  })
+);
 
 module.exports = router;
