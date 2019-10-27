@@ -16,6 +16,32 @@ const PRODUCT_ATTRIBUTES = [
 ];
 const PRODUCT_ABSTRACT_ATTRIBUTES = ["price", "discount_rate", "type"];
 
+router.get("/", function(req, res, next) {
+  Product.findAll({
+    where: {
+      category: req.query.category,
+      brand: req.query.brand
+    },
+    attributes: PRODUCT_ATTRIBUTES,
+    include: [
+      {
+        model: ProductAbstract,
+        required: true,
+        attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+      }
+    ],
+    order: [["brand", "ASC"], ["model", "ASC"]]
+  })
+    .then(product => {
+      res.status(200).send(product);
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(400).send(error);
+    });
+});
+
+/******************************************************************* */
 /* GET users listing. */
 
 router.get("/detail", function(req, res, next) {
