@@ -3,15 +3,25 @@ var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
+var session = require("express-session");
+var MySQLStore = require("express-mysql-session")(session);
 
 var cors = require("cors");
 var indexRouter = require("./routes/index");
 var app = express();
 
+var options={
+  host: 'localhost',
+  port: 3306,
+  user: 'root',
+  password: null,
+  database: 'hermes_dev_db'
+  };
+
 // cors
 // const allowedOrigins = ["http://192.168.0.13:3000", "http://yourapp.com"];
 app.use(
-  cors()
+  cors({ credentials: true, origin: ["http://localhost:3000"] })
   // cors({
   //   origin: function(origin, callback) {
   //     // allow requests with no origin
@@ -37,6 +47,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
+
+app.use(session({
+  secret: "HERMES",
+  resave: false,
+  saveUninitialized: true,
+  cookie: { maxAge: 60000 },
+  store: new MySQLStore(options)
+ }));
 
 app.use("/", indexRouter);
 // Router setup
