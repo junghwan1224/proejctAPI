@@ -34,6 +34,16 @@ router.get("/exist", function(req, res, next) {
 });
 
 router.post("/login", function(req, res, next) {
+  const { phone, password } = req.body;
+
+  if(phone === undefined || phone === null || phone.length === 0) {
+    return res.status(403).send({ message: "연락처를 입력해주세요." });
+  }
+
+  if(password === undefined || password === null || password.length === 0) {
+    return res.status(403).send({ message: "비밀번호를 입력해주세요." });
+  }
+  
   Account.findOne({
     where: { phone: req.body.phone },
     attributes: ["id", "name", "password", "phone", "crn", "email", "mileage"]
