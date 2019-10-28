@@ -2,6 +2,7 @@ const DEV_SECRET = "NEED TO CHANGE THIS TO ENV FILE";
 
 var express = require("express");
 var router = express.Router();
+const axios = require("axios");
 
 const asyncHandler = require("express-async-handler");
 const bcrypt = require("bcryptjs");
@@ -10,6 +11,11 @@ const Address = require("../models").address;
 const Sequelize = require("sequelize");
 const { Op } = Sequelize;
 const jwt = require("jsonwebtoken");
+
+const makeSignature = require("../public/js/signature");
+const SENS_API_V2_URL = "https://sens.apigw.ntruss.com/sms/v2/services/ncp:sms:kr:257098754703:hermes_test/messages";
+const SENS_ACCESS_KEY = "e3ufC3LRgOjDtrguluqL";
+const SENS_SENDER = "01024569959";
 
 // const verifyToken = require("./index");
 /* GET users listing. */
@@ -122,22 +128,66 @@ router.post(
   })
 );
 
-router.post(
-  "/certify",
-  asyncHandler(async (req, res) => {
-    const { phone } = req.body;
+router.post("/issue-certify-num", asyncHandler(async(req, res) => {
+  const { phone } = req.body;
 
-    const user = await Account.findOne({
-      where: { phone }
+  // 인증 번호 난수 6자리 생성 및 세션에 저장
+  const certifyNumber = Math.floor(Math.random() * 899999 + 100000);
+  
+  const sess = req.session;
+  sess.certifyNumber = certifyNumber;
+
+  req.session.save(err => {
+    if(err) {
+      console.log("session save error");
+      console.log(err);
+    }
+  });
+
+  // SMS 전송
+  const timestamp = new Date().getTime().toString();
+
+  await axios({
+      url: SENS_API_V2_URL,
+      method: "post",
+      headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          "x-ncp-apigw-timestamp": timestamp,
+          "x-ncp-iam-access-key": SENS_ACCESS_KEY,
+          "x-ncp-apigw-signature-v2": makeSignature(timestamp)
+      },
+      data: {
+          type: "SMS",
+          from: SENS_SENDER,
+          content: `HERMES 인증번호 [${certifyNumber}]를 입력해주세요.`,
+          messages: [{
+              to: phone
+          }]
+      }
+  });
+
+  res.status(201).send({ message: "인증번호가 발송되었습니다." });
+}));
+
+router.post("/certify", asyncHandler(async(req, res) => {
+  const { certifyNumber } = req.body;
+
+  // 저장된 인증번호와 비교
+  if(parseInt(certifyNumber) === req.session.certifyNumber) {
+
+    req.session.destroy(err => {
+      if(err) {
+        console.log("session destory error");
+        console.log(err);
+      }
     });
 
-    if (!user) {
-      return res.status(201).send({ message: "인증이 완료되었습니다." });
-    } else {
-      return res.status(403).send({ message: "이미 가입된 연락처입니다." });
-    }
-  })
-);
+    return res.status(201).send({ message: "인증이 정상적으로 완료되었습니다." });
+  }
+  else {
+    return res.status(403).send({ message: "인증번호가 일치하지 않습니다. 다시 입력해주세요." });
+  }
+}));
 
 router.get(
   "/get-address/",
