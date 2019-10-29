@@ -138,14 +138,14 @@ router.get("/read", function(req, res, next) {
   } else {
     where = {
       [Op.or]: [
-        { oe_number: { [Op.like]: `%${req.query.query_string}%` } },
-        { brand: { [Op.like]: `%${req.query.query_string}%` } },
-        { model: { [Op.like]: `%${req.query.query_string}%` } },
-        { start_year: { [Op.like]: `%${req.query.query_string}%` } },
-        { end_year: { [Op.like]: `%${req.query.query_string}%` } },
+        { oe_number: { [Op.like]: `%${req.query.brand}%` } },
+        { brand: { [Op.like]: `%${req.query.brand}%` } },
+        { model: { [Op.like]: `%${req.query.brand}%` } },
+        { start_year: { [Op.like]: `%${req.query.brand}%` } },
+        { end_year: { [Op.like]: `%${req.query.brand}%` } },
         {
           "$product_abstract.type$": {
-            [Op.like]: `%${req.query.query_string}%`
+            [Op.like]: `%${req.query.brand}%`
           }
         }
       ]
