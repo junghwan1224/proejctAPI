@@ -9,7 +9,7 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       parts_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.UUID,
         references: {
           model: "product_abstracts",
           key: "id"

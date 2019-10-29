@@ -1,7 +1,7 @@
-'use strict';
+"use strict";
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('purchase_lists', {
+    return queryInterface.createTable("purchase_lists", {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -9,13 +9,13 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       parts_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.UUID,
         references: {
-          model: 'product_abstracts',
-          key: 'id',
+          model: "product_abstracts",
+          key: "id"
         },
         onDelete: "SET NULL",
-        onUpdate: "CASCADE",
+        onUpdate: "CASCADE"
       },
       krw_price: {
         type: Sequelize.INTEGER,
@@ -52,6 +52,6 @@ module.exports = {
     });
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('purchase_lists');
+    return queryInterface.dropTable("purchase_lists");
   }
 };
