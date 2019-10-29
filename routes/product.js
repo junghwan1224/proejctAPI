@@ -7,7 +7,6 @@ const Sequelize = require("sequelize");
 
 const Op = Sequelize.Op;
 const PRODUCT_ABSTRACT_ATTRIBUTES = [
-  "id",
   "image",
   "maker",
   "maker_number",
