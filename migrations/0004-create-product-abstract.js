@@ -4,25 +4,13 @@ module.exports = {
     return queryInterface.createTable("product_abstracts", {
       id: {
         allowNull: false,
-        autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
+        defaultValue: () => uuid(),
+        type: Sequelize.UUID
       },
-      type: {
+      image: {
         type: Sequelize.STRING,
-        allowNull: false
-      },
-      price: {
-        type: Sequelize.INTEGER.UNSIGNED,
-        allowNull: false
-      },
-      discount_rate: {
-        type: Sequelize.FLOAT,
-        defaultValue: 0.0
-      },
-      stock: {
-        type: Sequelize.INTEGER.UNSIGNED,
-        defaultValue: 0
+        allowNull: true
       },
       maker: {
         type: Sequelize.STRING,
@@ -32,21 +20,13 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true
       },
-      image: {
-        type: Sequelize.STRING,
-        allowNull: true
+      stock: {
+        type: Sequelize.INTEGER.UNSIGNED,
+        defaultValue: 0
       },
-      description: {
+      type: {
         type: Sequelize.STRING,
-        allowNull: true
-      },
-      quality_cert: {
-        type: Sequelize.STRING,
-        allowNull: true
-      },
-      memo: {
-        type: Sequelize.TEXT,
-        allowNull: true
+        allowNull: false
       },
       createdAt: {
         allowNull: false,

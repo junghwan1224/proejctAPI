@@ -9,7 +9,7 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       abstract_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.UUID,
         references: {
           model: "product_abstracts",
           key: "id"
@@ -39,6 +39,26 @@ module.exports = {
       },
       engine: {
         type: Sequelize.STRING,
+        allowNull: true
+      },
+      price: {
+        type: Sequelize.INTEGER.UNSIGNED,
+        allowNull: false
+      },
+      discount_rate: {
+        type: Sequelize.FLOAT,
+        defaultValue: 0.0
+      },
+      description: {
+        type: Sequelize.STRING,
+        allowNull: true
+      },
+      quality_cert: {
+        type: Sequelize.STRING,
+        allowNull: true
+      },
+      memo: {
+        type: Sequelize.TEXT,
         allowNull: true
       },
       createdAt: {
