@@ -6,7 +6,7 @@ const ProductAbstract = require("../models").product_abstract;
 const Sequelize = require("sequelize");
 
 const Op = Sequelize.Op;
-const PRODUCT_ATTRIBUTES = [
+const PRODUCT_ABSTRACT_ATTRIBUTES = [
   "id",
   "image",
   "maker",
@@ -15,7 +15,7 @@ const PRODUCT_ATTRIBUTES = [
   "type"
 ];
 
-const PRODUCT_ABSTRACT_ATTRIBUTES = [
+const PRODUCT_ATTRIBUTES = [
   "price",
   "discount_rate",
   "brand",
