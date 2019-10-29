@@ -1,4 +1,4 @@
-const DEV_SECRET = "NEED TO CHANGE THIS TO ENV FILE";
+const DEV_SECRET = process.env.DEV_SECRET;
 
 var express = require("express");
 var router = express.Router();
@@ -13,9 +13,9 @@ const { Op } = Sequelize;
 const jwt = require("jsonwebtoken");
 
 const makeSignature = require("../public/js/signature");
-const SENS_API_V2_URL = "https://sens.apigw.ntruss.com/sms/v2/services/ncp:sms:kr:257098754703:hermes_test/messages";
-const SENS_ACCESS_KEY = "e3ufC3LRgOjDtrguluqL";
-const SENS_SENDER = "01024569959";
+const SENS_API_V2_URL = process.env.SENS_API_V2_URL + process.env.SENS_API_V2_URI;
+const SENS_ACCESS_KEY = process.env.SENS_ACCESS_KEY;
+const SENS_SENDER = process.env.SENS_SENDER;
 
 // const verifyToken = require("./index");
 /* GET users listing. */

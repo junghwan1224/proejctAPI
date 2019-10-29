@@ -7,15 +7,16 @@ var session = require("express-session");
 var MySQLStore = require("express-mysql-session")(session);
 
 var cors = require("cors");
+require("dotenv").config();
 var indexRouter = require("./routes/index");
 var app = express();
 
 var options={
-  host: 'localhost',
-  port: 3306,
-  user: 'root',
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  user: process.env.DB_USER,
   password: null,
-  database: 'hermes_dev_db'
+  database: process.env.DB
   };
 
 // cors

@@ -1,14 +1,15 @@
 const CryptoJS = require("crypto-js");
+require("dotenv").config();
 
-const SENS_API_V2_URL = "/sms/v2/services/ncp:sms:kr:257098754703:hermes_test/messages";
-const SENS_ACCESS_KEY = "e3ufC3LRgOjDtrguluqL";
-const SENS_SECRET_KEY = "l52wL5U03beMErP90tsSwxFMu2Zoyh0ypM65tcfp";
+const SENS_API_V2_URI = process.env.SENS_API_V2_URI;
+const SENS_ACCESS_KEY = process.env.SENS_ACCESS_KEY;
+const SENS_SECRET_KEY = process.env.SENS_SECRET_KEY;
 
 function makeSignature(times) {
 	var space = " ";				// one space
 	var newLine = "\n";				// new line
 	var method = "POST";				// method
-	var url = SENS_API_V2_URL;	// url (include query string)
+	var url = SENS_API_V2_URI;	// url (include query string)
 	var timestamp = times;			// current timestamp (epoch)
 	var accessKey = SENS_ACCESS_KEY;			// access key id (from portal or Sub Account)
 	var secretKey = SENS_SECRET_KEY;			// secret key (from portal or Sub Account)
