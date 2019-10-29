@@ -13,9 +13,8 @@ const ProductAbstract = require("../models").product_abstract;
 const CardInfo = require("../models").card_info;
 const { Op } = Sequelize;
 
-const REST_API_KEY = "9041452118972629";
-const REST_API_SECRET =
-  "f8DOKBoGDTN7s4fBXbjaPy6YNJLsEXdT5RIQs7w60ketot4mFnxuWDtKmfc1cqUiiC8KJFRKZ5dozhLe";
+const REST_API_KEY = process.env.IMPORT_REST_API_KEY;
+const REST_API_SECRET = process.env.IMPORT_REST_SECRET;
 
 // TODO: https://api.iamport.kr CORS
 // TODO: proxy 설정 후 이에 맞게 ajax url 변경
