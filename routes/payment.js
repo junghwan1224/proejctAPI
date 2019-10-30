@@ -23,7 +23,9 @@ const SENS_SENDER = process.env.SENS_SENDER;
 /************ 일반 결제 ************/
 
 // request_pay 메서드에서 결제 요청 성공 후 거래 검증 및 데이터 동기화
-// TODO: 계정 일치여부 확인 로직?
+// TODO: 계정 일치여부 확인 로직? jwt를 이용한 요청 검증? -> 유저 연락처 get
+// TODO: 결제 완료 시, 영수증 바로 얻을 수 있게
+
 router.post("/complete", asyncHandler(async (req, res) => {
         const { imp_uid, merchant_uid } = req.body;
         const transaction = await models.sequelize.transaction();
@@ -853,12 +855,11 @@ router.post("/billing", asyncHandler(async (req, res) => {
 /************ 주문 취소(환불) ************/
 // TODO: 상품 개별로 가능 - using order_id 
 // TODO: 전체 환불도 가능
-// TODO: 결제 취소 후 SMS 발송
 router.post("/refund", asyncHandler(async (req, res) => {
         const { 
             orders, // order ids in array
             merchant_uid,
-            amount, // 환불 금액
+            // amount, // 환불 금액
             reason, // 환불 사유
         } = req.body;
         const transaction = await models.sequelize.transaction();
@@ -919,17 +920,16 @@ router.post("/refund", asyncHandler(async (req, res) => {
                 imp_uid,
                 merchant_uid,
                 reason,
-                amount,
+                amount: cancelableAmount,
                 checksum: cancelableAmount
             }
         });
 
         // 환불 결과
-        // TODO: response 값 확인
-        const { response } = cancelPayment.data;
-        if(true) { // TODO: 조건 수정
-            // response - 환불 성공인 경우
-            // TODO: 환불 결과에 따른 DB 값 동기화 - product 재고, order 테이블 금액, status 처리
+        const { code, response } = cancelPayment.data;
+
+        if(code === 0) {
+            // 환불 성공인 경우
 
             // product DB 값 업데이트 ... 재고 업데이트
             const prodArr = refundedProductId.map((p, idx) => ({
@@ -1030,7 +1030,11 @@ router.post("/refund", asyncHandler(async (req, res) => {
                 }
             });
 
-            return res.status(201).send({ stauts: "success", message: "환불이 정상적으로 처리되었습니다." });
+            return res.status(201).send({
+                stauts: "success",
+                message: "환불이 정상적으로 처리되었습니다.",
+                receipt_url: response.receipt_url
+            });
         }
 
         else {
