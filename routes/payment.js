@@ -747,82 +747,96 @@ router.post("/billing", asyncHandler(async (req, res) => {
             if(code === 0) {
                 // 결제 성공
 
-                // product DB 값 업데이트 ... 재고 업데이트
-                const prodArr = orderedProductId.map((p, idx) => ({
-                    "id": p,
-                    "quantity": orderedQuantity[idx]
-                }));
-                prodArr.sort((a, b) => { if(a.id < b.id) return -1; else return 1; });
-            
-            
-                const abstractsIds = await Product.findAll({
-                    where: { id: { [Op.in]: prodArr.map(e => e.id) } },
-                    include: [ProductAbstract],
-                    transaction
-                });
-            
-                const abstArr = abstractsIds.map(
-                    product => {
-                        const { dataValues } = product;
-                        const { product_abstract } = dataValues;
-                        const prop = product_abstract.dataValues;
-            
-                        return prop.id;
+                // 카드 정상 승인
+                if(payWithBilling.status === "paid") {
+                    // product DB 값 업데이트 ... 재고 업데이트
+                    const prodArr = orderedProductId.map((p, idx) => ({
+                        "id": p,
+                        "quantity": orderedQuantity[idx]
+                    }));
+                    prodArr.sort((a, b) => { if(a.id < b.id) return -1; else return 1; });
+                
+                
+                    const abstractsIds = await Product.findAll({
+                        where: { id: { [Op.in]: prodArr.map(e => e.id) } },
+                        include: [ProductAbstract],
+                        transaction
                     });
                 
-                const abstObj = abstArr.map((abst, idx) => ({
-                    "id": abst,
-                    "quantity": prodArr[idx].quantity
-                }));
-            
-                const abstractMap = abstObj.reduce((prev, cur) => {
-                    let count = prev.get(cur.id) || 0;
-                    prev.set(cur.id, cur.quantity + count);
-                    return prev;
-                }, new Map());
-            
-                const mapToArr = [...abstractMap].map( ([id, quantity]) => { return {id, quantity} });
-                mapToArr.sort((a, b) => { if(a.id < b.id) return -1; else return 1; });
-            
-                const abstracts = await ProductAbstract.findAll({
-                    where: {
-                        id: { [Op.in]: abstObj.map(e => e.id) }
-                    },
-                    transaction
-                });
-            
-                const updatedProducts = abstracts.map(
-                    product => {
-                        return product.dataValues;
-                    }
-                );
-            
-                updatedProducts.forEach(
-                 (product, idx) => {
-                     product.stock -= mapToArr[idx].quantity;
-                 }
-                );
-            
-                await ProductAbstract.bulkCreate(updatedProducts, {
-                    updateOnDuplicate: ["stock"],
-                    transaction
-                });
-
-                // order DB 값 업데이트 ... imp_uid 값 추가, status 값 업데이트
-                await Order.update({
-                    imp_uid,
-                    status: "paid"
-                },
-                {
-                    where: { 
-                        product_id: { [Op.in]: orderedProductId }
-                    },
-                    transaction
-                });
-
-                await transaction.commit();
+                    const abstArr = abstractsIds.map(
+                        product => {
+                            const { dataValues } = product;
+                            const { product_abstract } = dataValues;
+                            const prop = product_abstract.dataValues;
                 
-                return res.status(201).send({ status: "success", message });
+                            return prop.id;
+                        });
+                    
+                    const abstObj = abstArr.map((abst, idx) => ({
+                        "id": abst,
+                        "quantity": prodArr[idx].quantity
+                    }));
+                
+                    const abstractMap = abstObj.reduce((prev, cur) => {
+                        let count = prev.get(cur.id) || 0;
+                        prev.set(cur.id, cur.quantity + count);
+                        return prev;
+                    }, new Map());
+                
+                    const mapToArr = [...abstractMap].map( ([id, quantity]) => { return {id, quantity} });
+                    mapToArr.sort((a, b) => { if(a.id < b.id) return -1; else return 1; });
+                
+                    const abstracts = await ProductAbstract.findAll({
+                        where: {
+                            id: { [Op.in]: abstObj.map(e => e.id) }
+                        },
+                        transaction
+                    });
+                
+                    const updatedProducts = abstracts.map(
+                        product => {
+                            return product.dataValues;
+                        }
+                    );
+                
+                    updatedProducts.forEach(
+                    (product, idx) => {
+                        product.stock -= mapToArr[idx].quantity;
+                    }
+                    );
+                
+                    await ProductAbstract.bulkCreate(updatedProducts, {
+                        updateOnDuplicate: ["stock"],
+                        transaction
+                    });
+
+                    // order DB 값 업데이트 ... imp_uid 값 추가, status 값 업데이트
+                    await Order.update({
+                        imp_uid,
+                        status: "paid"
+                    },
+                    {
+                        where: { 
+                            product_id: { [Op.in]: orderedProductId }
+                        },
+                        transaction
+                    });
+
+                    await transaction.commit();
+                    
+                    return res.status(201).send({ status: "success", message });
+                }
+
+                // 카드 승인 실패 (카드 한도 초과, 거래 정지 카드, 잔액 부족 등의 사유로 실패)
+                else { // payWithBilling.status === "failed"
+                    await transaction.commit();
+
+                    return res.status(201).send({
+                        status: "failed",
+                        message: "카드 승인에 실패했습니다. 귀하의 카드가 한도 초과, 거래 정지, 잔액 부족 등에 해당되는지 확인 바랍니다."
+                    });
+                }
+
             }
             else {
                 // 결제 실패
@@ -844,6 +858,7 @@ router.post("/billing", asyncHandler(async (req, res) => {
                 return res.status(403).send({ status: "failed", message });
             }
         }
+        
         else {
             // 결제 금액 불일치
 
