@@ -11,6 +11,7 @@ const Address = require("../models").address;
 const Product = require("../models").product;
 const ProductAbstract = require("../models").product_abstract;
 const CardInfo = require("../models").card_info;
+const models = require("../models");
 const { Op } = Sequelize;
 
 const REST_API_KEY = process.env.IMPORT_REST_API_KEY;
@@ -25,6 +26,7 @@ const REST_API_SECRET = process.env.IMPORT_REST_SECRET;
 // TODO: 계정 일치여부 확인 로직?
 router.post("/complete", asyncHandler(async (req, res) => {
         const { imp_uid, merchant_uid } = req.body;
+        const transaction = await models.sequelize.transaction();
 
         // 아임포트 인증 토큰 발급
         const getToken = await axios({
@@ -54,14 +56,16 @@ router.post("/complete", asyncHandler(async (req, res) => {
         // DB에서 미리 저장된 결제 요청 정보
         const orderData = await Order.findAll({
             where: { merchant_uid },
-            attributes: ["product_id", "quantity"]
+            attributes: ["product_id", "quantity"],
+            transaction
         });
         const orderedProductId = orderData.map(order => order.dataValues.product_id);
         const orderedQuantity = orderData.map(order => order.dataValues.quantity);
 
         // DB에 저장된 해당 주문의 총 금액
         const amountToBePaid = await Order.sum("amount", {
-            where: { merchant_uid }
+            where: { merchant_uid },
+            transaction
         });
 
         // paymentData에 있는 amount(금액)값 비교
@@ -78,8 +82,12 @@ router.post("/complete", asyncHandler(async (req, res) => {
                     {
                         where: { 
                             product_id: { [Op.in]: orderedProductId }
-                         }
+                        },
+                        transaction
                     });
+
+                    await transaction.commit();
+
                     res.status(201).send({ status: "vbankIssued", message: "가상계좌 발급 성공" });
                     break;
 
@@ -99,7 +107,8 @@ router.post("/complete", asyncHandler(async (req, res) => {
                     // abstract id 값 조회
                     const abstractsIds = await Product.findAll({
                         where: { id: { [Op.in]: prodArr.map(e => e.id) } },
-                        include: [ProductAbstract]
+                        include: [ProductAbstract],
+                        transaction
                     });
                 
                     const abstArr = abstractsIds.map(
@@ -133,6 +142,7 @@ router.post("/complete", asyncHandler(async (req, res) => {
                         where: {
                             id: { [Op.in]: abstObj.map(e => e.id) }
                         },
+                        transaction
                     });
                     const updatedProducts = abstracts.map(
                         product => {
@@ -146,7 +156,10 @@ router.post("/complete", asyncHandler(async (req, res) => {
                      }
                     );
                 
-                    await ProductAbstract.bulkCreate(updatedProducts, { updateOnDuplicate: ["stock"] });
+                    await ProductAbstract.bulkCreate(updatedProducts, { 
+                        updateOnDuplicate: ["stock"],
+                        transaction
+                    });
 
                     // order DB 값 업데이트 ... imp_uid 값 추가, status 값 업데이트
                     await Order.update({
@@ -156,8 +169,12 @@ router.post("/complete", asyncHandler(async (req, res) => {
                     {
                         where: { 
                             product_id: { [Op.in]: orderedProductId }
-                         }
+                        },
+                        transaction
                     });
+
+                    await transaction.commit();
+
                     res.status(201).send({ status: "success", message: "결제가 정상적으로 완료되었습니다." });
                     break;
             }
@@ -171,8 +188,12 @@ router.post("/complete", asyncHandler(async (req, res) => {
             {
                 where: { 
                     product_id: { [Op.in]: orderedProductId }
-                 }
+                },
+                transaction
             });
+
+            await transaction.commit();
+
             return res.status(403).send({ status: "forgery", message: "위조된 결제시도" });
         }
 
@@ -195,8 +216,11 @@ router.post("/save-order", asyncHandler(async (req, res) => {
         memo
      } = req.body;
 
+     const transaction = await models.sequelize.transaction();
+
      const account = await Account.findOne({
-         where: { uuid: account_uuid }
+         where: { uuid: account_uuid },
+         transaction
      });
      const account_id = account.dataValues.id;
      const { email } = account.dataValues;
@@ -215,7 +239,8 @@ router.post("/save-order", asyncHandler(async (req, res) => {
 
     const abstractsIds = await Product.findAll({
         where: { id: { [Op.in]: prodArr.map(e => e.id) } },
-        include: [ProductAbstract]
+        include: [ProductAbstract],
+        transaction
     });
 
     const abstArr = abstractsIds.map(
@@ -245,6 +270,7 @@ router.post("/save-order", asyncHandler(async (req, res) => {
         where: {
             id: { [Op.in]: abstObj.map(e => e.id) }
         },
+        transaction
     });
 
     // 요청한 수량보다 재고가 적은 abstract의 id를 배열에 저장
@@ -268,8 +294,11 @@ router.post("/save-order", asyncHandler(async (req, res) => {
         const scarceProducts = await Product.findAll({
             where: {
                 abstract_id: { [Op.in]: scarceProductsArr }
-            }
+            },
+            transaction
         });
+
+        await transaction.commit();
 
         return res.status(403).send({ message: "재고 부족", scarceProducts });
     }
@@ -280,7 +309,8 @@ router.post("/save-order", asyncHandler(async (req, res) => {
         await Account.update({
             email: buyer_email
         },{
-            where: { id: account_id }
+            where: { id: account_id },
+            transaction
         });
     }
 
@@ -293,6 +323,8 @@ router.post("/save-order", asyncHandler(async (req, res) => {
             primary: parsedAddr[0],
             detail: parsedAddr[1],
             postcode: buyer_postcode
+        }, {
+            transaction
         });
     }
     // 입력된 주소가 있는 경우
@@ -302,7 +334,8 @@ router.post("/save-order", asyncHandler(async (req, res) => {
                 id: address_id,
                 account_id
             },
-            attributes: ["postcode", "primary", "detail"]
+            attributes: ["postcode", "primary", "detail"],
+            transaction
         });
    
         const optionInfoObj = {
@@ -319,7 +352,8 @@ router.post("/save-order", asyncHandler(async (req, res) => {
                 detail: parsedAddr[1],
             },
             {
-                where: { id: address_id, account_id }
+                where: { id: address_id, account_id },
+                transaction
             });
         }
     }
@@ -340,7 +374,9 @@ router.post("/save-order", asyncHandler(async (req, res) => {
             };
         }
     );
-    await Order.bulkCreate(newOrderArray);
+    await Order.bulkCreate(newOrderArray, { transaction });
+
+    await transaction.commit();
 
     res.status(201).send({ message: "success" });
 }));
@@ -348,6 +384,7 @@ router.post("/save-order", asyncHandler(async (req, res) => {
 // iamport webhook
 router.post("/iamport-webhook", asyncHandler(async (req, res) => {
         const { imp_uid, merchant_uid } = req.body;
+        const transaction = await models.sequelize.transaction();
 
         // 아임포트 인증 토큰 발급
         const getToken = await axios({
@@ -377,14 +414,16 @@ router.post("/iamport-webhook", asyncHandler(async (req, res) => {
         // DB에서 미리 저장된 결제 요청 정보
         const orderData = await Order.findAll({
             where: { merchant_uid },
-            attributes: ["product_id", "quantity"]
+            attributes: ["product_id", "quantity"],
+            transaction
         });
         const orderedProductId = orderData.map(order => order.dataValues.product_id);
         const orderedQuantity = orderData.map(order => order.dataValues.quantity);
 
         // DB에 저장된 해당 주문의 총 금액
         const amountToBePaid = await Order.sum("amount", {
-            where: { merchant_uid }
+            where: { merchant_uid },
+            transaction
         });
 
         // paymentData에 있는 amount(금액)값 비교
@@ -401,8 +440,12 @@ router.post("/iamport-webhook", asyncHandler(async (req, res) => {
                     {
                         where: { 
                             product_id: { [Op.in]: orderedProductId }
-                         }
+                        },
+                        transaction
                     });
+
+                    await transaction.commit();
+
                     res.status(201).send({ status: "vbankIssued", message: "가상계좌 발급 성공" });
                     break;
 
@@ -418,7 +461,8 @@ router.post("/iamport-webhook", asyncHandler(async (req, res) => {
                 
                     const abstractsIds = await Product.findAll({
                         where: { id: { [Op.in]: prodArr.map(e => e.id) } },
-                        include: [ProductAbstract]
+                        include: [ProductAbstract],
+                        transaction
                     });
                 
                     const abstArr = abstractsIds.map(
@@ -448,6 +492,7 @@ router.post("/iamport-webhook", asyncHandler(async (req, res) => {
                         where: {
                             id: { [Op.in]: abstObj.map(e => e.id) }
                         },
+                        transaction
                     });
                 
                     const updatedProducts = abstracts.map(
@@ -462,7 +507,10 @@ router.post("/iamport-webhook", asyncHandler(async (req, res) => {
                      }
                     );
 
-                    await ProductAbstract.bulkCreate(updatedProducts, { updateOnDuplicate: ["stock"] });
+                    await ProductAbstract.bulkCreate(updatedProducts, {
+                        updateOnDuplicate: ["stock"],
+                        transaction
+                    });
 
                     // order DB 값 업데이트 ... imp_uid 값 추가, status 값 업데이트
                     await Order.update({
@@ -472,8 +520,12 @@ router.post("/iamport-webhook", asyncHandler(async (req, res) => {
                     {
                         where: { 
                             product_id: { [Op.in]: orderedProductId }
-                         }
+                         },
+                         transaction
                     });
+
+                    await transaction.commit();
+
                     res.status(201).send({ status: "success", message: "결제가 정상적으로 완료되었습니다." });
                     break;
             }
@@ -489,8 +541,11 @@ router.post("/iamport-webhook", asyncHandler(async (req, res) => {
             {
                 where: { 
                     product_id: { [Op.in]: orderedProductId }
-                 }
+                },
+                transaction
             });
+
+            await transaction.commit();
 
             // throw { status: "forgery", message: "위조된 결제시도" };
             return res.status(403).send({ status: "forgery", message: "위조된 결제시도" });
@@ -550,6 +605,7 @@ router.post("/issue-billing", asyncHandler(async (req, res) => {
                 account_id , // TODO: account_id 추가
                 customer_uid
             });
+
             return res.status(201).send({ 
                 status: "success", 
                 message: "Billing has successfully issued",
@@ -611,17 +667,20 @@ router.post("/billing", asyncHandler(async (req, res) => {
             buyer_addr,
             buyer_postcode
         } = req.body;
+        const transaction = await models.sequelize.transaction();
 
         // 결제 정보 조회
         const orderData = await Order.findAll({
             where: { merchant_uid },
-            attributes: ["product_id", "quantity"]
+            attributes: ["product_id", "quantity"],
+            transaction
         });
         const orderedProductId = orderData.map(order => order.dataValues.product_id);
         const orderedQuantity = orderData.map(order => order.dataValues.quantity);
 
         const amountToBePaid = await Order.sum("amount", {
-            where: { merchant_uid }
+            where: { merchant_uid },
+            transaction
         });
 
         // 결제 금액 비교
@@ -661,7 +720,8 @@ router.post("/billing", asyncHandler(async (req, res) => {
             
                 const abstractsIds = await Product.findAll({
                     where: { id: { [Op.in]: prodArr.map(e => e.id) } },
-                    include: [ProductAbstract]
+                    include: [ProductAbstract],
+                    transaction
                 });
             
                 const abstArr = abstractsIds.map(
@@ -691,6 +751,7 @@ router.post("/billing", asyncHandler(async (req, res) => {
                     where: {
                         id: { [Op.in]: abstObj.map(e => e.id) }
                     },
+                    transaction
                 });
             
                 const updatedProducts = abstracts.map(
@@ -705,7 +766,10 @@ router.post("/billing", asyncHandler(async (req, res) => {
                  }
                 );
             
-                await ProductAbstract.bulkCreate(updatedProducts, { updateOnDuplicate: ["stock"] });
+                await ProductAbstract.bulkCreate(updatedProducts, {
+                    updateOnDuplicate: ["stock"],
+                    transaction
+                });
 
                 // order DB 값 업데이트 ... imp_uid 값 추가, status 값 업데이트
                 await Order.update({
@@ -715,8 +779,11 @@ router.post("/billing", asyncHandler(async (req, res) => {
                 {
                     where: { 
                         product_id: { [Op.in]: orderedProductId }
-                     }
+                    },
+                    transaction
                 });
+
+                await transaction.commit();
                 
                 return res.status(201).send({ status: "success", message });
             }
@@ -731,8 +798,11 @@ router.post("/billing", asyncHandler(async (req, res) => {
                 {
                     where: { 
                         product_id: { [Op.in]: orderedProductId }
-                     }
+                    },
+                    transaction
                 });
+
+                await transaction.commit();
 
                 return res.status(403).send({ status: "failed", message });
             }
@@ -748,8 +818,11 @@ router.post("/billing", asyncHandler(async (req, res) => {
             {
                 where: { 
                     product_id: { [Op.in]: orderedProductId }
-                 }
+                },
+                transaction
             });
+
+            await transaction.commit();
 
             return res.status(403).send({ status: "forgery", message: "위조된 결제시도" });
         }
@@ -766,6 +839,7 @@ router.post("/refund", asyncHandler(async (req, res) => {
             amount, // 환불 금액
             reason, // 환불 사유
         } = req.body;
+        const transaction = await models.sequelize.transaction();
 
         // 아임포트 인증 토큰 발급
         const getToken = await axios({
@@ -787,7 +861,8 @@ router.post("/refund", asyncHandler(async (req, res) => {
             where: {
                 order_id: { [Op.in]: orders },
                 merchant_uid
-             }
+            },
+            transaction
         });
         const { imp_uid } = wouldBeRefundedOrder[0].dataValues;
         const refundedProductId = wouldBeRefundedOrder.map(order => order.dataValues.id);
@@ -796,13 +871,16 @@ router.post("/refund", asyncHandler(async (req, res) => {
         const cancelableAmount = await Order.sum("amount", {
             where: { 
                 order_id: { [Op.in]: orders }
-             }
+            },
+            transaction
         });
 
         // checksum 파라미터 관련 로직
         // cancelableAmount = db에서 가져온 금액 - amount
         // cancelableAmount < 0 => message: "이미 전액 환불된 주문입니다."
         if(cancelableAmount <= 0) {
+            await transaction.commit();
+
             res.status(201).send({status: "amount over", message: "이미 전액환불된 주문입니다."});
         }
 
@@ -841,7 +919,8 @@ router.post("/refund", asyncHandler(async (req, res) => {
         
             const abstractsIds = await Product.findAll({
                 where: { id: { [Op.in]: prodArr.map(e => e.id) } },
-                include: [ProductAbstract]
+                include: [ProductAbstract],
+                transaction
             });
         
             const abstArr = abstractsIds.map(
@@ -871,6 +950,7 @@ router.post("/refund", asyncHandler(async (req, res) => {
                 where: {
                     id: { [Op.in]: abstObj.map(e => e.id) }
                 },
+                transaction
             });
         
             const updatedProducts = abstracts.map(
@@ -885,7 +965,10 @@ router.post("/refund", asyncHandler(async (req, res) => {
              }
             );
         
-            await ProductAbstract.bulkCreate(updatedProducts, { updateOnDuplicate: ["stock"] });
+            await ProductAbstract.bulkCreate(updatedProducts, {
+                updateOnDuplicate: ["stock"],
+                transaction
+            });
 
             // order DB 값 업데이트 ... 금액 변경, status 처리
             await Order.update(
@@ -896,15 +979,20 @@ router.post("/refund", asyncHandler(async (req, res) => {
                 {
                     where: {
                         id: { [Op.in]: orders }
-                    }
+                    },
+                    transaction
                 }
             );
+
+            await transaction.commit();
 
             return res.status(201).send({ stauts: "success", message: "환불이 정상적으로 처리되었습니다." });
         }
 
         else {
             // 환불 실패
+            await transaction.commit();
+            
             return res.status(403).send({ stauts: "success", message: "환불 실패" });
         }
 
