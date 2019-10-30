@@ -16,10 +16,14 @@ const { Op } = Sequelize;
 const REST_API_KEY = process.env.IMPORT_REST_API_KEY;
 const REST_API_SECRET = process.env.IMPORT_REST_SECRET;
 
+const SENS_API_V2_URL = process.env.SENS_API_V2_URL + process.env.SENS_API_V2_URI;
+const SENS_ACCESS_KEY = process.env.SENS_ACCESS_KEY;
+const SENS_SENDER = process.env.SENS_SENDER;
+
 /************ 일반 결제 ************/
 
 // request_pay 메서드에서 결제 요청 성공 후 거래 검증 및 데이터 동기화
-// TODO: 계정 일치여부 확인 로직? -> token
+// TODO: 계정 일치여부 확인 로직?
 router.post("/complete", asyncHandler(async (req, res) => {
         const { imp_uid, merchant_uid } = req.body;
         const transaction = await models.sequelize.transaction();
@@ -170,6 +174,28 @@ router.post("/complete", asyncHandler(async (req, res) => {
                     });
 
                     await transaction.commit();
+
+                    // 결제 완료 문자 전송
+                    const timestamp = new Date().getTime().toString();
+
+                    await axios({
+                        url: SENS_API_V2_URL,
+                        method: "post",
+                        headers: {
+                            "Content-Type": "application/json; charset=utf-8",
+                            "x-ncp-apigw-timestamp": timestamp,
+                            "x-ncp-iam-access-key": SENS_ACCESS_KEY,
+                            "x-ncp-apigw-signature-v2": makeSignature(timestamp)
+                        },
+                        data: {
+                            type: "SMS",
+                            from: SENS_SENDER,
+                            content: `"${"베어링"}"상품 결제 및 주문이 완료되었습니다.`,
+                            messages: [{
+                                to: "01024569959"
+                            }]
+                        }
+                    });
 
                     res.status(201).send({ status: "success", message: "결제가 정상적으로 완료되었습니다." });
                     break;
@@ -827,6 +853,7 @@ router.post("/billing", asyncHandler(async (req, res) => {
 /************ 주문 취소(환불) ************/
 // TODO: 상품 개별로 가능 - using order_id 
 // TODO: 전체 환불도 가능
+// TODO: 결제 취소 후 SMS 발송
 router.post("/refund", asyncHandler(async (req, res) => {
         const { 
             orders, // order ids in array
@@ -980,6 +1007,28 @@ router.post("/refund", asyncHandler(async (req, res) => {
             );
 
             await transaction.commit();
+
+            // 환불 완료 문자 전송
+            const timestamp = new Date().getTime().toString();
+
+            await axios({
+                url: SENS_API_V2_URL,
+                method: "post",
+                headers: {
+                    "Content-Type": "application/json; charset=utf-8",
+                    "x-ncp-apigw-timestamp": timestamp,
+                    "x-ncp-iam-access-key": SENS_ACCESS_KEY,
+                    "x-ncp-apigw-signature-v2": makeSignature(timestamp)
+                },
+                data: {
+                    type: "SMS",
+                    from: SENS_SENDER,
+                    content: `"${"베어링"}"상품 결제 취소가 정상적으로 처리되었습니다.`,
+                    messages: [{
+                        to: "01024569959"
+                    }]
+                }
+            });
 
             return res.status(201).send({ stauts: "success", message: "환불이 정상적으로 처리되었습니다." });
         }
