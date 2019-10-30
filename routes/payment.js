@@ -20,6 +20,8 @@ const SENS_API_V2_URL = process.env.SENS_API_V2_URL + process.env.SENS_API_V2_UR
 const SENS_ACCESS_KEY = process.env.SENS_ACCESS_KEY;
 const SENS_SENDER = process.env.SENS_SENDER;
 
+const DEV_SECRET = process.env.DEV_SECRET;
+
 /************ 일반 결제 ************/
 
 // request_pay 메서드에서 결제 요청 성공 후 거래 검증 및 데이터 동기화
@@ -96,7 +98,6 @@ router.post("/complete", asyncHandler(async (req, res) => {
                 case "paid":
                     // 결제 완료
                     // product DB 값 업데이트 ... 재고 업데이트
-                    // TODO: webhook이 호출 됐을 시 재고 처리가 두 번 동작되는지 체크
 
                     // product_id 와 수량 묶어줌
                     const prodArr = orderedProductId.map((p, idx) => ({
@@ -588,6 +589,7 @@ router.post("/issue-billing", asyncHandler(async (req, res) => {
             pwd_2digit, // 카드 비밀번호 앞 두자리,
         } = req.body;
 
+        // // TODO: account 정보 추가 - token
         const account_id = "";
         const account_phone = "";
         const card_num_4digit = card_number.slice(0, 4);
@@ -626,7 +628,7 @@ router.post("/issue-billing", asyncHandler(async (req, res) => {
             // 빌링키 발급 성공
             // 빌링키를 사용할 때 필요한 customer_uid 값을 유저의 계정과 1:1(혹은 1:N)관계를 맺는 DB에 저장
             await CardInfo.create({
-                account_id , // TODO: account_id 추가
+                account_id,
                 customer_uid
             });
 
@@ -692,6 +694,18 @@ router.post("/billing", asyncHandler(async (req, res) => {
         } = req.body;
         const transaction = await models.sequelize.transaction();
 
+        const getToken = await axios({
+            url: "https://api.iamport.kr/users/getToken",
+            method: "post",
+            headers: { "Content-Type": "application/json" },
+            data: {
+              imp_key: REST_API_KEY, 
+              imp_secret: REST_API_SECRET 
+            }
+        });
+    
+        const { access_token } = getToken.data.response;
+
         // 결제 정보 조회
         const orderData = await Order.findAll({
             where: { merchant_uid },
@@ -714,7 +728,7 @@ router.post("/billing", asyncHandler(async (req, res) => {
             const payWithBilling = await axios({
                 url: `https://api.iamport.kr/subscribe/payments/again`,
                 method: "post",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Authorization": access_token },
                 data: {
                     customer_uid,
                     merchant_uid,
