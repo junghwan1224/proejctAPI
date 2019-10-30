@@ -162,7 +162,12 @@ router.get("/read", function(req, res, next) {
         attributes: PRODUCT_ABSTRACT_ATTRIBUTES
       }
     ],
-    order: [["brand", "ASC"], ["model", "ASC"]]
+    order: [
+      ["brand", "ASC"],
+      ["model", "ASC"],
+      ["oe_number", "ASC"],
+      ["price", "DESC"]
+    ]
   })
     .then(product => {
       res.status(200).send(product);
