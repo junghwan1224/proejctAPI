@@ -4,7 +4,6 @@ const axios = require("axios");
 const asyncHandler = require('express-async-handler');
 const Sequelize = require("sequelize");
 
-// 모델 정보를 migrations에서 아니면 models에서?
 const Order = require("../models").order;
 const Account = require("../models").account;
 const Address = require("../models").address;
@@ -17,13 +16,10 @@ const { Op } = Sequelize;
 const REST_API_KEY = process.env.IMPORT_REST_API_KEY;
 const REST_API_SECRET = process.env.IMPORT_REST_SECRET;
 
-// TODO: https://api.iamport.kr CORS
-// TODO: proxy 설정 후 이에 맞게 ajax url 변경
-
 /************ 일반 결제 ************/
 
 // request_pay 메서드에서 결제 요청 성공 후 거래 검증 및 데이터 동기화
-// TODO: 계정 일치여부 확인 로직?
+// TODO: 계정 일치여부 확인 로직? -> token
 router.post("/complete", asyncHandler(async (req, res) => {
         const { imp_uid, merchant_uid } = req.body;
         const transaction = await models.sequelize.transaction();
@@ -654,7 +650,6 @@ router.delete("/delete-billing", asyncHandler(async (req, res) => {
 }));
 
 // 저장된 카드 정보로 결제하기
-// TODO: webhook?
 router.post("/billing", asyncHandler(async (req, res) => {
         const {
             customer_uid, // TODO: 서버단에서 생성?
@@ -992,7 +987,7 @@ router.post("/refund", asyncHandler(async (req, res) => {
         else {
             // 환불 실패
             await transaction.commit();
-            
+
             return res.status(403).send({ stauts: "success", message: "환불 실패" });
         }
 
