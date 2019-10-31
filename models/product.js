@@ -1,5 +1,4 @@
 "use strict";
-const uuid = require("uuid/v4");
 module.exports = (sequelize, DataTypes) => {
   const product = sequelize.define(
     "product",
@@ -17,15 +16,7 @@ module.exports = (sequelize, DataTypes) => {
       description: DataTypes.STRING, // 제품 설명 URL 이미지
       quality_cert: DataTypes.STRING //  품질인증 e.g. KAPA (한국자동차부품협회)
     },
-    {
-      hooks: {
-        beforeCreate: (account, options) => {
-          {
-            account.id = uuid();
-          }
-        }
-      }
-    }
+    {}
   );
   product.associate = function(models) {
     // associations can be defined here

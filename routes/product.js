@@ -24,8 +24,7 @@ const PRODUCT_ATTRIBUTES = [
   "end_year",
   "engine",
   "description",
-  "quality_cert",
-  "id"
+  "quality_cert"
 ];
 
 router.get("/", function(req, res, next) {
