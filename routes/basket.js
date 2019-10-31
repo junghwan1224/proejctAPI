@@ -8,7 +8,7 @@ const Basket = require("../models").basket;
 
 // TODO: account_id 값 추후 변경
 router.get(
-  "/list",
+  "/read",
   asyncHandler(async (req, res) => {
     const account_id = req.query.account_id;
 
@@ -22,18 +22,19 @@ router.get(
           model: Product,
           required: true,
           attributes: [
-            "id",
-            "oe_number",
+            "price",
+            "discount_rate",
             "brand",
             "model",
+            "oe_number",
             "start_year",
             "end_year",
-            "engine"
+            "id"
           ],
           include: [
             {
               model: ProductAbstract,
-              attributes: ["price", "discount_rate", "image", "maker", "type"]
+              attributes: ["image", "maker", "maker_number", "stock", "type"]
             }
           ]
         }
@@ -52,11 +53,11 @@ router.get(
       item["start_year"] = raw_item.product.start_year;
       item["end_year"] = raw_item.product.end_year;
       item["engine"] = raw_item.product.engine;
-      item["price"] = raw_item.product.product_abstract.price;
-      item["discount_rate"] = raw_item.product.product_abstract.discount_rate;
+      item["price"] = raw_item.product.price;
+      item["discount_rate"] = raw_item.product.discount_rate;
       item["image"] = raw_item.product.product_abstract.image;
       item["maker"] = raw_item.product.product_abstract.maker;
-      item["description"] = raw_item.product.product_abstract.type;
+      item["type"] = raw_item.product.product_abstract.type;
       basket_items.push(item);
     }
 
