@@ -11,7 +11,8 @@ const PRODUCT_ABSTRACT_ATTRIBUTES = [
   "maker",
   "maker_number",
   "stock",
-  "type"
+  "type",
+  "id"
 ];
 
 const PRODUCT_ATTRIBUTES = [
