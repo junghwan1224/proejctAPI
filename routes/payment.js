@@ -682,7 +682,7 @@ router.delete("/delete-billing", asyncHandler(async (req, res) => {
 // 저장된 카드 정보로 결제하기
 router.post("/billing", asyncHandler(async (req, res) => {
         const {
-            customer_uid, // TODO: 서버단에서 생성?
+            customer_uid,
             // product_id,
             name,
             amount,
@@ -858,7 +858,7 @@ router.post("/billing", asyncHandler(async (req, res) => {
                 return res.status(403).send({ status: "failed", message });
             }
         }
-        
+
         else {
             // 결제 금액 불일치
 
@@ -882,13 +882,11 @@ router.post("/billing", asyncHandler(async (req, res) => {
 }));
 
 /************ 주문 취소(환불) ************/
-// TODO: 상품 개별로 가능 - using order_id 
-// TODO: 전체 환불도 가능
 router.post("/refund", asyncHandler(async (req, res) => {
         const { 
             orders, // order ids in array
             merchant_uid,
-            // amount, // 환불 금액
+            amount, // 환불 금액 -> 클라이언트에서 합산 후 요청
             reason, // 환불 사유
         } = req.body;
         const transaction = await models.sequelize.transaction();
@@ -906,7 +904,6 @@ router.post("/refund", asyncHandler(async (req, res) => {
 
         const { access_token } = getToken.data.response;
 
-        // TODO: 단일 상품, 복수 상품 조회시 어떻게 분리?
         // merchant_uid 값을 통해 결제 내역 조회
         // imp_uid 추출
         const wouldBeRefundedOrder = await Order.findAll({
@@ -928,12 +925,12 @@ router.post("/refund", asyncHandler(async (req, res) => {
         });
 
         // checksum 파라미터 관련 로직
-        // cancelableAmount = db에서 가져온 금액 - amount
-        // cancelableAmount < 0 => message: "이미 전액 환불된 주문입니다."
-        if(cancelableAmount <= 0) {
+        // cancelableAmount = db에서 가져온 금액
+        // cancelableAmount - amount <= 0 => message: "이미 전액 환불된 주문입니다."
+        if(cancelableAmount - amount <= 0) {
             await transaction.commit();
 
-            res.status(201).send({status: "amount over", message: "이미 전액환불된 주문입니다."});
+            return res.status(201).send({status: "amount over", message: "이미 전액환불된 주문입니다."});
         }
 
         // 아임포트 REST API로 환불 요청
@@ -949,7 +946,7 @@ router.post("/refund", asyncHandler(async (req, res) => {
                 imp_uid,
                 merchant_uid,
                 reason,
-                amount: cancelableAmount,
+                amount,
                 checksum: cancelableAmount
             }
         });
@@ -1012,7 +1009,7 @@ router.post("/refund", asyncHandler(async (req, res) => {
         
             updatedProducts.forEach(
              (product, idx) => {
-                 product.stock -= mapToArr[idx].quantity;
+                 product.stock += mapToArr[idx].quantity;
              }
             );
         
@@ -1022,9 +1019,11 @@ router.post("/refund", asyncHandler(async (req, res) => {
             });
 
             // order DB 값 업데이트 ... 금액 변경, status 처리
+            // TO THINK: amount는 0으로 바꿔야 하나?
+            // TO THINK: amount 업데이트 없이 checksum 값 구하고 요청 받아온 amount 빼서 처리
             await Order.update(
                 {
-                    amount: 0,
+                    // amount: 0,
                     status: "refunded"
                 },
                 {
