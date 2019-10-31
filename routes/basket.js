@@ -8,7 +8,7 @@ const Basket = require("../models").basket;
 
 // TODO: account_id 값 추후 변경
 router.get(
-  "/list",
+  "/read",
   asyncHandler(async (req, res) => {
     const account_id = req.query.account_id;
 
