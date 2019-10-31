@@ -25,9 +25,6 @@ const DEV_SECRET = process.env.DEV_SECRET;
 /************ 일반 결제 ************/
 
 // request_pay 메서드에서 결제 요청 성공 후 거래 검증 및 데이터 동기화
-// TODO: 계정 일치여부 확인 로직? jwt를 이용한 요청 검증? -> 유저 연락처 get
-// TODO: 결제 완료 시, 영수증 바로 얻을 수 있게
-
 router.post("/complete", asyncHandler(async (req, res) => {
         const { imp_uid, merchant_uid } = req.body;
         const transaction = await models.sequelize.transaction();
