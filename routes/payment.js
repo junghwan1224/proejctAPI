@@ -173,10 +173,19 @@ router.post("/complete", asyncHandler(async (req, res) => {
                         transaction
                     });
 
-                    await transaction.commit();
-
                     // 결제 완료 문자 전송
                     const timestamp = new Date().getTime().toString();
+                    const products = await Product.findAll({
+                        where: { id: { [Op.in]: orderedProductId } },
+                        transaction
+                    });
+                    const productOEN = products.map( p => p.dataValues.oe_number);
+                    const smsText = `
+                        ${productOEN.length > 1 ? `${productOEN[0]}외 ${productOEN.length - 1}개` : productOEN[0]} 상품의 결제가
+                        완료되었습니다.
+                    `;
+
+                    await transaction.commit();
 
                     await axios({
                         url: SENS_API_V2_URL,
@@ -190,7 +199,7 @@ router.post("/complete", asyncHandler(async (req, res) => {
                         data: {
                             type: "SMS",
                             from: SENS_SENDER,
-                            content: `"${"베어링"}"상품 결제 및 주문이 완료되었습니다.`,
+                            content: smsText,
                             messages: [{
                                 to: "01024569959"
                             }]
@@ -911,7 +920,7 @@ router.post("/refund", asyncHandler(async (req, res) => {
             transaction
         });
         const { imp_uid } = wouldBeRefundedOrder[0].dataValues;
-        const refundedProductId = wouldBeRefundedOrder.map(order => order.dataValues.id);
+        const refundedProductId = wouldBeRefundedOrder.map(order => order.dataValues.product_id);
         const refundedQuantity = wouldBeRefundedOrder.map(order => order.dataValues.quantity);
 
         const cancelableAmount = await Order.sum("amount", {
@@ -1031,10 +1040,20 @@ router.post("/refund", asyncHandler(async (req, res) => {
                 }
             );
 
-            await transaction.commit();
-
             // 환불 완료 문자 전송
             const timestamp = new Date().getTime().toString();
+
+            const products = await Product.findAll({
+                where: { id: { [Op.in]: refundedProductId } },
+                transaction
+            });
+            const productOEN = products.map( p => p.dataValues.oe_number);
+            const smsText = `
+                ${productOEN.length > 1 ? `${productOEN[0]}외 ${productOEN.length - 1}개` : productOEN[0]} 상품 주문이
+                취소되었습니다.
+            `;
+
+            await transaction.commit();
 
             await axios({
                 url: SENS_API_V2_URL,
@@ -1048,7 +1067,7 @@ router.post("/refund", asyncHandler(async (req, res) => {
                 data: {
                     type: "SMS",
                     from: SENS_SENDER,
-                    content: `"${"베어링"}"상품 결제 취소가 정상적으로 처리되었습니다.`,
+                    content: smsText,
                     messages: [{
                         to: "01024569959"
                     }]
