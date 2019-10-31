@@ -952,7 +952,7 @@ router.post("/refund", asyncHandler(async (req, res) => {
         });
 
         // 환불 결과
-        const { code, response } = cancelPayment.data;
+        const { code } = cancelPayment.data;
 
         if(code === 0) {
             // 환불 성공인 경우
@@ -1061,7 +1061,7 @@ router.post("/refund", asyncHandler(async (req, res) => {
             return res.status(201).send({
                 stauts: "success",
                 message: "환불이 정상적으로 처리되었습니다.",
-                receipt_url: response.receipt_url
+                receipt_url: cancelPayment.data.response.receipt_url
             });
         }
 
@@ -1072,6 +1072,62 @@ router.post("/refund", asyncHandler(async (req, res) => {
             return res.status(403).send({ stauts: "success", message: "환불 실패" });
         }
 
+}));
+
+router.post("/issue-receipt", asyncHandler(async (req, res) => {
+    const {
+        order_id,
+        identifier,
+        identifier_type, // 현금영수증 발행대상 식별정보 유형
+        // person - 주민등록번호 / business - 사업자등록번호 / phone - 연락처 / taxcard - 국세청 현금영수증카드
+        type,
+    } = req.body;
+
+    const getToken = await axios({
+        url: "https://api.iamport.kr/users/getToken",
+        method: "post",
+        headers: { "Content-Type": "application/json" },
+        data: {
+          imp_key: REST_API_KEY, 
+          imp_secret: REST_API_SECRET
+        }
+    });
+
+    const { access_token } = getToken.data.response;
+
+    // user verify and get user info - crn, phone, username
+
+    const order = await Order.findOne({
+        where: { id: order_id }
+    });
+    const { imp_uid } = order.dataValues;
+
+    const getReceipt = await axios({
+        url: `https://api.iamport.kr/receipts/${imp_uid}`,
+        method: "post",
+        headers: { "Authorization": access_token },
+        data: {
+            imp_uid,
+            identifier,
+            identifier_type,
+            type,
+            buyer_name: "",
+            buyer_tel: ""
+        }
+    });
+    const { code } = getReceipt.data;
+
+    if(code === 0) {
+        return res.status(201).send({
+            status: "success",
+            message: "영수증 발급이 완료되었습니다.",
+            receipt_url: getReceipt.data.response.receipt_url
+        });
+    }
+
+    else {
+        return res.status(403).send({ status: "failed", message: "영수증 발급 도중 에러가 발생했습니다. 다시 시도해주세요." });
+    }
 }));
 
 module.exports = router;
