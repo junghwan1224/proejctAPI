@@ -52,7 +52,7 @@ router.post("/login", function(req, res, next) {
       // If hashed password === stored password:
       if (bcrypt.compareSync(req.body.password, account.dataValues.password)) {
         // create JWT and send data.
-        let token = jwt.sign({ uuid: req.query.uuid }, DEV_SECRET, {
+        let token = jwt.sign({ id: account.id }, DEV_SECRET, {
           expiresIn: "9999h"
         });
         res.cookie("user", token);
