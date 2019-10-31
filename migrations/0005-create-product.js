@@ -4,9 +4,9 @@ module.exports = {
     return queryInterface.createTable("products", {
       id: {
         allowNull: false,
+        autoIncrement: true,
         primaryKey: true,
-        defaultValue: () => uuid(),
-        type: Sequelize.UUID
+        type: Sequelize.INTEGER
       },
       abstract_id: {
         type: Sequelize.UUID,
