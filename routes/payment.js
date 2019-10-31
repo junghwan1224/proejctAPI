@@ -3,6 +3,7 @@ const router = express.Router();
 const axios = require("axios");
 const asyncHandler = require('express-async-handler');
 const Sequelize = require("sequelize");
+const jwt = require("jsonwebtoken");
 
 const Order = require("../models").order;
 const Account = require("../models").account;
@@ -595,9 +596,25 @@ router.post("/issue-billing", asyncHandler(async (req, res) => {
             pwd_2digit, // 카드 비밀번호 앞 두자리,
         } = req.body;
 
-        // // TODO: account 정보 추가 - token
-        const account_id = "";
-        const account_phone = "";
+        const token = req.headers.authorization;
+        const decoded = jwt.verify(token, DEV_SECRET);
+        let user;
+
+        if(decoded) {
+            user = await Account.findOne({
+                where: { id: decoded.id }
+            });
+        }
+
+        else {
+            return res.status(403).send({
+                status: "verify failed",
+                message: "유효한 유저의 정보가 아닙니다."
+            });
+        }
+
+        const account_id = decoded.id;
+        const account_phone = user.dataValues.phone;
         const card_num_4digit = card_number.slice(0, 4);
         const customer_uid = `HERMES_${account_phone}_${card_num_4digit}`; // 카드(빌링키)와 1:1로 대응하는 값
 
