@@ -157,7 +157,7 @@ router.post("/issue-certify-num", asyncHandler(async(req, res) => {
   // SMS 전송
   const timestamp = new Date().getTime().toString();
 
-  await axios({
+  const sms = await axios({
       url: SENS_API_V2_URL,
       method: "post",
       headers: {
@@ -176,7 +176,15 @@ router.post("/issue-certify-num", asyncHandler(async(req, res) => {
       }
   });
 
-  res.status(201).send({ message: "인증번호가 발송되었습니다." });
+  // 문자 전송 성공
+  if(sms.data.statusCode === "202") {
+    res.status(201).send({ message: "인증번호가 발송되었습니다." });
+  }
+  // 문자 전송 실패
+  else {
+    res.status(403).send({ message: "인증번호 발송 중 에러가 발생했습니다. 다시 시도해주세요." });
+  }
+
 }));
 
 router.post("/certify", asyncHandler(async(req, res) => {
