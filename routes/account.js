@@ -53,7 +53,7 @@ router.post("/login", function(req, res, next) {
       if (bcrypt.compareSync(req.body.password, account.dataValues.password)) {
         // create JWT and send data.
         let token = jwt.sign({ id: account.id }, DEV_SECRET, {
-          expiresIn: "9999h"
+          expiresIn: "15 days"
         });
         res.cookie("user", token);
         res.status(200).send({
