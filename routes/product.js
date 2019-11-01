@@ -11,7 +11,8 @@ const PRODUCT_ABSTRACT_ATTRIBUTES = [
   "maker",
   "maker_number",
   "stock",
-  "type"
+  "type",
+  "id"
 ];
 
 const PRODUCT_ATTRIBUTES = [
@@ -24,7 +25,8 @@ const PRODUCT_ATTRIBUTES = [
   "end_year",
   "engine",
   "description",
-  "quality_cert"
+  "quality_cert",
+  "id"
 ];
 
 router.get("/", function(req, res, next) {
