@@ -12,6 +12,10 @@ const Product = require("../models").product;
 const ProductAbstract = require("../models").product_abstract;
 const CardInfo = require("../models").card_info;
 const models = require("../models");
+
+const makeSignature = require("../public/js/signature");
+const verifyJWT = require("../public/js/verifyJWT");
+
 const { Op } = Sequelize;
 
 const REST_API_KEY = process.env.IMPORT_REST_API_KEY;
@@ -21,7 +25,6 @@ const SENS_API_V2_URL = process.env.SENS_API_V2_URL + process.env.SENS_API_V2_UR
 const SENS_ACCESS_KEY = process.env.SENS_ACCESS_KEY;
 const SENS_SENDER = process.env.SENS_SENDER;
 
-const DEV_SECRET = process.env.DEV_SECRET;
 
 /************ 일반 결제 ************/
 
@@ -29,6 +32,22 @@ const DEV_SECRET = process.env.DEV_SECRET;
 router.post("/complete", asyncHandler(async (req, res) => {
         const { imp_uid, merchant_uid } = req.body;
         const transaction = await models.sequelize.transaction();
+
+        const uuid = verifyJWT(req, res);
+        let user;
+
+        if(uuid) {
+            user = await Account.findOne({
+                where: { id: uuid },
+                transaction
+            });
+        }
+        else {
+            return res.status(403).send({
+                status: "jwt verify failed",
+                message: "유효한 유저의 정보가 아닙니다. 다시 로그인해주세요."
+            });
+        }
 
         // 아임포트 인증 토큰 발급
         const getToken = await axios({
@@ -202,7 +221,7 @@ router.post("/complete", asyncHandler(async (req, res) => {
                             from: SENS_SENDER,
                             content: smsText,
                             messages: [{
-                                to: "01024569959"
+                                to: user.dataValues.phone
                             }]
                         }
                     });
@@ -234,7 +253,6 @@ router.post("/complete", asyncHandler(async (req, res) => {
 // 결제 요청 전, 요청할 주문 데이터 미리 저장 - 아임포트 서버에서 가져온 결제 정보와 비교하기 위함
 router.post("/save-order", asyncHandler(async (req, res) => {
     const { 
-        account_uuid,
         merchant_uid,
         products,
         pay_method,
@@ -250,12 +268,25 @@ router.post("/save-order", asyncHandler(async (req, res) => {
 
      const transaction = await models.sequelize.transaction();
 
-     const account = await Account.findOne({
-         where: { uuid: account_uuid },
-         transaction
-     });
-     const account_id = account.dataValues.id;
-     const { email } = account.dataValues;
+    const account_id = verifyJWT(req, res);
+
+    const uuid = verifyJWT(req, res);
+    let user;
+
+    if(uuid) {
+        user = await Account.findOne({
+            where: { id: uuid },
+            transaction
+        });
+    }
+    else {
+        return res.status(403).send({
+            status: "jwt verify failed",
+            message: "유효한 유저의 정보가 아닙니다. 다시 로그인해주세요."
+        });
+    }
+
+    const { email } = user.dataValues;
 
     // check stock of product
     const productsIdArr = products.split(",").map(p => parseInt(p));
@@ -414,6 +445,7 @@ router.post("/save-order", asyncHandler(async (req, res) => {
 }));
 
 // iamport webhook
+// TODO: webhook 호출 시 SMS?
 router.post("/iamport-webhook", asyncHandler(async (req, res) => {
         const { imp_uid, merchant_uid } = req.body;
         const transaction = await models.sequelize.transaction();
@@ -595,28 +627,28 @@ router.post("/issue-billing", asyncHandler(async (req, res) => {
             birth, // 생년월일
             pwd_2digit, // 카드 비밀번호 앞 두자리,
         } = req.body;
+        const transaction = await models.sequelize.transaction();
 
-        const token = req.headers.authorization;
-        const decoded = jwt.verify(token, DEV_SECRET);
+        const uuid = verifyJWT(req, res);
         let user;
 
-        if(decoded) {
+        if(uuid) {
             user = await Account.findOne({
-                where: { id: decoded.id }
+                where: { id: uuid },
+                transaction
             });
         }
-
         else {
             return res.status(403).send({
-                status: "verify failed",
-                message: "유효한 유저의 정보가 아닙니다."
+                status: "jwt verify failed",
+                message: "유효한 유저의 정보가 아닙니다. 다시 로그인해주세요."
             });
         }
 
-        const account_id = decoded.id;
+        const account_id = uuid;
         const account_phone = user.dataValues.phone;
         const card_num_4digit = card_number.slice(0, 4);
-        const customer_uid = `HERMES_${account_phone}_${card_num_4digit}`; // 카드(빌링키)와 1:1로 대응하는 값
+        const customer_uid = `HERMES_BILLING_KEY_${account_phone}_${card_num_4digit}`; // 카드(빌링키)와 1:1로 대응하는 값
 
         // 아임포트 인증 토큰 발급
         const getToken = await axios({
@@ -653,6 +685,8 @@ router.post("/issue-billing", asyncHandler(async (req, res) => {
             await CardInfo.create({
                 account_id,
                 customer_uid
+            }, {
+                transaction
             });
 
             return res.status(201).send({ 
@@ -669,6 +703,18 @@ router.post("/issue-billing", asyncHandler(async (req, res) => {
 
 router.delete("/delete-billing", asyncHandler(async (req, res) => {
     const { customer_uid } = req.body;
+
+    const uuid = verifyJWT(req, res);
+    let user;
+
+    if(uuid) {
+    }
+    else {
+        return res.status(403).send({
+            status: "jwt verify failed",
+            message: "유효한 유저의 정보가 아닙니다. 다시 로그인해주세요."
+        });
+    }
 
     const getToken = await axios({
         url: "https://api.iamport.kr/users/getToken",
@@ -706,6 +752,7 @@ router.delete("/delete-billing", asyncHandler(async (req, res) => {
 router.post("/billing", asyncHandler(async (req, res) => {
         const {
             customer_uid,
+            merchant_uid,
             // product_id,
             name,
             amount,
@@ -716,6 +763,22 @@ router.post("/billing", asyncHandler(async (req, res) => {
             buyer_postcode
         } = req.body;
         const transaction = await models.sequelize.transaction();
+
+        const uuid = verifyJWT(req, res);
+        let user;
+
+        if(uuid) {
+            user = await Account.findOne({
+                where: { id: uuid },
+                transaction
+            });
+        }
+        else {
+            return res.status(403).send({
+                status: "jwt verify failed",
+                message: "유효한 유저의 정보가 아닙니다. 다시 로그인해주세요."
+            });
+        }
 
         const getToken = await axios({
             url: "https://api.iamport.kr/users/getToken",
@@ -845,7 +908,38 @@ router.post("/billing", asyncHandler(async (req, res) => {
                         transaction
                     });
 
+                    // 결제 완료 문자 전송
+                    const timestamp = new Date().getTime().toString();
+                    const products = await Product.findAll({
+                        where: { id: { [Op.in]: orderedProductId } },
+                        transaction
+                    });
+                    const productOEN = products.map( p => p.dataValues.oe_number);
+                    const smsText = `
+                        ${productOEN.length > 1 ? `${productOEN[0]}외 ${productOEN.length - 1}개` : productOEN[0]} 상품의 결제가
+                        완료되었습니다.
+                    `;
+
                     await transaction.commit();
+
+                    await axios({
+                        url: SENS_API_V2_URL,
+                        method: "post",
+                        headers: {
+                            "Content-Type": "application/json; charset=utf-8",
+                            "x-ncp-apigw-timestamp": timestamp,
+                            "x-ncp-iam-access-key": SENS_ACCESS_KEY,
+                            "x-ncp-apigw-signature-v2": makeSignature(timestamp)
+                        },
+                        data: {
+                            type: "SMS",
+                            from: SENS_SENDER,
+                            content: smsText,
+                            messages: [{
+                                to: user.dataValues.phone
+                            }]
+                        }
+                    });
                     
                     return res.status(201).send({ status: "success", message });
                 }
@@ -913,6 +1007,22 @@ router.post("/refund", asyncHandler(async (req, res) => {
             reason, // 환불 사유
         } = req.body;
         const transaction = await models.sequelize.transaction();
+
+        const uuid = verifyJWT(req, res);
+        let user;
+
+        if(uuid) {
+            user = await Account.findOne({
+                where: { id: uuid },
+                transaction
+            });
+        }
+        else {
+            return res.status(403).send({
+                status: "jwt verify failed",
+                message: "유효한 유저의 정보가 아닙니다. 다시 로그인해주세요."
+            });
+        }
 
         // 아임포트 인증 토큰 발급
         const getToken = await axios({
@@ -1086,7 +1196,7 @@ router.post("/refund", asyncHandler(async (req, res) => {
                     from: SENS_SENDER,
                     content: smsText,
                     messages: [{
-                        to: "01024569959"
+                        to: user.dataValues.phone
                     }]
                 }
             });
@@ -1115,6 +1225,23 @@ router.post("/issue-receipt", asyncHandler(async (req, res) => {
         // person - 주민등록번호 / business - 사업자등록번호 / phone - 연락처 / taxcard - 국세청 현금영수증카드
         type,
     } = req.body;
+    const transaction = await models.sequelize.transaction();
+
+    const uuid = verifyJWT(req, res);
+    let user;
+
+    if(uuid) {
+        user = await Account.findOne({
+            where: { id: uuid },
+            transaction
+        });
+    }
+    else {
+        return res.status(403).send({
+            status: "jwt verify failed",
+            message: "유효한 유저의 정보가 아닙니다. 다시 로그인해주세요."
+        });
+    }
 
     const getToken = await axios({
         url: "https://api.iamport.kr/users/getToken",
@@ -1128,10 +1255,9 @@ router.post("/issue-receipt", asyncHandler(async (req, res) => {
 
     const { access_token } = getToken.data.response;
 
-    // user verify and get user info - crn, phone, username
-
     const order = await Order.findOne({
-        where: { id: order_id }
+        where: { id: order_id },
+        transaction
     });
     const { imp_uid } = order.dataValues;
 
@@ -1144,13 +1270,15 @@ router.post("/issue-receipt", asyncHandler(async (req, res) => {
             identifier,
             identifier_type,
             type,
-            buyer_name: "",
-            buyer_tel: ""
+            buyer_name: user.dataValues.name,
+            buyer_tel: user.dataValues.phone
         }
     });
     const { code } = getReceipt.data;
 
     if(code === 0) {
+        await transaction.commit();
+
         return res.status(201).send({
             status: "success",
             message: "영수증 발급이 완료되었습니다.",
@@ -1159,6 +1287,8 @@ router.post("/issue-receipt", asyncHandler(async (req, res) => {
     }
 
     else {
+        await transaction.commit();
+
         return res.status(403).send({ status: "failed", message: "영수증 발급 도중 에러가 발생했습니다. 다시 시도해주세요." });
     }
 }));
