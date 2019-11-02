@@ -54,49 +54,6 @@ router.get("/", function(req, res, next) {
     });
 });
 
-// /******************************************************************* */
-// /* GET users listing. */
-
-// router.get("/detail", function(req, res, next) {
-//   Product.findAll({
-//     where: {
-//       oe_number: req.query.oen,
-//       model: req.query.model
-//     },
-//     attributes: [
-//       "id",
-//       "oe_number",
-//       "brand",
-//       "model",
-//       "start_year",
-//       "end_year",
-//       "engine"
-//     ],
-//     include: [
-//       {
-//         model: ProductAbstract,
-//         required: true,
-//         attributes: [
-//           "price",
-//           "discount_rate",
-//           "type",
-//           "image",
-//           "maker",
-//           "quality_cert",
-//           "id"
-//         ]
-//       }
-//     ]
-//   })
-//     .then(product => {
-//       res.status(200).send(product);
-//     })
-//     .catch(error => {
-//       console.log(error);
-//       res.status(400).send(error);
-//     });
-// });
-
 router.get("/abstract/list", function(req, res, next) {
   // Get list of items
   ProductAbstract.findAll()
@@ -108,27 +65,6 @@ router.get("/abstract/list", function(req, res, next) {
       res.status(400).send(error);
     });
 });
-
-// router.get("/list/all", function(req, res, next) {
-//   Product.findAll({
-//     attributes: PRODUCT_ATTRIBUTES,
-//     include: [
-//       {
-//         model: ProductAbstract,
-//         required: true,
-//         attributes: PRODUCT_ABSTRACT_ATTRIBUTES
-//       }
-//     ],
-//     order: [["brand", "ASC"], ["model", "ASC"]]
-//   })
-//     .then(product => {
-//       res.status(200).send(product);
-//     })
-//     .catch(error => {
-//       console.log(error);
-//       res.status(400).send(error);
-//     });
-// });
 
 router.get("/read", function(req, res, next) {
   const category = req.query.category;
@@ -179,41 +115,6 @@ router.get("/read", function(req, res, next) {
       res.status(400).send(error);
     });
 });
-
-// router.get("/list/query", function(req, res, next) {
-//   Product.findAll({
-//     where: {
-//       [Op.or]: [
-//         { oe_number: { [Op.like]: `%${req.query.query_string}%` } },
-//         { brand: { [Op.like]: `%${req.query.query_string}%` } },
-//         { model: { [Op.like]: `%${req.query.query_string}%` } },
-//         { start_year: { [Op.like]: `%${req.query.query_string}%` } },
-//         { end_year: { [Op.like]: `%${req.query.query_string}%` } },
-//         {
-//           "$product_abstract.type$": {
-//             [Op.like]: `%${req.query.query_string}%`
-//           }
-//         }
-//       ]
-//     },
-//     attributes: ["id", "oe_number", "brand", "model", "start_year", "end_year"],
-//     include: [
-//       {
-//         model: ProductAbstract,
-//         required: true,
-//         attributes: ["price", "discount_rate", "type"]
-//       }
-//     ],
-//     order: [["brand", "ASC"], ["model", "ASC"]]
-//   })
-//     .then(product => {
-//       res.status(200).send(product);
-//     })
-//     .catch(error => {
-//       console.log(error);
-//       res.status(400).send(error);
-//     });
-// });
 
 router.post("/create", function(req, res, next) {
   Product.create({
