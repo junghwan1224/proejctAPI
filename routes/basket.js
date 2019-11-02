@@ -69,49 +69,64 @@ router.post(
   "/create-or-update",
   asyncHandler(async (req, res) => {
     const account_id = req.body.account_id;
-    const product_id = req.body.product_id;
-    const quantity = req.body.quantity;
+    const products = JSON.parse(req.body.products);
+    let errorFlag = false;
 
-    const isProductExist = await Basket.count({
-      where: {
-        account_id,
-        product_id
-      }
-    });
-    if (quantity === 0) {
-      // Delete if quantity is 0:
-      Basket.destroy({
+    for (const product of products) {
+      const product_id = product.product_id;
+      const quantity = product.quantity;
+      console.log(product_id, quantity);
+
+      const isProductExist = await Basket.count({
         where: {
-          account_id: req.body.account_id,
-          product_id: req.body.product_id
-        }
-      }).then(() => {
-        res.status(200).send({ message: "successfully deleted." });
-      });
-    } else if (!isProductExist) {
-      // Create producut
-      Basket.create({
-        account_id: req.body.account_id,
-        product_id: req.body.product_id,
-        quantity: req.body.quantity
-      });
-      res.status(200).send({ message: "successfully created." });
-    } else {
-      // Update if quantity is not zero and product exists
-      const basket = await Basket.findOne({
-        where: {
-          account_id: account_id,
-          product_id: product_id
+          account_id,
+          product_id
         }
       });
-      basket
-        .update({
-          quantity: quantity
+      if (quantity === 0) {
+        // Delete if quantity is 0:
+        Basket.destroy({
+          where: {
+            account_id: account_id,
+            product_id: product_id
+          }
         })
-        .then(() => {
-          res.status(200).send({ message: "successfully updated." });
+          .then(() => {})
+          .catch(error => {
+            console.log(error);
+            errorFlag = true;
+          });
+      } else if (!isProductExist) {
+        // Create producut
+        Basket.create({
+          account_id: account_id,
+          product_id: product_id,
+          quantity: quantity
+        }).catch(error => {
+          console.log(error);
+          errorFlag = true;
         });
+      } else {
+        // Update if quantity is not zero and product exists
+        const basket = await Basket.findOne({
+          where: {
+            account_id: account_id,
+            product_id: product_id
+          }
+        });
+        basket
+          .update({
+            quantity: quantity
+          })
+          .then(() => {})
+          .catch(error => {
+            console.log(error);
+            errorFlag = true;
+          });
+      }
     }
+    if (!errorFlag) res.status(200).send({ message: "success" });
+    else res.status(400).send({ message: "fail" });
   })
 );
 
