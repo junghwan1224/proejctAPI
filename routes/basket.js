@@ -75,7 +75,6 @@ router.post(
     for (const product of products) {
       const product_id = product.product_id;
       const quantity = product.quantity;
-      console.log(product_id, quantity);
 
       const isProductExist = await Basket.count({
         where: {
