@@ -11,18 +11,25 @@ require("dotenv").config();
 var indexRouter = require("./routes/index");
 var app = express();
 
-var options={
+var options = {
   host: process.env.DB_HOST,
   port: process.env.DB_PORT,
   user: process.env.DB_USER,
   password: null,
   database: process.env.DB
-  };
+};
 
 // cors
 // const allowedOrigins = ["http://192.168.0.13:3000", "http://yourapp.com"];
 app.use(
-  cors({ credentials: true, origin: ["http://localhost:3000"] })
+  cors({
+    credentials: true,
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "http://localhost:3002"
+    ]
+  })
   // cors({
   //   origin: function(origin, callback) {
   //     // allow requests with no origin
@@ -49,13 +56,15 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use(session({
-  secret: "HERMES",
-  resave: false,
-  saveUninitialized: true,
-  cookie: { maxAge: 60000 },
-  store: new MySQLStore(options)
- }));
+app.use(
+  session({
+    secret: "HERMES",
+    resave: false,
+    saveUninitialized: true,
+    cookie: { maxAge: 60000 },
+    store: new MySQLStore(options)
+  })
+);
 
 app.use("/", indexRouter);
 // Router setup
