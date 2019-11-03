@@ -37,6 +37,7 @@ def main():
                                      'type': abstract['type'],
                                  })
         abstract_id = response.json()['id']
+
         product = {}
         product['abstract_id'] = abstract_id
         product['brand'] = raw_product['brand']
