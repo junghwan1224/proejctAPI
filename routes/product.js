@@ -154,4 +154,28 @@ router.post("/abstract/create", function(req, res, next) {
     });
 });
 
+/**
+ * ARK
+ */
+router.get("/ark/fetch-product-ratio", function(req, res, next) {
+  ProductAbstract.findAll({
+    attributes: ["type"]
+  })
+    .then(products => {
+      let pmap = {};
+      for (const product of products) {
+        if (Object.keys(pmap).includes(product.type)) {
+          pmap[product.type] += 1;
+        } else {
+          pmap[product.type] = 1;
+        }
+      }
+      res.status(200).send(pmap);
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(400).send(error);
+    });
+});
+
 module.exports = router;
