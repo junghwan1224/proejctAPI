@@ -81,7 +81,7 @@ router.post("/login", function(req, res, next) {
 });
 
 router.get("/read", function(req, res, next) {
-  Account.findByPk(parseInt(req.query.id))
+  Account.findByPk(req.query.id)
     .then(account => {
       res.status(200).send({
         id: account.id,
@@ -89,6 +89,7 @@ router.get("/read", function(req, res, next) {
         name: account.name,
         password: account.password,
         mileage: account.mileage,
+        email: account.email,
         crn: account.crn,
         address1: account.address1,
         address2: account.address2
