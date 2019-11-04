@@ -19,7 +19,7 @@ const verifyJWT = require("../public/js/verifyJWT");
 const { Op } = Sequelize;
 
 const REST_API_KEY = process.env.IMPORT_REST_API_KEY;
-const REST_API_SECRET = process.env.IMPORT_REST_SECRET;
+const REST_API_SECRET = process.env.IMPORT_REST_API_SECRET;
 
 const SENS_API_V2_URL = process.env.SENS_API_V2_URL + process.env.SENS_API_V2_URI;
 const SENS_ACCESS_KEY = process.env.SENS_ACCESS_KEY;
@@ -30,6 +30,7 @@ const SENS_SENDER = process.env.SENS_SENDER;
 
 // request_pay 메서드에서 결제 요청 성공 후 거래 검증 및 데이터 동기화
 router.post("/complete", asyncHandler(async (req, res) => {
+    try{
         const { imp_uid, merchant_uid } = req.body;
         const transaction = await models.sequelize.transaction();
 
@@ -55,8 +56,8 @@ router.post("/complete", asyncHandler(async (req, res) => {
             method: "post",
             headers: { "Content-Type": "application/json" },
             data: {
-              imp_key: REST_API_KEY,
-              imp_secret: REST_API_SECRET
+            imp_key: REST_API_KEY,
+            imp_secret: REST_API_SECRET
             }
         });
 
@@ -109,7 +110,7 @@ router.post("/complete", asyncHandler(async (req, res) => {
 
                     await transaction.commit();
 
-                    res.status(201).send({ status: "vbankIssued", message: "가상계좌 발급 성공" });
+                    res.status(201).send({ api: "complete", status: "vbankIssued", message: "가상계좌 발급 성공" });
                     break;
 
                 case "paid":
@@ -171,9 +172,9 @@ router.post("/complete", asyncHandler(async (req, res) => {
                     );
                 
                     updatedProducts.forEach(
-                     (product, idx) => {
-                         product.stock -= mapToArr[idx].quantity;
-                     }
+                    (product, idx) => {
+                        product.stock -= mapToArr[idx].quantity;
+                    }
                     );
                 
                     await ProductAbstract.bulkCreate(updatedProducts, { 
@@ -226,7 +227,7 @@ router.post("/complete", asyncHandler(async (req, res) => {
                         }
                     });
 
-                    res.status(201).send({ status: "success", message: "결제가 정상적으로 완료되었습니다." });
+                    res.status(201).send({ api: "complete", status: "success", message: "결제가 정상적으로 완료되었습니다." });
                     break;
             }
         }
@@ -245,8 +246,13 @@ router.post("/complete", asyncHandler(async (req, res) => {
 
             await transaction.commit();
 
-            return res.status(403).send({ status: "forgery", message: "위조된 결제시도" });
+            return res.status(403).send({ api: "complete", status: "forgery", message: "위조된 결제시도" });
         }
+    }
+    catch(e) {
+        console.log(e);
+        return res.status(403).send({ status: "failed", message: "결제 시도 중 에러가 발생했습니다. 다시 시도해주세요." });
+    }
 
 }));
 
@@ -363,7 +369,7 @@ router.post("/save-order", asyncHandler(async (req, res) => {
 
         await transaction.commit();
 
-        return res.status(403).send({ message: "재고 부족", scarceProducts });
+        return res.status(403).send({ api: "saveOrder", message: "재고 부족", scarceProducts });
     }
 
     // update to account email value
@@ -441,7 +447,7 @@ router.post("/save-order", asyncHandler(async (req, res) => {
 
     await transaction.commit();
 
-    res.status(201).send({ message: "success" });
+    res.status(201).send({ api: "saveOrder", message: "success" });
 }));
 
 // iamport webhook
