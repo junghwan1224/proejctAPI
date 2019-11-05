@@ -10,9 +10,8 @@ const verifyToken = require("./verifyToken");
 // TODO: account_id 값 추후 변경
 router.get(
   "/read",
-  verifyToken,
   asyncHandler(async (req, res) => {
-    const { account_id } = req;
+    const { account_id } = req.query;
 
     const raw_items = await Basket.findAll({
       where: {
@@ -69,9 +68,8 @@ router.get(
 
 router.post(
   "/create-or-update",
-  verifyToken,
   asyncHandler(async (req, res) => {
-    const { account_id } = req;
+    const { account_id } = req.body;
     const products = JSON.parse(req.body.products);
     let errorFlag = false;
 
