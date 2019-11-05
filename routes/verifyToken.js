@@ -2,27 +2,34 @@ var express = require("express");
 var router = express.Router();
 const jwt = require("jsonwebtoken");
 
-const DEV_SECRET = "NEED TO CHANGE THIS TO ENV FILE";
+const DEV_SECRET = process.env.DEV_SECRET;
 
 /**
  * Validate view access by verifying given token.
  */
+
 const verifyToken = (req, res, next) => {
-  if (!req.body.accessToken) {
-    return res.status(403).send({ auth: false, message: "No token provided." });
-  }
-  jwt.verify(req.body.accessToken, DEV_SECRET, function(err, decoded) {
-    if (err) {
-      return res.status(403).send({ auth: false, message: err });
-    }
-    if (!next) {
-      res.status(200);
-    } else next();
+  const token = req.headers.authorization;
+
+  const verify = jwt.verify(token, DEV_SECRET, (err, decoded) => {
+      if(err) {
+          console.log("jwt verify error");
+          return null;
+      }
+
+      return decoded.id;
   });
-};
 
-router.post("/", function(req, res, next) {
-  return verifyToken(req, res);
-});
+  if(verify) {
+    req.account_id = verify;
+    next();
+  }
+  else {
+    return res.status(403).send({
+        status: "jwt verify failed",
+        message: "유효한 유저의 정보가 아닙니다. 다시 로그인해주세요."
+    });
+  }
+}
 
-module.exports = router;
+module.exports = verifyToken;
