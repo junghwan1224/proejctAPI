@@ -14,7 +14,7 @@ const CardInfo = require("../models").card_info;
 const models = require("../models");
 
 const makeSignature = require("../public/js/signature");
-const verifyJWT = require("../public/js/verifyJWT");
+const verifyToken = require("./verifyToken");
 
 const { Op } = Sequelize;
 
@@ -29,26 +29,17 @@ const SENS_SENDER = process.env.SENS_SENDER;
 /************ 일반 결제 ************/
 
 // request_pay 메서드에서 결제 요청 성공 후 거래 검증 및 데이터 동기화
-router.post("/complete", asyncHandler(async (req, res) => {
+router.post("/complete", verifyToken, asyncHandler(async (req, res) => {
     try{
         const { imp_uid, merchant_uid } = req.body;
         const transaction = await models.sequelize.transaction();
 
-        const uuid = verifyJWT(req, res);
-        let user;
+        const { account_id } = req;
 
-        if(uuid) {
-            user = await Account.findOne({
-                where: { id: uuid },
-                transaction
-            });
-        }
-        else {
-            return res.status(403).send({
-                status: "jwt verify failed",
-                message: "유효한 유저의 정보가 아닙니다. 다시 로그인해주세요."
-            });
-        }
+        const user = await Account.findOne({
+            where: { id: account_id },
+            transaction
+        });
 
         // 아임포트 인증 토큰 발급
         const getToken = await axios({
@@ -257,7 +248,7 @@ router.post("/complete", asyncHandler(async (req, res) => {
 }));
 
 // 결제 요청 전, 요청할 주문 데이터 미리 저장 - 아임포트 서버에서 가져온 결제 정보와 비교하기 위함
-router.post("/save-order", asyncHandler(async (req, res) => {
+router.post("/save-order", verifyToken, asyncHandler(async (req, res) => {
     const { 
         merchant_uid,
         products,
@@ -274,23 +265,12 @@ router.post("/save-order", asyncHandler(async (req, res) => {
 
      const transaction = await models.sequelize.transaction();
 
-    const account_id = verifyJWT(req, res);
+    const { account_id } = req;
 
-    const uuid = verifyJWT(req, res);
-    let user;
-
-    if(uuid) {
-        user = await Account.findOne({
-            where: { id: uuid },
-            transaction
-        });
-    }
-    else {
-        return res.status(403).send({
-            status: "jwt verify failed",
-            message: "유효한 유저의 정보가 아닙니다. 다시 로그인해주세요."
-        });
-    }
+    const user = await Account.findOne({
+        where: { id: account_id },
+        transaction
+    });
 
     const { email } = user.dataValues;
 
@@ -626,7 +606,7 @@ router.post("/iamport-webhook", asyncHandler(async (req, res) => {
 /************ 정기 결제 - 카드 등록, 등록된 카드로 결제 요청 기능 ************/
 
 // 카드 정보 customer_uid로 저장
-router.post("/issue-billing", asyncHandler(async (req, res) => {
+router.post("/issue-billing", verifyToken, asyncHandler(async (req, res) => {
         const {
             card_number, // 카드 번호
             expiry, // 카드 유효기간
@@ -635,23 +615,13 @@ router.post("/issue-billing", asyncHandler(async (req, res) => {
         } = req.body;
         const transaction = await models.sequelize.transaction();
 
-        const uuid = verifyJWT(req, res);
-        let user;
+        const { account_id } = req;
 
-        if(uuid) {
-            user = await Account.findOne({
-                where: { id: uuid },
-                transaction
-            });
-        }
-        else {
-            return res.status(403).send({
-                status: "jwt verify failed",
-                message: "유효한 유저의 정보가 아닙니다. 다시 로그인해주세요."
-            });
-        }
+        const user = await Account.findOne({
+            where: { id: account_id },
+            transaction
+        });
 
-        const account_id = uuid;
         const account_phone = user.dataValues.phone;
         const card_num_4digit = card_number.slice(0, 4);
         const customer_uid = `HERMES_BILLING_KEY_${account_phone}_${card_num_4digit}`; // 카드(빌링키)와 1:1로 대응하는 값
@@ -707,20 +677,8 @@ router.post("/issue-billing", asyncHandler(async (req, res) => {
         }
 }));
 
-router.delete("/delete-billing", asyncHandler(async (req, res) => {
+router.delete("/delete-billing", verifyToken, asyncHandler(async (req, res) => {
     const { customer_uid } = req.body;
-
-    const uuid = verifyJWT(req, res);
-    let user;
-
-    if(uuid) {
-    }
-    else {
-        return res.status(403).send({
-            status: "jwt verify failed",
-            message: "유효한 유저의 정보가 아닙니다. 다시 로그인해주세요."
-        });
-    }
 
     const getToken = await axios({
         url: "https://api.iamport.kr/users/getToken",
@@ -755,7 +713,7 @@ router.delete("/delete-billing", asyncHandler(async (req, res) => {
 }));
 
 // 저장된 카드 정보로 결제하기
-router.post("/billing", asyncHandler(async (req, res) => {
+router.post("/billing", verifyToken, asyncHandler(async (req, res) => {
         const {
             customer_uid,
             merchant_uid,
@@ -770,21 +728,12 @@ router.post("/billing", asyncHandler(async (req, res) => {
         } = req.body;
         const transaction = await models.sequelize.transaction();
 
-        const uuid = verifyJWT(req, res);
-        let user;
+        const { account_id } = req;
 
-        if(uuid) {
-            user = await Account.findOne({
-                where: { id: uuid },
-                transaction
-            });
-        }
-        else {
-            return res.status(403).send({
-                status: "jwt verify failed",
-                message: "유효한 유저의 정보가 아닙니다. 다시 로그인해주세요."
-            });
-        }
+        const user = await Account.findOne({
+            where: { id: account_id },
+            transaction
+        });
 
         const getToken = await axios({
             url: "https://api.iamport.kr/users/getToken",
@@ -1005,7 +954,7 @@ router.post("/billing", asyncHandler(async (req, res) => {
 }));
 
 /************ 주문 취소(환불) ************/
-router.post("/refund", asyncHandler(async (req, res) => {
+router.post("/refund", verifyToken, asyncHandler(async (req, res) => {
         const { 
             orders, // order ids in array
             merchant_uid,
@@ -1014,21 +963,12 @@ router.post("/refund", asyncHandler(async (req, res) => {
         } = req.body;
         const transaction = await models.sequelize.transaction();
 
-        const uuid = verifyJWT(req, res);
-        let user;
+        const { account_id } = req;
 
-        if(uuid) {
-            user = await Account.findOne({
-                where: { id: uuid },
-                transaction
-            });
-        }
-        else {
-            return res.status(403).send({
-                status: "jwt verify failed",
-                message: "유효한 유저의 정보가 아닙니다. 다시 로그인해주세요."
-            });
-        }
+        const user = await Account.findOne({
+            where: { id: account_id },
+            transaction
+        });
 
         // 아임포트 인증 토큰 발급
         const getToken = await axios({
@@ -1223,7 +1163,7 @@ router.post("/refund", asyncHandler(async (req, res) => {
 
 }));
 
-router.post("/issue-receipt", asyncHandler(async (req, res) => {
+router.post("/issue-receipt", verifyToken, asyncHandler(async (req, res) => {
     const {
         order_id,
         identifier,
@@ -1233,21 +1173,12 @@ router.post("/issue-receipt", asyncHandler(async (req, res) => {
     } = req.body;
     const transaction = await models.sequelize.transaction();
 
-    const uuid = verifyJWT(req, res);
-    let user;
+    const { account_id } = req;
 
-    if(uuid) {
-        user = await Account.findOne({
-            where: { id: uuid },
-            transaction
-        });
-    }
-    else {
-        return res.status(403).send({
-            status: "jwt verify failed",
-            message: "유효한 유저의 정보가 아닙니다. 다시 로그인해주세요."
-        });
-    }
+    const user = await Account.findOne({
+        where: { id: account_id },
+        transaction
+    });
 
     const getToken = await axios({
         url: "https://api.iamport.kr/users/getToken",

@@ -11,6 +11,7 @@ const Address = require("../models").address;
 const Sequelize = require("sequelize");
 const { Op } = Sequelize;
 const jwt = require("jsonwebtoken");
+const verifyToken = require("./verifyToken");
 
 const makeSignature = require("../public/js/signature");
 const SENS_API_V2_URL = process.env.SENS_API_V2_URL + process.env.SENS_API_V2_URI;
@@ -80,8 +81,8 @@ router.post("/login", function(req, res, next) {
   });
 });
 
-router.get("/read", function(req, res, next) {
-  Account.findByPk(req.query.id)
+router.get("/read", verifyToken, function(req, res, next) {
+  Account.findByPk(req.account_id)
     .then(account => {
       res.status(200).send({
         id: account.id,
@@ -210,11 +211,12 @@ router.post("/certify", asyncHandler(async(req, res) => {
 
 router.get(
   "/get-address/",
+  verifyToken,
   asyncHandler(async (req, res) => {
-    const { id } = req.query;
+    const { account_id } = req;
 
     const user = await Account.findOne({
-      where: { id }
+      where: { id: account_id }
     });
 
     const address = await Address.findAll({
@@ -231,11 +233,13 @@ router.get(
 
 router.post(
   "/set-address",
+  verifyToken,
   asyncHandler(async (req, res) => {
-    const { id, addr_postcode, addr_primary, addr_detail } = req.body;
+    const { account_id } = req;
+    const { addr_postcode, addr_primary, addr_detail } = req.body;
 
     const address = await Address.findOne({
-      where: { account_id: id }
+      where: { account_id }
     });
 
     if (address) {
@@ -269,7 +273,7 @@ router.post(
       }
     } else {
       await Address.create({
-        account_id: id,
+        account_id,
         postcode: addr_postcode,
         primary: addr_primary,
         detail: addr_detail
@@ -310,11 +314,13 @@ router.post(
 
 router.post(
   "/set-new-pwd",
+  verifyToken,
   asyncHandler(async (req, res) => {
-    const { id, password, new_password } = req.body;
+    const { account_id } = req;
+    const { password, new_password } = req.body;
 
     const user = await Account.findOne({
-      where: { id }
+      where: { id: account_id }
     });
 
     if (bcrypt.compareSync(password, user.dataValues.password)) {
@@ -324,7 +330,7 @@ router.post(
           password: bcryptPwd
         },
         {
-          where: { id }
+          where: { id: account_id }
         }
       );
 
@@ -337,11 +343,12 @@ router.post(
 
 router.post(
   "/delete-account",
+  verifyToken,
   asyncHandler(async (req, res) => {
-    const { id } = req.body;
+    const { account_id } = req;
 
     await Account.destroy({
-      where: { id }
+      where: { id: account_id }
     });
 
     res.status(201).send({ message: "delete success" });
