@@ -3,11 +3,13 @@ const router = express.Router();
 const asyncHandler = require("express-async-handler");
 
 const Favorite = require("../models").favorite;
+const verifyToken = require("./verifyToken");
 
 router.get(
   "/list",
+  verifyToken,
   asyncHandler(async (req, res) => {
-    const account_id = req.query.account_id;
+    const { account_id } = req;
     console.log(account_id);
 
     const raw_favorite_list = await Favorite.findAll({
@@ -30,9 +32,10 @@ router.get(
 
 router.post(
   "/toggle",
+  verifyToken,
   asyncHandler(async (req, res) => {
     const product_id = req.body.product_id;
-    const account_id = req.body.account_id;
+    const { account_id } = req;
 
     const favorite_row = await Favorite.findOne({
       where: {
