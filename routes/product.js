@@ -178,4 +178,41 @@ router.get("/ark/fetch-product-ratio", function(req, res, next) {
     });
 });
 
+router.get("/ark/product-list", function(req, res, next) {
+  Product.findAll({
+    attributes: PRODUCT_ATTRIBUTES,
+    include: [
+      {
+        model: ProductAbstract,
+        required: true,
+        attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+      }
+    ],
+    order: [
+      ["brand", "ASC"],
+      ["model", "ASC"],
+      ["oe_number", "ASC"],
+      ["price", "DESC"]
+    ]
+  })
+    .then(products => {
+      let fabricated = [];
+      for (const product of products) {
+        fabricated.push({
+          oe_number: product.oe_number,
+          price: product.price,
+          maker: product.product_abstract.maker,
+          brand: product.brand,
+          model: product.model,
+          quantity: product.product_abstract.stock
+        });
+      }
+      res.status(200).send(fabricated);
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(400).send(error);
+    });
+});
+
 module.exports = router;
