@@ -5,12 +5,14 @@ const ProductAbstract = require("../models").product_abstract;
 const Product = require("../models").product;
 
 const Basket = require("../models").basket;
+const verifyToken = require("./verifyToken");
 
 // TODO: account_id 값 추후 변경
 router.get(
   "/read",
+  verifyToken,
   asyncHandler(async (req, res) => {
-    const account_id = req.query.account_id;
+    const { account_id } = req;
 
     const raw_items = await Basket.findAll({
       where: {
@@ -67,8 +69,9 @@ router.get(
 
 router.post(
   "/create-or-update",
+  verifyToken,
   asyncHandler(async (req, res) => {
-    const account_id = req.body.account_id;
+    const { account_id } = req;
     const products = JSON.parse(req.body.products);
     let errorFlag = false;
 
