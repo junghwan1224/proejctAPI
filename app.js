@@ -66,6 +66,7 @@ app.use(
 );
 
 // Router setup
+const verifyTokenRouter = require("./routes/verify");
 const accountRouter = require("./routes/account");
 const articleRouter = require("./routes/article");
 const paymentRouter = require("./routes/payment");
@@ -74,6 +75,7 @@ const favoriteRouter = require("./routes/favorite");
 const productRouter = require("./routes/product");
 const deliveryRouter = require("./routes/delivery");
 
+app.use("/api/verify-token", verifyTokenRouter);
 app.use("/api/account", accountRouter);
 app.use("/api/article", articleRouter);
 app.use("/api/payment", paymentRouter);
