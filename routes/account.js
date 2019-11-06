@@ -305,13 +305,15 @@ router.post(
 
 router.post(
   "/set-email",
+  verifyToken,
   asyncHandler(async (req, res) => {
-    const { id, email } = req.body;
+    const { email } = req.body;
+    const { account_id } = req;
 
     const transaction = await models.sequelize.transaction();
 
     const user = await Account.findOne({
-      where: { id },
+      where: { id: account_id },
       transaction
     });
 
@@ -321,7 +323,7 @@ router.post(
           email
         },
         {
-          where: { id },
+          where: { id: account_id },
           transaction
         }
       );
