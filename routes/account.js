@@ -108,12 +108,16 @@ router.post(
   asyncHandler(async (req, res, next) => {
     const { phone, crn } = req.body;
 
+    const transaction = await models.sequelize.transaction();
+
     const userByPhone = await Account.findOne({
-      where: { phone }
+      where: { phone },
+      transaction
     });
 
     const userByCRN = await Account.findOne({
-      where: { crn }
+      where: { crn },
+      transaction
     });
 
     if (!userByPhone && !userByCRN) {
@@ -122,6 +126,8 @@ router.post(
         password: req.body.password,
         name: req.body.name,
         crn: req.body.crn
+      }, {
+        transaction
       });
 
       return res.status(201).send({ account, message: "가입 성공" });
@@ -216,12 +222,16 @@ router.get(
   asyncHandler(async (req, res) => {
     const { account_id } = req;
 
+    const transaction = await models.sequelize.transaction();
+
     const user = await Account.findOne({
-      where: { id: account_id }
+      where: { id: account_id },
+      transaction
     });
 
     const address = await Address.findAll({
-      where: { account_id: { [Op.in]: [user.dataValues.id] } }
+      where: { account_id: { [Op.in]: [user.dataValues.id] } },
+      transaction
     });
 
     if (!address.length) {
@@ -239,8 +249,11 @@ router.post(
     const { account_id } = req;
     const { addr_postcode, addr_primary, addr_detail } = req.body;
 
+    const transaction = await models.sequelize.transaction();
+
     const address = await Address.findOne({
-      where: { account_id }
+      where: { account_id },
+      transaction
     });
 
     if (address) {
@@ -266,7 +279,8 @@ router.post(
             detail: addr_detail
           },
           {
-            where: { id: address.dataValues.id }
+            where: { id: address.dataValues.id },
+            transaction
           }
         );
 
@@ -278,6 +292,8 @@ router.post(
         postcode: addr_postcode,
         primary: addr_primary,
         detail: addr_detail
+      },{
+        transaction
       });
 
       return res.status(201).send({ message: "create success" });
@@ -292,8 +308,11 @@ router.post(
   asyncHandler(async (req, res) => {
     const { id, email } = req.body;
 
+    const transaction = await models.sequelize.transaction();
+
     const user = await Account.findOne({
-      where: { id }
+      where: { id },
+      transaction
     });
 
     if (email !== user.dataValues.email) {
@@ -302,7 +321,8 @@ router.post(
           email
         },
         {
-          where: { id }
+          where: { id },
+          transaction
         }
       );
 
@@ -320,8 +340,11 @@ router.post(
     const { account_id } = req;
     const { password, new_password } = req.body;
 
+    const transaction = await models.sequelize.transaction();
+
     const user = await Account.findOne({
-      where: { id: account_id }
+      where: { id: account_id },
+      transaction
     });
 
     if (bcrypt.compareSync(password, user.dataValues.password)) {
@@ -331,7 +354,8 @@ router.post(
           password: bcryptPwd
         },
         {
-          where: { id: account_id }
+          where: { id: account_id },
+          transaction
         }
       );
 
