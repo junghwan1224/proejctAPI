@@ -8,6 +8,7 @@ const asyncHandler = require("express-async-handler");
 const bcrypt = require("bcryptjs");
 const Account = require("../models").account;
 const Address = require("../models").address;
+const models = require("../models");
 const Sequelize = require("sequelize");
 const { Op } = Sequelize;
 const jwt = require("jsonwebtoken");
@@ -338,6 +339,61 @@ router.post(
     } else {
       return res.status(403).send({ message: "기존 비밀번호 불일치" });
     }
+  })
+);
+
+router.post(
+  "/issue-temporary-pwd",
+  verifyToken,
+  asyncHandler(async (req, res) => {
+    const { account_id } = req;
+    const temporaryPwd = Math.floor(Math.random() * 89999999 + 10000000);
+    const bcryptPwd = bcrypt.hashSync(temporaryPwd, 10);
+
+    const transaction = await models.sequelize.transaction();
+
+    const user = await Account.findOne({
+      where: { id: account_id },
+      transaction
+    });
+
+    await Account.update({
+      password: bcryptPwd
+    }, {
+      where: { id: account_id },
+      transaction
+    });
+
+    // SMS 전송
+    const timestamp = new Date().getTime().toString();
+
+    const sms = await axios({
+        url: SENS_API_V2_URL,
+        method: "post",
+        headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            "x-ncp-apigw-timestamp": timestamp,
+            "x-ncp-iam-access-key": SENS_ACCESS_KEY,
+            "x-ncp-apigw-signature-v2": makeSignature(timestamp)
+        },
+        data: {
+            type: "SMS",
+            from: SENS_SENDER,
+            content: ``,
+            messages: [{
+                to: user.dataValues.phone
+            }]
+        }
+    });
+
+    if(sms.data.statusCode === "202") {
+      res.status(201).send({ message: "임시 비밀번호를 SMS로 발송해드립니다." });
+    }
+
+    else {
+      res.status(403).send({ message: "인증번호 발송 중 에러가 발생했습니다. 다시 시도해주세요." });
+    }
+
   })
 );
 
