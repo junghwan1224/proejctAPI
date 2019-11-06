@@ -373,7 +373,8 @@ router.post(
   verifyToken,
   asyncHandler(async (req, res) => {
     const { account_id } = req;
-    const temporaryPwd = Math.floor(Math.random() * 89999999 + 10000000);
+    const temporaryPwd = Math.floor(Math.random() * 89999999 + 10000000).toString();
+
     const bcryptPwd = bcrypt.hashSync(temporaryPwd, 10);
 
     const transaction = await models.sequelize.transaction();
@@ -413,6 +414,8 @@ router.post(
     });
 
     if(sms.data.statusCode === "202") {
+      await transaction.commit();
+
       res.status(201).send({ message: "임시 비밀번호를 SMS로 발송해드립니다." });
     }
 
