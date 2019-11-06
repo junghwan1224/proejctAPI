@@ -403,7 +403,7 @@ router.post(
         data: {
             type: "SMS",
             from: SENS_SENDER,
-            content: ``,
+            content: `임시 비밀번호 [${temporaryPwd}]가 발급되었습니다. 소중한 개인정보 보호를 위해 로그인 후 마이페이지에서 비밀번호를 변경해주시기 바랍니다.`,
             messages: [{
                 to: user.dataValues.phone
             }]
