@@ -8,6 +8,7 @@ const asyncHandler = require("express-async-handler");
 const bcrypt = require("bcryptjs");
 const Account = require("../models").account;
 const Address = require("../models").address;
+const models = require("../models");
 const Sequelize = require("sequelize");
 const { Op } = Sequelize;
 const jwt = require("jsonwebtoken");
@@ -107,12 +108,16 @@ router.post(
   asyncHandler(async (req, res, next) => {
     const { phone, crn } = req.body;
 
+    const transaction = await models.sequelize.transaction();
+
     const userByPhone = await Account.findOne({
-      where: { phone }
+      where: { phone },
+      transaction
     });
 
     const userByCRN = await Account.findOne({
-      where: { crn }
+      where: { crn },
+      transaction
     });
 
     if (!userByPhone && !userByCRN) {
@@ -121,6 +126,8 @@ router.post(
         password: req.body.password,
         name: req.body.name,
         crn: req.body.crn
+      }, {
+        transaction
       });
 
       return res.status(201).send({ account, message: "가입 성공" });
@@ -215,12 +222,16 @@ router.get(
   asyncHandler(async (req, res) => {
     const { account_id } = req;
 
+    const transaction = await models.sequelize.transaction();
+
     const user = await Account.findOne({
-      where: { id: account_id }
+      where: { id: account_id },
+      transaction
     });
 
     const address = await Address.findAll({
-      where: { account_id: { [Op.in]: [user.dataValues.id] } }
+      where: { account_id: { [Op.in]: [user.dataValues.id] } },
+      transaction
     });
 
     if (!address.length) {
@@ -238,8 +249,11 @@ router.post(
     const { account_id } = req;
     const { addr_postcode, addr_primary, addr_detail } = req.body;
 
+    const transaction = await models.sequelize.transaction();
+
     const address = await Address.findOne({
-      where: { account_id }
+      where: { account_id },
+      transaction
     });
 
     if (address) {
@@ -265,7 +279,8 @@ router.post(
             detail: addr_detail
           },
           {
-            where: { id: address.dataValues.id }
+            where: { id: address.dataValues.id },
+            transaction
           }
         );
 
@@ -277,6 +292,8 @@ router.post(
         postcode: addr_postcode,
         primary: addr_primary,
         detail: addr_detail
+      },{
+        transaction
       });
 
       return res.status(201).send({ message: "create success" });
@@ -291,8 +308,11 @@ router.post(
   asyncHandler(async (req, res) => {
     const { id, email } = req.body;
 
+    const transaction = await models.sequelize.transaction();
+
     const user = await Account.findOne({
-      where: { id }
+      where: { id },
+      transaction
     });
 
     if (email !== user.dataValues.email) {
@@ -301,7 +321,8 @@ router.post(
           email
         },
         {
-          where: { id }
+          where: { id },
+          transaction
         }
       );
 
@@ -319,8 +340,11 @@ router.post(
     const { account_id } = req;
     const { password, new_password } = req.body;
 
+    const transaction = await models.sequelize.transaction();
+
     const user = await Account.findOne({
-      where: { id: account_id }
+      where: { id: account_id },
+      transaction
     });
 
     if (bcrypt.compareSync(password, user.dataValues.password)) {
@@ -330,7 +354,8 @@ router.post(
           password: bcryptPwd
         },
         {
-          where: { id: account_id }
+          where: { id: account_id },
+          transaction
         }
       );
 
@@ -338,6 +363,61 @@ router.post(
     } else {
       return res.status(403).send({ message: "기존 비밀번호 불일치" });
     }
+  })
+);
+
+router.post(
+  "/issue-temporary-pwd",
+  verifyToken,
+  asyncHandler(async (req, res) => {
+    const { account_id } = req;
+    const temporaryPwd = Math.floor(Math.random() * 89999999 + 10000000);
+    const bcryptPwd = bcrypt.hashSync(temporaryPwd, 10);
+
+    const transaction = await models.sequelize.transaction();
+
+    const user = await Account.findOne({
+      where: { id: account_id },
+      transaction
+    });
+
+    await Account.update({
+      password: bcryptPwd
+    }, {
+      where: { id: account_id },
+      transaction
+    });
+
+    // SMS 전송
+    const timestamp = new Date().getTime().toString();
+
+    const sms = await axios({
+        url: SENS_API_V2_URL,
+        method: "post",
+        headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            "x-ncp-apigw-timestamp": timestamp,
+            "x-ncp-iam-access-key": SENS_ACCESS_KEY,
+            "x-ncp-apigw-signature-v2": makeSignature(timestamp)
+        },
+        data: {
+            type: "SMS",
+            from: SENS_SENDER,
+            content: `임시 비밀번호 [${temporaryPwd}]가 발급되었습니다. 소중한 개인정보 보호를 위해 로그인 후 마이페이지에서 비밀번호를 변경해주시기 바랍니다.`,
+            messages: [{
+                to: user.dataValues.phone
+            }]
+        }
+    });
+
+    if(sms.data.statusCode === "202") {
+      res.status(201).send({ message: "임시 비밀번호를 SMS로 발송해드립니다." });
+    }
+
+    else {
+      res.status(403).send({ message: "인증번호 발송 중 에러가 발생했습니다. 다시 시도해주세요." });
+    }
+
   })
 );
 
