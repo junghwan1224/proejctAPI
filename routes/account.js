@@ -134,6 +134,8 @@ router.post(
         }
       );
 
+      await transaction.commit();
+
       return res.status(201).send({ account, message: "가입 성공" });
     } else if (userByPhone && userByCRN) {
       return res
@@ -199,11 +201,9 @@ router.post(
     }
     // 문자 전송 실패
     else {
-      res
-        .status(403)
-        .send({
-          message: "인증번호 발송 중 에러가 발생했습니다. 다시 시도해주세요."
-        });
+      res.status(403).send({
+        message: "인증번호 발송 중 에러가 발생했습니다. 다시 시도해주세요."
+      });
     }
   })
 );
@@ -250,6 +250,8 @@ router.get(
       where: { account_id: { [Op.in]: [user.dataValues.id] } },
       transaction
     });
+
+    await transaction.commit();
 
     if (!address.length) {
       return res.send({ message: "success", address: null });
@@ -301,6 +303,8 @@ router.post(
           }
         );
 
+        await transaction.commit();
+
         return res.status(201).send({ message: "update success" });
       }
     } else {
@@ -315,6 +319,8 @@ router.post(
           transaction
         }
       );
+
+      await transaction.commit();
 
       return res.status(201).send({ message: "create success" });
     }
@@ -348,6 +354,8 @@ router.post(
         }
       );
 
+      await transaction.commit();
+
       return res.status(201).send({ message: "update success" });
     }
 
@@ -380,6 +388,8 @@ router.post(
           transaction
         }
       );
+
+      await transaction.commit();
 
       return res.status(201).send({ message: "update success" });
     } else {
@@ -446,11 +456,9 @@ router.post(
         .status(201)
         .send({ message: "임시 비밀번호를 SMS로 발송해드립니다." });
     } else {
-      res
-        .status(403)
-        .send({
-          message: "인증번호 발송 중 에러가 발생했습니다. 다시 시도해주세요."
-        });
+      res.status(403).send({
+        message: "인증번호 발송 중 에러가 발생했습니다. 다시 시도해주세요."
+      });
     }
   })
 );
