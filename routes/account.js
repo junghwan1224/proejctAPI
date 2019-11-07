@@ -130,6 +130,8 @@ router.post(
         transaction
       });
 
+      await transaction.commit();
+
       return res.status(201).send({ account, message: "가입 성공" });
     } else if (userByPhone && userByCRN) {
       return res
@@ -234,6 +236,8 @@ router.get(
       transaction
     });
 
+    await transaction.commit();
+
     if (!address.length) {
       return res.send({ message: "success", address: null });
     } else {
@@ -284,6 +288,8 @@ router.post(
           }
         );
 
+        await transaction.commit();
+
         return res.status(201).send({ message: "update success" });
       }
     } else {
@@ -295,6 +301,8 @@ router.post(
       },{
         transaction
       });
+
+      await transaction.commit();
 
       return res.status(201).send({ message: "create success" });
     }
@@ -328,8 +336,12 @@ router.post(
         }
       );
 
+      await transaction.commit();
+
       return res.status(201).send({ message: "update success" });
     }
+
+    await transaction.commit();
 
     res.status(201).send({ message: "success" });
   })
@@ -360,6 +372,8 @@ router.post(
           transaction
         }
       );
+
+      await transaction.commit();
 
       return res.status(201).send({ message: "update success" });
     } else {
