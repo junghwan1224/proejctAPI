@@ -19,9 +19,9 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       hooks: {
-        beforeCreate: (account, options) => {
+        beforeCreate: (product, options) => {
           {
-            account.id = uuid();
+            product.id = uuid();
           }
         }
       }
