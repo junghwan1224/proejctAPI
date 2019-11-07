@@ -322,7 +322,7 @@ router.post(
 
       await transaction.commit();
 
-      return res.status(201).send({ message: "create success" });
+      return res.status(200).send({ message: "create success" });
     }
 
     res.send({ message: "success" });
