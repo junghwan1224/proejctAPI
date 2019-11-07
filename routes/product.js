@@ -199,9 +199,11 @@ router.get("/ark/product-list", function(req, res, next) {
       let fabricated = [];
       for (const product of products) {
         fabricated.push({
+          product_id: product.id,
           oe_number: product.oe_number,
           price: product.price,
           maker: product.product_abstract.maker,
+          maker_number: product.product_abstract.maker_number,
           brand: product.brand,
           model: product.model,
           quantity: product.product_abstract.stock
