@@ -15,7 +15,8 @@ const jwt = require("jsonwebtoken");
 const verifyToken = require("./verifyToken");
 
 const makeSignature = require("../public/js/signature");
-const SENS_API_V2_URL = process.env.SENS_API_V2_URL + process.env.SENS_API_V2_URI;
+const SENS_API_V2_URL =
+  process.env.SENS_API_V2_URL + process.env.SENS_API_V2_URI;
 const SENS_ACCESS_KEY = process.env.SENS_ACCESS_KEY;
 const SENS_SENDER = process.env.SENS_SENDER;
 
@@ -38,14 +39,14 @@ router.get("/exist", function(req, res, next) {
 router.post("/login", function(req, res, next) {
   const { phone, password } = req.body;
 
-  if(phone === undefined || phone === null || phone.length === 0) {
+  if (phone === undefined || phone === null || phone.length === 0) {
     return res.status(403).send({ message: "연락처를 입력해주세요." });
   }
 
-  if(password === undefined || password === null || password.length === 0) {
+  if (password === undefined || password === null || password.length === 0) {
     return res.status(403).send({ message: "비밀번호를 입력해주세요." });
   }
-  
+
   Account.findOne({
     where: { phone: req.body.phone },
     attributes: ["id", "name", "password", "phone", "crn", "email", "mileage"]
@@ -121,14 +122,17 @@ router.post(
     });
 
     if (!userByPhone && !userByCRN) {
-      const account = await Account.create({
-        phone: req.body.phone,
-        password: req.body.password,
-        name: req.body.name,
-        crn: req.body.crn
-      }, {
-        transaction
-      });
+      const account = await Account.create(
+        {
+          phone: req.body.phone,
+          password: req.body.password,
+          name: req.body.name,
+          crn: req.body.crn
+        },
+        {
+          transaction
+        }
+      );
 
       return res.status(201).send({ account, message: "가입 성공" });
     } else if (userByPhone && userByCRN) {
@@ -147,74 +151,87 @@ router.post(
   })
 );
 
-router.post("/issue-certify-num", asyncHandler(async(req, res) => {
-  const { phone } = req.body;
+router.post(
+  "/issue-certify-num",
+  asyncHandler(async (req, res) => {
+    const { phone } = req.body;
 
-  // 인증 번호 난수 6자리 생성 및 세션에 저장
-  const certifyNumber = Math.floor(Math.random() * 899999 + 100000);
-  
-  const sess = req.session;
-  sess.certifyNumber = certifyNumber;
+    // 인증 번호 난수 6자리 생성 및 세션에 저장
+    const certifyNumber = Math.floor(Math.random() * 899999 + 100000);
 
-  req.session.save(err => {
-    if(err) {
-      console.log("session save error");
-      console.log(err);
-    }
-  });
+    const sess = req.session;
+    sess.certifyNumber = certifyNumber;
 
-  // SMS 전송
-  const timestamp = new Date().getTime().toString();
-
-  const sms = await axios({
-      url: SENS_API_V2_URL,
-      method: "post",
-      headers: {
-          "Content-Type": "application/json; charset=utf-8",
-          "x-ncp-apigw-timestamp": timestamp,
-          "x-ncp-iam-access-key": SENS_ACCESS_KEY,
-          "x-ncp-apigw-signature-v2": makeSignature(timestamp)
-      },
-      data: {
-          type: "SMS",
-          from: SENS_SENDER,
-          content: `HERMES 인증번호 [${certifyNumber}]를 입력해주세요.`,
-          messages: [{
-              to: phone
-          }]
-      }
-  });
-
-  // 문자 전송 성공
-  if(sms.data.statusCode === "202") {
-    res.status(201).send({ message: "인증번호가 발송되었습니다." });
-  }
-  // 문자 전송 실패
-  else {
-    res.status(403).send({ message: "인증번호 발송 중 에러가 발생했습니다. 다시 시도해주세요." });
-  }
-
-}));
-
-router.post("/certify", asyncHandler(async(req, res) => {
-  const { certifyNumber } = req.body;
-
-  // 저장된 인증번호와 비교
-  if(parseInt(certifyNumber) === req.session.certifyNumber) {
-
-    req.session.destroy(err => {
-      if(err) {
-        console.log("session destory error");
+    req.session.save(err => {
+      if (err) {
+        console.log("session save error");
         console.log(err);
       }
     });
 
-    return res.status(201).send({ message: "인증이 정상적으로 완료되었습니다." });
-  }
-  else {
-    return res.status(403).send({ message: "인증번호가 일치하지 않습니다. 다시 입력해주세요." });
-  }
-}));
+    // SMS 전송
+    const timestamp = new Date().getTime().toString();
+
+    const sms = await axios({
+      url: SENS_API_V2_URL,
+      method: "post",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "x-ncp-apigw-timestamp": timestamp,
+        "x-ncp-iam-access-key": SENS_ACCESS_KEY,
+        "x-ncp-apigw-signature-v2": makeSignature(timestamp)
+      },
+      data: {
+        type: "SMS",
+        from: SENS_SENDER,
+        content: `HERMES 인증번호 [${certifyNumber}]를 입력해주세요.`,
+        messages: [
+          {
+            to: phone
+          }
+        ]
+      }
+    });
+
+    // 문자 전송 성공
+    if (sms.data.statusCode === "202") {
+      res.status(201).send({ message: "인증번호가 발송되었습니다." });
+    }
+    // 문자 전송 실패
+    else {
+      res
+        .status(403)
+        .send({
+          message: "인증번호 발송 중 에러가 발생했습니다. 다시 시도해주세요."
+        });
+    }
+  })
+);
+
+router.post(
+  "/certify",
+  asyncHandler(async (req, res) => {
+    const { certifyNumber } = req.body;
+
+    // 저장된 인증번호와 비교
+    if (parseInt(certifyNumber) === req.session.certifyNumber) {
+      req.session.destroy(err => {
+        if (err) {
+          console.log("session destory error");
+          console.log(err);
+        }
+      });
+
+      return res
+        .status(201)
+        .send({ message: "인증이 정상적으로 완료되었습니다." });
+    } else {
+      return res
+        .status(403)
+        .send({ message: "인증번호가 일치하지 않습니다. 다시 입력해주세요." });
+    }
+  })
+);
 
 router.get(
   "/get-address/",
@@ -287,14 +304,17 @@ router.post(
         return res.status(201).send({ message: "update success" });
       }
     } else {
-      await Address.create({
-        account_id,
-        postcode: addr_postcode,
-        primary: addr_primary,
-        detail: addr_detail
-      },{
-        transaction
-      });
+      await Address.create(
+        {
+          account_id,
+          postcode: addr_postcode,
+          primary: addr_primary,
+          detail: addr_detail
+        },
+        {
+          transaction
+        }
+      );
 
       return res.status(201).send({ message: "create success" });
     }
@@ -331,7 +351,7 @@ router.post(
       return res.status(201).send({ message: "update success" });
     }
 
-    res.status(201).send({ message: "success" });
+    res.status(200).send({ message: "success" });
   })
 );
 
@@ -372,7 +392,9 @@ router.post(
   "/issue-temporary-pwd",
   asyncHandler(async (req, res) => {
     const { phone } = req.body;
-    const temporaryPwd = Math.floor(Math.random() * 89999999 + 10000000).toString();
+    const temporaryPwd = Math.floor(
+      Math.random() * 89999999 + 10000000
+    ).toString();
 
     const bcryptPwd = bcrypt.hashSync(temporaryPwd, 10);
 
@@ -383,45 +405,53 @@ router.post(
       transaction
     });
 
-    await Account.update({
-      password: bcryptPwd
-    }, {
-      where: { phone },
-      transaction
-    });
+    await Account.update(
+      {
+        password: bcryptPwd
+      },
+      {
+        where: { phone },
+        transaction
+      }
+    );
 
     // SMS 전송
     const timestamp = new Date().getTime().toString();
 
     const sms = await axios({
-        url: SENS_API_V2_URL,
-        method: "post",
-        headers: {
-            "Content-Type": "application/json; charset=utf-8",
-            "x-ncp-apigw-timestamp": timestamp,
-            "x-ncp-iam-access-key": SENS_ACCESS_KEY,
-            "x-ncp-apigw-signature-v2": makeSignature(timestamp)
-        },
-        data: {
-            type: "SMS",
-            from: SENS_SENDER,
-            content: `임시 비밀번호 [${temporaryPwd}]가 발급되었습니다.`,
-            messages: [{
-                to: user.dataValues.phone
-            }]
-        }
+      url: SENS_API_V2_URL,
+      method: "post",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "x-ncp-apigw-timestamp": timestamp,
+        "x-ncp-iam-access-key": SENS_ACCESS_KEY,
+        "x-ncp-apigw-signature-v2": makeSignature(timestamp)
+      },
+      data: {
+        type: "SMS",
+        from: SENS_SENDER,
+        content: `임시 비밀번호 [${temporaryPwd}]가 발급되었습니다.`,
+        messages: [
+          {
+            to: user.dataValues.phone
+          }
+        ]
+      }
     });
 
-    if(sms.data.statusCode === "202") {
+    if (sms.data.statusCode === "202") {
       await transaction.commit();
 
-      res.status(201).send({ message: "임시 비밀번호를 SMS로 발송해드립니다." });
+      res
+        .status(201)
+        .send({ message: "임시 비밀번호를 SMS로 발송해드립니다." });
+    } else {
+      res
+        .status(403)
+        .send({
+          message: "인증번호 발송 중 에러가 발생했습니다. 다시 시도해주세요."
+        });
     }
-
-    else {
-      res.status(403).send({ message: "인증번호 발송 중 에러가 발생했습니다. 다시 시도해주세요." });
-    }
-
   })
 );
 
