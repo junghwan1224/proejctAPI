@@ -665,6 +665,8 @@ router.post("/issue-billing", verifyToken, asyncHandler(async (req, res) => {
                 transaction
             });
 
+            await transaction.commit();
+
             return res.status(201).send({ 
                 status: "success", 
                 message: "Billing has successfully issued",
@@ -901,7 +903,7 @@ router.post("/billing", verifyToken, asyncHandler(async (req, res) => {
 
                 // 카드 승인 실패 (카드 한도 초과, 거래 정지 카드, 잔액 부족 등의 사유로 실패)
                 else { // payWithBilling.status === "failed"
-                    await transaction.commit();
+                    // await transaction.commit();
 
                     return res.status(201).send({
                         status: "failed",
@@ -1156,7 +1158,7 @@ router.post("/refund", verifyToken, asyncHandler(async (req, res) => {
 
         else {
             // 환불 실패
-            await transaction.commit();
+            // await transaction.commit();
 
             return res.status(403).send({ stauts: "success", message: "환불 실패" });
         }
@@ -1224,7 +1226,7 @@ router.post("/issue-receipt", verifyToken, asyncHandler(async (req, res) => {
     }
 
     else {
-        await transaction.commit();
+        // await transaction.commit();
 
         return res.status(403).send({ status: "failed", message: "영수증 발급 도중 에러가 발생했습니다. 다시 시도해주세요." });
     }
