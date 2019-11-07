@@ -370,9 +370,8 @@ router.post(
 
 router.post(
   "/issue-temporary-pwd",
-  verifyToken,
   asyncHandler(async (req, res) => {
-    const { account_id } = req;
+    const { phone } = req.body;
     const temporaryPwd = Math.floor(Math.random() * 89999999 + 10000000).toString();
 
     const bcryptPwd = bcrypt.hashSync(temporaryPwd, 10);
@@ -380,14 +379,14 @@ router.post(
     const transaction = await models.sequelize.transaction();
 
     const user = await Account.findOne({
-      where: { id: account_id },
+      where: { phone },
       transaction
     });
 
     await Account.update({
       password: bcryptPwd
     }, {
-      where: { id: account_id },
+      where: { phone },
       transaction
     });
 
