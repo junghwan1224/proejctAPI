@@ -192,10 +192,7 @@ router.post("/complete", verifyToken, asyncHandler(async (req, res) => {
                         transaction
                     });
                     const productOEN = products.map( p => p.dataValues.oe_number);
-                    const smsText = `
-                        ${productOEN.length > 1 ? `${productOEN[0]}외 ${productOEN.length - 1}개` : productOEN[0]} 상품의 결제가
-                        완료되었습니다.
-                    `;
+                    const smsText = `${productOEN.length > 1 ? `${productOEN[0]}외 ${productOEN.length - 1}개` : productOEN[0]} 상품의 결제가 완료되었습니다.`;
 
                     await transaction.commit();
 
