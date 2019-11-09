@@ -60,7 +60,7 @@ app.use(
     secret: "HERMES",
     resave: false,
     saveUninitialized: true,
-    cookie: { maxAge: 60000 },
+    cookie: { maxAge: 900000 }, // 15 minutes
     store: new MySQLStore(options)
   })
 );
