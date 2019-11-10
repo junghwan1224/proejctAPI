@@ -393,7 +393,9 @@ router.post(
 
       return res.status(201).send({ message: "update success" });
     } else {
-      return res.status(403).send({ message: "기존 비밀번호 불일치" });
+      return res
+        .status(400)
+        .send({ message: "기존 비밀번호가 일치하지 않습니다." });
     }
   })
 );
