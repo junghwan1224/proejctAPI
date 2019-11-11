@@ -47,7 +47,7 @@ module.exports = (sequelize, DataTypes) => {
       onUpdate: "cascade"
     });
 
-    order.hasOne(models.delivery);
+    // order.hasOne(models.delivery);
   };
   return order;
 };
