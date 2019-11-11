@@ -13,13 +13,8 @@ module.exports = {
         allowNull: false
       },
       order_id: {
-        type: Sequelize.INTEGER,
-        references: {
-          model: 'orders',
-          key: 'id',
-        },
-        onDelete: "CASCADE",
-        onUpdate: "CASCADE",
+        type: Sequelize.STRING,
+        allowNull: false
       },
       status: {
         type: Sequelize.STRING,
