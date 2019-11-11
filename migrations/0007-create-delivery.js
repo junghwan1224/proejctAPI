@@ -8,6 +8,16 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
+      account_id: {
+        type: Sequelize.UUID,
+        allowNull: false,
+        references: {
+          model: "accounts",
+          key: "id"
+        },
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE"
+      },
       delivery_num: {
         type: Sequelize.STRING,
         allowNull: false
