@@ -16,17 +16,17 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       hooks: {
-        afterBulkUpdate: (order, options) => {
-          console.log(order.attributes);
-          if(order.attributes.status === "paid") {
+        afterBulkUpdate: function(options) {
+          if(options.attributes.status === "paid") {
             sequelize.models.delivery.create({
-              delivery_num: order.attributes.imp_uid.slice(4),
-              order_id: order.attributes.imp_uid,
+              account_id: options.account_id,
+              delivery_num: options.attributes.imp_uid.slice(4),
+              order_id: options.attributes.imp_uid,
               status: "결제완료, 배송 준비 중",
               location: "HZY 창고",
               arrived_at: Date.now()
             }, {
-              transaction: order.transaction
+              transaction: options.transaction
             });
           }
         }
