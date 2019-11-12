@@ -183,6 +183,7 @@ router.post("/complete", verifyToken, asyncHandler(async (req, res) => {
                         where: { 
                             id: { [Op.in]: orderedId }
                         },
+                        account_id,
                         transaction
                     });
 
