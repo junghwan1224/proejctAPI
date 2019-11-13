@@ -364,7 +364,7 @@ router.post(
 );
 
 router.post(
-  "/set-new-pwd",
+  "/change-pwd",
   verifyToken,
   asyncHandler(async (req, res) => {
     const { account_id } = req;
@@ -397,6 +397,29 @@ router.post(
     }
   })
 );
+
+router.post("/set-new-pwd", async(async (req, res) => {
+  try{
+    const { phone, new_password } = req.body;
+    const transaction = await models.sequelize.transaction();
+
+    const bcryptPwd = bcrypt.hashSync(new_password, 10);
+    await Account.update({
+      password: bcryptPwd
+    },
+    {
+      where: { phone },
+      transaction
+    });
+
+    await transaction.commit();
+
+    res.status(201).send({ message: "비밀번호가 성공적으로 변경되었습니다." });
+  }
+  catch(err) {
+    return res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+  }
+}));
 
 router.post(
   "/issue-temporary-pwd",
