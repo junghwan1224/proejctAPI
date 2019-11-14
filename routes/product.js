@@ -258,4 +258,112 @@ router.get("/ark/product-detail", function(req, res, next) {
     });
 });
 
+router.post("/ark/update-product", function(req, res, next) {
+  const {
+    productID,
+    productAbstractID,
+    brand,
+    model,
+    oe_number,
+    start_year,
+    end_year,
+    engine,
+    price,
+    discount_rate,
+    quality_cert,
+    product_abstract
+  } = req.body;
+
+  const promise_product_abstract = ProductAbstract.update(product_abstract, {
+    where: { id: productAbstractID }
+  });
+
+  const promise_product = Product.update(
+    {
+      brand: brand,
+      model: model,
+      oe_number: oe_number,
+      start_year: start_year,
+      end_year: end_year,
+      engine: engine,
+      price: price,
+      discount_rate: discount_rate,
+      quality_cert: quality_cert,
+      product_abstract: product_abstract
+    },
+    {
+      where: { id: productID }
+    }
+  );
+
+  Promise.all([promise_product, promise_product_abstract])
+    .then(() => {
+      return res.status(201).send({ message: "update success" });
+    })
+    .catch(error => {
+      console.log(error);
+      return res.status(400).send();
+    });
+});
+
+// router.post("/ark/update-product", function(req, res, next) {
+//   Product.update(
+//     {
+//       brand: brand,
+//       model: model,
+//       oe_number: oe_number,
+//       start_year: start_year,
+//       end_year: end_year,
+//       engine: engine,
+//       price: price,
+//       discount_rate: discount_rate,
+//       quality_cert: quality_cert
+//     },
+//     {
+//       where: { id: productID },
+//       transaction
+//     }
+//   )
+//     .then(product => {
+//       res.status(200).send(product);
+//     })
+//     .catch(error => {
+//       console.log(error);
+//       res.status(400).send(error);
+//     });
+
+//   // Product.findOne({
+//   //   where: { id: req.query.productID },
+//   //   attributes: [
+//   //     "id",
+//   //     "abstract_id",
+//   //     "brand",
+//   //     "model",
+//   //     "oe_number",
+//   //     "start_year",
+//   //     "end_year",
+//   //     "engine",
+//   //     "price",
+//   //     "discount_rate",
+//   //     "memo",
+//   //     "description",
+//   //     "quality_cert"
+//   //   ],
+//   //   include: [
+//   //     {
+//   //       model: ProductAbstract,
+//   //       required: true,
+//   //       attributes: ["image", "maker", "maker_number", "stock", "type"]
+//   //     }
+//   //   ]
+//   // })
+//   //   .then(product => {
+//   //     res.status(200).send(product);
+//   //   })
+//   //   .catch(error => {
+//   //     console.log(error);
+//   //     res.status(400).send(error);
+//   //   });
+// });
+
 module.exports = router;
