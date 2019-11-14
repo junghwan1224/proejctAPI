@@ -16,14 +16,19 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       hooks: {
-        afterCreate: (order, options) => {
-          sequelize.models.delivery.create({
-            delivery_num: options.delivery_num,
-            order_id: order.id,
-            status: options.status,
-            location: options.location,
-            arrived_at: Date.now()
-          });
+        afterBulkUpdate: function(options) {
+          if(options.attributes.status === "paid") {
+            sequelize.models.delivery.create({
+              account_id: options.account_id,
+              delivery_num: options.attributes.imp_uid.slice(4),
+              order_id: options.attributes.imp_uid,
+              status: "결제완료, 배송 준비 중",
+              location: "HZY 창고",
+              arrived_at: Date.now()
+            }, {
+              transaction: options.transaction
+            });
+          }
         }
       }
     }
@@ -42,7 +47,7 @@ module.exports = (sequelize, DataTypes) => {
       onUpdate: "cascade"
     });
 
-    order.hasOne(models.delivery);
+    // order.hasOne(models.delivery);
   };
   return order;
 };

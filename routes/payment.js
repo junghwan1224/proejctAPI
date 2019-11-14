@@ -69,9 +69,10 @@ router.post("/complete", verifyToken, asyncHandler(async (req, res) => {
         // DB에서 미리 저장된 결제 요청 정보
         const orderData = await Order.findAll({
             where: { merchant_uid },
-            attributes: ["product_id", "quantity"],
+            attributes: ["id", "product_id", "quantity"],
             transaction
         });
+        const orderedId = orderData.map(order => order.dataValues.id);
         const orderedProductId = orderData.map(order => order.dataValues.product_id);
         const orderedQuantity = orderData.map(order => order.dataValues.quantity);
 
@@ -94,7 +95,7 @@ router.post("/complete", verifyToken, asyncHandler(async (req, res) => {
                     },
                     {
                         where: { 
-                            product_id: { [Op.in]: orderedProductId }
+                            id: { [Op.in]: orderedId }
                         },
                         transaction
                     });
@@ -180,8 +181,9 @@ router.post("/complete", verifyToken, asyncHandler(async (req, res) => {
                     },
                     {
                         where: { 
-                            product_id: { [Op.in]: orderedProductId }
+                            id: { [Op.in]: orderedId }
                         },
+                        account_id,
                         transaction
                     });
 
@@ -227,7 +229,7 @@ router.post("/complete", verifyToken, asyncHandler(async (req, res) => {
             },
             {
                 where: { 
-                    product_id: { [Op.in]: orderedProductId }
+                    id: { [Op.in]: orderedId }
                 },
                 transaction
             });
@@ -461,9 +463,10 @@ router.post("/iamport-webhook", asyncHandler(async (req, res) => {
         // DB에서 미리 저장된 결제 요청 정보
         const orderData = await Order.findAll({
             where: { merchant_uid },
-            attributes: ["product_id", "quantity"],
+            attributes: ["id", "product_id", "quantity"],
             transaction
         });
+        const orderedId = orderData.map(order => order.dataValues.id);
         const orderedProductId = orderData.map(order => order.dataValues.product_id);
         const orderedQuantity = orderData.map(order => order.dataValues.quantity);
 
@@ -486,7 +489,7 @@ router.post("/iamport-webhook", asyncHandler(async (req, res) => {
                     },
                     {
                         where: { 
-                            product_id: { [Op.in]: orderedProductId }
+                            id: { [Op.in]: orderedId }
                         },
                         transaction
                     });
@@ -566,7 +569,7 @@ router.post("/iamport-webhook", asyncHandler(async (req, res) => {
                     },
                     {
                         where: { 
-                            product_id: { [Op.in]: orderedProductId }
+                            id: { [Op.in]: orderedId }
                          },
                          transaction
                     });
@@ -587,7 +590,7 @@ router.post("/iamport-webhook", asyncHandler(async (req, res) => {
             },
             {
                 where: { 
-                    product_id: { [Op.in]: orderedProductId }
+                    id: { [Op.in]: orderedId }
                 },
                 transaction
             });
@@ -749,9 +752,10 @@ router.post("/billing", verifyToken, asyncHandler(async (req, res) => {
         // 결제 정보 조회
         const orderData = await Order.findAll({
             where: { merchant_uid },
-            attributes: ["product_id", "quantity"],
+            attributes: ["id", "product_id", "quantity"],
             transaction
         });
+        const orderedId = orderData.map(order => order.dataValues.id);
         const orderedProductId = orderData.map(order => order.dataValues.product_id);
         const orderedQuantity = orderData.map(order => order.dataValues.quantity);
 
@@ -857,7 +861,7 @@ router.post("/billing", verifyToken, asyncHandler(async (req, res) => {
                     },
                     {
                         where: { 
-                            product_id: { [Op.in]: orderedProductId }
+                            id: { [Op.in]: orderedId }
                         },
                         transaction
                     });
@@ -919,7 +923,7 @@ router.post("/billing", verifyToken, asyncHandler(async (req, res) => {
                 },
                 {
                     where: { 
-                        product_id: { [Op.in]: orderedProductId }
+                        id: { [Op.in]: orderedId }
                     },
                     transaction
                 });
@@ -940,7 +944,7 @@ router.post("/billing", verifyToken, asyncHandler(async (req, res) => {
             },
             {
                 where: { 
-                    product_id: { [Op.in]: orderedProductId }
+                    product_id: { [Op.in]: orderedId }
                 },
                 transaction
             });
