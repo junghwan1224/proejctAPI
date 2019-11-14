@@ -957,16 +957,17 @@ router.post("/billing", verifyToken, asyncHandler(async (req, res) => {
 }));
 
 /************ 주문 취소(환불) ************/
-router.post("/refund", verifyToken, asyncHandler(async (req, res) => {
+router.post("/refund", asyncHandler(async (req, res) => {
+    try{
         const { 
             orders, // order ids in array
-            merchant_uid,
-            amount, // 환불 금액 -> 클라이언트에서 합산 후 요청
+            imp_uid,
             reason, // 환불 사유
         } = req.body;
         const transaction = await models.sequelize.transaction();
 
-        const { account_id } = req;
+        // const { account_id } = req;
+        const account_id = "e184f782-3113-472d-a1fd-ca63e18d12d0";
 
         const user = await Account.findOne({
             where: { id: account_id },
@@ -986,30 +987,34 @@ router.post("/refund", verifyToken, asyncHandler(async (req, res) => {
 
         const { access_token } = getToken.data.response;
 
-        // merchant_uid 값을 통해 결제 내역 조회
-        // imp_uid 추출
+        const ordersArr = orders.split(",");
+
+        // imp_uid 값을 통해 결제 내역 조회
         const wouldBeRefundedOrder = await Order.findAll({
             where: {
-                order_id: { [Op.in]: orders },
-                merchant_uid
+                id: { [Op.in]: ordersArr },
+                imp_uid
             },
             transaction
         });
-        const { imp_uid } = wouldBeRefundedOrder[0].dataValues;
         const refundedProductId = wouldBeRefundedOrder.map(order => order.dataValues.product_id);
         const refundedQuantity = wouldBeRefundedOrder.map(order => order.dataValues.quantity);
 
         const cancelableAmount = await Order.sum("amount", {
             where: { 
-                order_id: { [Op.in]: orders }
+                id: { [Op.in]: ordersArr },
+                [Op.and]: [
+                    { status: "paid" },
+                    { status: { [Op.not]: "refunded" } }
+                ]
             },
             transaction
         });
 
         // checksum 파라미터 관련 로직
         // cancelableAmount = db에서 가져온 금액
-        // cancelableAmount - amount <= 0 => message: "이미 전액 환불된 주문입니다."
-        if(cancelableAmount - amount <= 0) {
+        // cancelableAmoount에서 성립하는 조건 없을 시 null 반환
+        if(! cancelableAmount) {
             await transaction.commit();
 
             return res.status(201).send({status: "amount over", message: "이미 전액환불된 주문입니다."});
@@ -1026,9 +1031,8 @@ router.post("/refund", verifyToken, asyncHandler(async (req, res) => {
             },
             data: {
                 imp_uid,
-                merchant_uid,
                 reason,
-                amount,
+                amount: cancelableAmount,
                 checksum: cancelableAmount
             }
         });
@@ -1101,16 +1105,13 @@ router.post("/refund", verifyToken, asyncHandler(async (req, res) => {
             });
 
             // order DB 값 업데이트 ... 금액 변경, status 처리
-            // TO THINK: amount는 0으로 바꿔야 하나?
-            // TO THINK: amount 업데이트 없이 checksum 값 구하고 요청 받아온 amount 빼서 처리
             await Order.update(
                 {
-                    // amount: 0,
                     status: "refunded"
                 },
                 {
                     where: {
-                        id: { [Op.in]: orders }
+                        id: { [Op.in]: ordersArr }
                     },
                     transaction
                 }
@@ -1124,10 +1125,7 @@ router.post("/refund", verifyToken, asyncHandler(async (req, res) => {
                 transaction
             });
             const productOEN = products.map( p => p.dataValues.oe_number);
-            const smsText = `
-                ${productOEN.length > 1 ? `${productOEN[0]}외 ${productOEN.length - 1}개` : productOEN[0]} 상품 주문이
-                취소되었습니다.
-            `;
+            const smsText = `${productOEN.length > 1 ? `${productOEN[0]}외 ${productOEN.length - 1}개` : productOEN[0]} 상품 주문이 취소되었습니다.`;
 
             await transaction.commit();
 
@@ -1151,7 +1149,7 @@ router.post("/refund", verifyToken, asyncHandler(async (req, res) => {
             });
 
             return res.status(201).send({
-                stauts: "success",
+                status: "success",
                 message: "환불이 정상적으로 처리되었습니다.",
                 receipt_url: cancelPayment.data.response.receipt_url
             });
@@ -1159,10 +1157,14 @@ router.post("/refund", verifyToken, asyncHandler(async (req, res) => {
 
         else {
             // 환불 실패
-            // await transaction.commit();
-
-            return res.status(403).send({ stauts: "success", message: "환불 실패" });
+            return res.status(403).send({ status: "success", message: cancelPayment.data.message });
         }
+    }
+
+    catch(err) {
+        console.log(err);
+        return res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요" });
+    }
 
 }));
 
