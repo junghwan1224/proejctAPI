@@ -957,7 +957,7 @@ router.post("/billing", verifyToken, asyncHandler(async (req, res) => {
 }));
 
 /************ 주문 취소(환불) ************/
-router.post("/refund", asyncHandler(async (req, res) => {
+router.post("/refund", verifyToken, asyncHandler(async (req, res) => {
     try{
         const { 
             orders, // order ids in array
@@ -966,8 +966,7 @@ router.post("/refund", asyncHandler(async (req, res) => {
         } = req.body;
         const transaction = await models.sequelize.transaction();
 
-        // const { account_id } = req;
-        const account_id = "e184f782-3113-472d-a1fd-ca63e18d12d0";
+        const { account_id } = req;
 
         const user = await Account.findOne({
             where: { id: account_id },
@@ -1000,7 +999,8 @@ router.post("/refund", asyncHandler(async (req, res) => {
         const refundedProductId = wouldBeRefundedOrder.map(order => order.dataValues.product_id);
         const refundedQuantity = wouldBeRefundedOrder.map(order => order.dataValues.quantity);
 
-        const cancelableAmount = await Order.sum("amount", {
+        // 환불하고자 하는 금액
+        const wantCancelAmount = await Order.sum("amount", {
             where: { 
                 id: { [Op.in]: ordersArr },
                 [Op.and]: [
@@ -1011,10 +1011,28 @@ router.post("/refund", asyncHandler(async (req, res) => {
             transaction
         });
 
+        // 이미 환불된 금액
+        let canceled = await Order.sum("amount", {
+            where: {
+                id: { [Op.in]: ordersArr },
+                status: "refunded"
+            },
+            transaction
+        });
+
+        // 환불된 금액이 없으면 null을 반환하므로 값 변경
+        if(! canceled) { canceled = 0; }
+
+        let totalAmount = await Order.sum("amount", {
+            where: { imp_uid },
+            transaction
+        });
+
+        // 환불 가능한 금액
+        const cancelableAmount = totalAmount - canceled;
+
         // checksum 파라미터 관련 로직
-        // cancelableAmount = db에서 가져온 금액
-        // cancelableAmoount에서 성립하는 조건 없을 시 null 반환
-        if(! cancelableAmount) {
+        if(cancelableAmount <= 0) {
             await transaction.commit();
 
             return res.status(201).send({status: "amount over", message: "이미 전액환불된 주문입니다."});
@@ -1032,7 +1050,7 @@ router.post("/refund", asyncHandler(async (req, res) => {
             data: {
                 imp_uid,
                 reason,
-                amount: cancelableAmount,
+                amount: wantCancelAmount,
                 checksum: cancelableAmount
             }
         });
