@@ -15,7 +15,8 @@ module.exports = (sequelize, DataTypes) => {
       discount_rate: DataTypes.FLOAT,
       memo: DataTypes.TEXT, // e.g. 제품에 대한 전산 상의 메모
       description: DataTypes.STRING, // 제품 설명 URL 이미지
-      quality_cert: DataTypes.STRING //  품질인증 e.g. KAPA (한국자동차부품협회)
+      quality_cert: DataTypes.STRING, //  품질인증 e.g. KAPA (한국자동차부품협회),
+      is_public: DataTypes.BOOLEAN
     },
     {
       hooks: {

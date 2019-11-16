@@ -68,6 +68,10 @@ module.exports = {
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE
+      },
+      is_public: {
+        allowNull: false,
+        type: Sequelize.BOOLEAN
       }
     });
   },

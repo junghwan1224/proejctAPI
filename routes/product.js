@@ -33,7 +33,8 @@ router.get("/", function(req, res, next) {
   Product.findAll({
     where: {
       category: req.query.category,
-      brand: req.query.brand
+      brand: req.query.brand,
+      is_public: 1
     },
     attributes: PRODUCT_ATTRIBUTES,
     include: [
@@ -59,7 +60,11 @@ router.get("/", function(req, res, next) {
 
 router.get("/abstract/list", function(req, res, next) {
   // Get list of items
-  ProductAbstract.findAll()
+  ProductAbstract.findAll({
+    where: {
+      is_public: 1
+    }
+  })
     .then(productAbstract => {
       res.status(200).send(productAbstract);
     })
@@ -75,9 +80,10 @@ router.get("/read", function(req, res, next) {
   let where;
 
   if (category !== "search") {
-    where = { brand: brand.toUpperCase() };
+    where = { brand: brand.toUpperCase(), is_public: 1 };
   } else {
     where = {
+      is_public: 1,
       [Op.or]: [
         { oe_number: { [Op.like]: `%${req.query.brand}%` } },
         { brand: { [Op.like]: `%${req.query.brand}%` } },
@@ -132,7 +138,8 @@ router.post("/create", function(req, res, next) {
     discount_rate: req.body.discount_rate,
     memo: req.body.memo,
     description: req.body.description,
-    quality_cert: req.body.quality_cert
+    quality_cert: req.body.quality_cert,
+    is_public: req.body.is_public
   })
     .then(article => res.status(201).send(article))
     .catch(error => {
@@ -160,35 +167,13 @@ router.post("/abstract/create", function(req, res, next) {
 /**
  * ARK
  */
-router.get("/ark/fetch-product-ratio", function(req, res, next) {
-  ProductAbstract.findAll({
-    attributes: ["type"]
-  })
-    .then(products => {
-      let pmap = {};
-      for (const product of products) {
-        if (Object.keys(pmap).includes(product.type)) {
-          pmap[product.type] += 1;
-        } else {
-          pmap[product.type] = 1;
-        }
-      }
-      res.status(200).send(pmap);
-    })
-    .catch(error => {
-      console.log(error);
-      res.status(400).send(error);
-    });
-});
 
 router.get("/ark/product-list", function(req, res, next) {
   Product.findAll({
-    attributes: PRODUCT_ATTRIBUTES,
     include: [
       {
         model: ProductAbstract,
-        required: true,
-        attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+        required: true
       }
     ],
     order: [
@@ -201,9 +186,6 @@ router.get("/ark/product-list", function(req, res, next) {
     .then(products => {
       let fabricated = [];
       for (const product of products) {
-        if (products.indexOf(product) === 1) {
-          console.log(product.id);
-        }
         fabricated.push({
           product_id: product.id,
           oe_number: product.oe_number,
@@ -212,7 +194,8 @@ router.get("/ark/product-list", function(req, res, next) {
           maker_number: product.product_abstract.maker_number,
           brand: product.brand,
           model: product.model,
-          quantity: product.product_abstract.stock
+          quantity: product.product_abstract.stock,
+          is_public: product.is_public
         });
       }
       res.status(200).send(fabricated);
@@ -226,21 +209,6 @@ router.get("/ark/product-list", function(req, res, next) {
 router.get("/ark/product-detail", function(req, res, next) {
   Product.findOne({
     where: { id: req.query.productID },
-    attributes: [
-      "id",
-      "abstract_id",
-      "brand",
-      "model",
-      "oe_number",
-      "start_year",
-      "end_year",
-      "engine",
-      "price",
-      "discount_rate",
-      "memo",
-      "description",
-      "quality_cert"
-    ],
     include: [
       {
         model: ProductAbstract,
@@ -271,7 +239,8 @@ router.post("/ark/update-product", function(req, res, next) {
     price,
     discount_rate,
     quality_cert,
-    product_abstract
+    product_abstract,
+    is_public
   } = req.body;
 
   const promise_product_abstract = ProductAbstract.update(product_abstract, {
@@ -289,7 +258,8 @@ router.post("/ark/update-product", function(req, res, next) {
       price: price,
       discount_rate: discount_rate,
       quality_cert: quality_cert,
-      product_abstract: product_abstract
+      product_abstract: product_abstract,
+      is_public: is_public
     },
     {
       where: { id: productID }
