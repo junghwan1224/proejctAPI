@@ -51,6 +51,7 @@ def main():
         product['quality_cert'] = ''
         product['memo'] = ''
         product['description'] = ''
+        product['is_public'] = 1
 
         response = requests.post(url=SERVER_BASE+PRODUCT_ROUTE,
                                  data={
@@ -65,7 +66,8 @@ def main():
                                      'discount_rate': product['discount_rate'],
                                      'quality_cert': product['quality_cert'],
                                      'memo': product['memo'],
-                                     'description': product['description']
+                                     'description': product['description'],
+                                     'is_public': product['is_public']
                                  })
 
         print(response)
