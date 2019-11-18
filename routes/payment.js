@@ -6,6 +6,7 @@ const Sequelize = require("sequelize");
 const jwt = require("jsonwebtoken");
 
 const Order = require("../models").order;
+const Delivery = require("../models").delivery;
 const Account = require("../models").account;
 const Address = require("../models").address;
 const Product = require("../models").product;
@@ -25,6 +26,39 @@ const SENS_API_V2_URL = process.env.SENS_API_V2_URL + process.env.SENS_API_V2_UR
 const SENS_ACCESS_KEY = process.env.SENS_ACCESS_KEY;
 const SENS_SENDER = process.env.SENS_SENDER;
 
+
+// imp_uid로 받아온 값 조회
+router.get("/get-order-info", verifyToken, asyncHandler(async (req, res) => {
+    try {
+        const { account_id } = req;
+        const { order_id } = req.query;
+
+        const order = await Order.findOne({
+            where: {
+                account_id,
+                imp_uid: order_id
+            },
+            attributes: ["amount", "updatedAt"]
+        });
+
+        const delivery = await Delivery.findOne({
+            where: {
+                account_id,
+                order_id
+            },
+            attributes: ["arrived_at"]
+        });
+
+        res.status(201).send({
+            order: order.dataValues,
+            delivery: delivery.dataValues
+        });
+    }
+    catch(err) {
+        console.log(err);
+        res.status(403).send({ message: "에러가 발생했습니다. 페이지를 새로고침 해주세요." });
+    }
+}));
 
 /************ 일반 결제 ************/
 
