@@ -3,7 +3,7 @@ const router = express.Router();
 const axios = require("axios");
 const asyncHandler = require('express-async-handler');
 const Sequelize = require("sequelize");
-const jwt = require("jsonwebtoken");
+const { Op } = Sequelize;
 
 const Order = require("../models").order;
 const Delivery = require("../models").delivery;
@@ -16,8 +16,6 @@ const models = require("../models");
 
 const makeSignature = require("../public/js/signature");
 const verifyToken = require("./verifyToken");
-
-const { Op } = Sequelize;
 
 const REST_API_KEY = process.env.IMPORT_REST_API_KEY;
 const REST_API_SECRET = process.env.IMPORT_REST_API_SECRET;
@@ -282,190 +280,197 @@ router.post("/complete", verifyToken, asyncHandler(async (req, res) => {
 
 // 결제 요청 전, 요청할 주문 데이터 미리 저장 - 아임포트 서버에서 가져온 결제 정보와 비교하기 위함
 router.post("/save-order", verifyToken, asyncHandler(async (req, res) => {
-    const { 
-        merchant_uid,
-        products,
-        pay_method,
-        name,
-        amount, // array
-        quantity,  // array
-        address_id,
-        buyer_email,
-        addrArray, // buyer_addr
-        buyer_postcode,
-        memo
-     } = req.body;
-
-     const transaction = await models.sequelize.transaction();
-
-    const { account_id } = req;
-
-    const user = await Account.findOne({
-        where: { id: account_id },
-        transaction
-    });
-
-    const { email } = user.dataValues;
-
-    // check stock of product
-    const productsIdArr = products.split(",");
-    const productsQuantityArr = quantity.split(",").map(q => parseInt(q));
-    const productsAmountArr = amount.split(",").map(a => parseInt(a));
-
-    const prodArr = productsIdArr.map((p, idx) => ({
-        "id": p,
-        "amount": productsAmountArr[idx],
-        "quantity": productsQuantityArr[idx]
-    }));
-    prodArr.sort((a, b) => { if(a.id < b.id) return -1; else return 1; });
-
-    const abstractsIds = await Product.findAll({
-        where: { id: { [Op.in]: prodArr.map(e => e.id) } },
-        include: [ProductAbstract],
-        transaction
-    });
-
-    const abstArr = abstractsIds.map(
-        product => {
-            const { dataValues } = product;
-            const { product_abstract } = dataValues;
-            const prop = product_abstract.dataValues;
-
-            return prop.id;
-        });
+    try {
+        const { 
+            merchant_uid,
+            products,
+            pay_method,
+            name,
+            amount, // array
+            quantity,  // array
+            address_id,
+            buyer_email,
+            addrArray, // buyer_addr
+            buyer_postcode,
+            memo
+         } = req.body;
     
-    const abstObj = abstArr.map((abst, idx) => ({
-        "id": abst,
-        "quantity": prodArr[idx].quantity
-    }));
-
-    const abstractMap = abstObj.reduce((prev, cur) => {
-        let count = prev.get(cur.id) || 0;
-        prev.set(cur.id, cur.quantity + count);
-        return prev;
-    }, new Map());
-
-    const mapToArr = [...abstractMap].map( ([id, quantity]) => { return {id, quantity} });
-    mapToArr.sort((a, b) => { if(a.id < b.id) return -1; else return 1; });
-
-    const abstracts = await ProductAbstract.findAll({
-        where: {
-            id: { [Op.in]: abstObj.map(e => e.id) }
-        },
-        transaction
-    });
-
-    // 요청한 수량보다 재고가 적은 abstract의 id를 배열에 저장
-    const scarceProductsArr = abstracts.reduce(
-        (acc, product, idx) => {
-            if(product.dataValues.stock < mapToArr[idx].quantity) {
-                acc.push(mapToArr[idx].id);
-                return acc;
-            }
-            else {
-                return acc;
-            }
-        },
-        []
-    );
-
-    // 재고가 부족한 제품이 있는 경우
-    if(scarceProductsArr.length > 0) {
-
-        // abstract_id 값으로 상품 조회
-        const scarceProducts = await Product.findAll({
-            where: {
-                abstract_id: { [Op.in]: scarceProductsArr }
-            },
-            transaction
-        });
-
-        await transaction.commit();
-
-        return res.status(403).send({ api: "saveOrder", message: "재고 부족", scarceProducts });
-    }
-
-    // update to account email value
-    // 이메일 주소가 다른 경우
-    if(email !== buyer_email) {
-        await Account.update({
-            email: buyer_email
-        },{
+        const transaction = await models.sequelize.transaction();
+    
+        const { account_id } = req;
+    
+        const user = await Account.findOne({
             where: { id: account_id },
             transaction
         });
-    }
-
-    //  update to account address value
-    const parsedAddr = addrArray.split(",");
-    // 입력된 주소가 없을 경우
-    if(! parseInt(address_id)) {
-        await Address.create({
-            account_id,
-            primary: parsedAddr[0],
-            detail: parsedAddr[1],
-            postcode: buyer_postcode
-        }, {
+    
+        const { email } = user.dataValues;
+    
+        // check stock of product
+        const productsIdArr = products.split(",");
+        const productsQuantityArr = quantity.split(",").map(q => parseInt(q));
+        const productsAmountArr = amount.split(",").map(a => parseInt(a));
+    
+        const prodArr = productsIdArr.map((p, idx) => ({
+            "id": p,
+            "amount": productsAmountArr[idx],
+            "quantity": productsQuantityArr[idx]
+        }));
+        prodArr.sort((a, b) => { if(a.id < b.id) return -1; else return 1; });
+    
+        const abstractsIds = await Product.findAll({
+            where: { id: { [Op.in]: prodArr.map(e => e.id) } },
+            include: [ProductAbstract],
             transaction
         });
-    }
-    // 입력된 주소가 있는 경우
-    else {
-        const addr = await Address.findOne({
+    
+        const abstArr = abstractsIds.map(
+            product => {
+                const { dataValues } = product;
+                const { product_abstract } = dataValues;
+                const prop = product_abstract.dataValues;
+    
+                return prop.id;
+            });
+        
+        const abstObj = abstArr.map((abst, idx) => ({
+            "id": abst,
+            "quantity": prodArr[idx].quantity
+        }));
+    
+        const abstractMap = abstObj.reduce((prev, cur) => {
+            let count = prev.get(cur.id) || 0;
+            prev.set(cur.id, cur.quantity + count);
+            return prev;
+        }, new Map());
+    
+        const mapToArr = [...abstractMap].map( ([id, quantity]) => { return {id, quantity} });
+        mapToArr.sort((a, b) => { if(a.id < b.id) return -1; else return 1; });
+    
+        const abstracts = await ProductAbstract.findAll({
             where: {
-                id: address_id,
-                account_id
+                id: { [Op.in]: abstObj.map(e => e.id) }
             },
-            attributes: ["postcode", "primary", "detail"],
             transaction
         });
-   
-        const optionInfoObj = {
-            postcode: buyer_postcode,
-            primary: parsedAddr[0],
-            detail: parsedAddr[1],
-        };
-
-        // 입력된 주소가 있으나 수정한 경우
-        if(! Object.is(JSON.stringify(addr.dataValues), JSON.stringify(optionInfoObj))) {
-            await Address.update({
-                postcode: buyer_postcode,
-                primary: parsedAddr[0],
-                detail: parsedAddr[1],
+    
+        // 요청한 수량보다 재고가 적은 abstract의 id를 배열에 저장
+        const scarceProductsArr = abstracts.reduce(
+            (acc, product, idx) => {
+                if(product.dataValues.stock < mapToArr[idx].quantity) {
+                    acc.push(mapToArr[idx].id);
+                    return acc;
+                }
+                else {
+                    return acc;
+                }
             },
-            {
-                where: { id: address_id, account_id },
+            []
+        );
+    
+        // 재고가 부족한 제품이 있는 경우
+        if(scarceProductsArr.length > 0) {
+    
+            // abstract_id 값으로 상품 조회
+            const scarceProducts = await Product.findAll({
+                where: {
+                    abstract_id: { [Op.in]: scarceProductsArr }
+                },
+                transaction
+            });
+    
+            await transaction.commit();
+    
+            return res.status(403).send({ api: "saveOrder", message: "재고 부족", scarceProducts });
+        }
+    
+        // update to account email value
+        // 이메일 주소가 다른 경우
+        if(email !== buyer_email) {
+            await Account.update({
+                email: buyer_email
+            },{
+                where: { id: account_id },
                 transaction
             });
         }
-    }
-
-    // insert to DB
-    const newOrderArray = productsIdArr.map(
-        (product, idx) => {
-            return {
-                merchant_uid,
+    
+        //  update to account address value
+        const parsedAddr = addrArray.split(",");
+        // 입력된 주소가 없을 경우
+        if(! parseInt(address_id)) {
+            await Address.create({
                 account_id,
-                product_id: product,
-                name,
-                amount: (productsAmountArr[idx] * productsQuantityArr[idx]),
-                quantity: productsQuantityArr[idx],
-                pay_method,
-                status: "not paid",
-                memo
-            };
+                primary: parsedAddr[0],
+                detail: parsedAddr[1],
+                postcode: buyer_postcode
+            }, {
+                transaction
+            });
         }
-    );
-    await Order.bulkCreate(newOrderArray, { transaction });
-
-    await transaction.commit();
-
-    res.status(201).send({ api: "saveOrder", message: "success" });
+        // 입력된 주소가 있는 경우
+        else {
+            const addr = await Address.findOne({
+                where: {
+                    id: address_id,
+                    account_id
+                },
+                attributes: ["postcode", "primary", "detail"],
+                transaction
+            });
+       
+            const optionInfoObj = {
+                postcode: buyer_postcode,
+                primary: parsedAddr[0],
+                detail: parsedAddr[1],
+            };
+    
+            // 입력된 주소가 있으나 수정한 경우
+            if(! Object.is(JSON.stringify(addr.dataValues), JSON.stringify(optionInfoObj))) {
+                await Address.update({
+                    postcode: buyer_postcode,
+                    primary: parsedAddr[0],
+                    detail: parsedAddr[1],
+                },
+                {
+                    where: { id: address_id, account_id },
+                    transaction
+                });
+            }
+        }
+    
+        // insert to DB
+        const newOrderArray = productsIdArr.map(
+            (product, idx) => {
+                return {
+                    merchant_uid,
+                    account_id,
+                    product_id: product,
+                    name,
+                    amount: (productsAmountArr[idx] * productsQuantityArr[idx]),
+                    quantity: productsQuantityArr[idx],
+                    pay_method,
+                    status: "not paid",
+                    memo
+                };
+            }
+        );
+        await Order.bulkCreate(newOrderArray, { transaction });
+    
+        await transaction.commit();
+    
+        res.status(201).send({ api: "saveOrder", message: "success" });
+    }
+    catch(err) {
+        console.log(err);
+        res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+    }
 }));
 
 // iamport webhook
 // TODO: webhook 호출 시 SMS?
 router.post("/iamport-webhook", asyncHandler(async (req, res) => {
+    try {
         const { imp_uid, merchant_uid } = req.body;
         const transaction = await models.sequelize.transaction();
 
@@ -634,13 +639,19 @@ router.post("/iamport-webhook", asyncHandler(async (req, res) => {
             // throw { status: "forgery", message: "위조된 결제시도" };
             return res.status(403).send({ status: "forgery", message: "위조된 결제시도" });
         }
+    }
 
+    catch(err) {
+        console.log(err);
+        res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+    }
 }));
 
 /************ 정기 결제 - 카드 등록, 등록된 카드로 결제 요청 기능 ************/
 
 // 카드 정보 customer_uid로 저장
 router.post("/issue-billing", verifyToken, asyncHandler(async (req, res) => {
+    try{
         const {
             card_number, // 카드 번호
             expiry, // 카드 유효기간
@@ -711,45 +722,59 @@ router.post("/issue-billing", verifyToken, asyncHandler(async (req, res) => {
             // 빌링키 발급 실패
             return res.status(403).send({ status: "failed", message });
         }
+    }
+
+    catch(err) {
+        console.log(err);
+        res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+    }
 }));
 
 router.delete("/delete-billing", verifyToken, asyncHandler(async (req, res) => {
-    const { customer_uid } = req.body;
+    try{
+        const { customer_uid } = req.body;
 
-    const getToken = await axios({
-        url: "https://api.iamport.kr/users/getToken",
-        method: "post",
-        headers: { "Content-Type": "application/json" },
-        data: {
-          imp_key: REST_API_KEY, 
-          imp_secret: REST_API_SECRET 
-        }
-    });
-
-    const { access_token } = getToken.data.response;
-
-    const deleteBilling = await axios({
-        url: `https://api.iamport.kr/subscribe/customers/${customer_uid}`,
-        method: "DELETE",
-        headers: { "Authorization": access_token }
-    });
-
-    const { code, message } = deleteBilling.data;
-
-    if(code === 0) {
-        await CardInfo.destroy({
-            where: { customer_uid }
+        const getToken = await axios({
+            url: "https://api.iamport.kr/users/getToken",
+            method: "post",
+            headers: { "Content-Type": "application/json" },
+            data: {
+            imp_key: REST_API_KEY, 
+            imp_secret: REST_API_SECRET 
+            }
         });
 
-        return res.status(201).send({ message });
+        const { access_token } = getToken.data.response;
+
+        const deleteBilling = await axios({
+            url: `https://api.iamport.kr/subscribe/customers/${customer_uid}`,
+            method: "DELETE",
+            headers: { "Authorization": access_token }
+        });
+
+        const { code, message } = deleteBilling.data;
+
+        if(code === 0) {
+            await CardInfo.destroy({
+                where: { customer_uid }
+            });
+
+            return res.status(201).send({ message });
+        }
+        else {
+            return res.status(403).send({ message });
+        }
     }
-    else {
-        return res.status(403).send({ message });
+
+    catch(err) {
+        console.log(err);
+        res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
     }
 }));
 
 // 저장된 카드 정보로 결제하기
 router.post("/billing", verifyToken, asyncHandler(async (req, res) => {
+    try {
         const {
             customer_uid,
             merchant_uid,
@@ -987,7 +1012,12 @@ router.post("/billing", verifyToken, asyncHandler(async (req, res) => {
 
             return res.status(403).send({ status: "forgery", message: "위조된 결제시도" });
         }
+    }
 
+    catch(err) {
+        console.log(err);
+        res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+    }
 }));
 
 /************ 주문 취소(환불) ************/
@@ -1221,69 +1251,76 @@ router.post("/refund", verifyToken, asyncHandler(async (req, res) => {
 }));
 
 router.post("/issue-receipt", verifyToken, asyncHandler(async (req, res) => {
-    const {
-        order_id,
-        identifier,
-        identifier_type, // 현금영수증 발행대상 식별정보 유형
-        // person - 주민등록번호 / business - 사업자등록번호 / phone - 연락처 / taxcard - 국세청 현금영수증카드
-        type,
-    } = req.body;
-    const transaction = await models.sequelize.transaction();
-
-    const { account_id } = req;
-
-    const user = await Account.findOne({
-        where: { id: account_id },
-        transaction
-    });
-
-    const getToken = await axios({
-        url: "https://api.iamport.kr/users/getToken",
-        method: "post",
-        headers: { "Content-Type": "application/json" },
-        data: {
-          imp_key: REST_API_KEY, 
-          imp_secret: REST_API_SECRET
-        }
-    });
-
-    const { access_token } = getToken.data.response;
-
-    const order = await Order.findOne({
-        where: { id: order_id },
-        transaction
-    });
-    const { imp_uid } = order.dataValues;
-
-    const getReceipt = await axios({
-        url: `https://api.iamport.kr/receipts/${imp_uid}`,
-        method: "post",
-        headers: { "Authorization": access_token },
-        data: {
-            imp_uid,
+    try {
+        const {
+            order_id,
             identifier,
-            identifier_type,
+            identifier_type, // 현금영수증 발행대상 식별정보 유형
+            // person - 주민등록번호 / business - 사업자등록번호 / phone - 연락처 / taxcard - 국세청 현금영수증카드
             type,
-            buyer_name: user.dataValues.name,
-            buyer_tel: user.dataValues.phone
-        }
-    });
-    const { code } = getReceipt.data;
+        } = req.body;
+        const transaction = await models.sequelize.transaction();
 
-    if(code === 0) {
-        await transaction.commit();
+        const { account_id } = req;
 
-        return res.status(201).send({
-            status: "success",
-            message: "영수증 발급이 완료되었습니다.",
-            receipt_url: getReceipt.data.response.receipt_url
+        const user = await Account.findOne({
+            where: { id: account_id },
+            transaction
         });
+
+        const getToken = await axios({
+            url: "https://api.iamport.kr/users/getToken",
+            method: "post",
+            headers: { "Content-Type": "application/json" },
+            data: {
+            imp_key: REST_API_KEY, 
+            imp_secret: REST_API_SECRET
+            }
+        });
+
+        const { access_token } = getToken.data.response;
+
+        const order = await Order.findOne({
+            where: { id: order_id },
+            transaction
+        });
+        const { imp_uid } = order.dataValues;
+
+        const getReceipt = await axios({
+            url: `https://api.iamport.kr/receipts/${imp_uid}`,
+            method: "post",
+            headers: { "Authorization": access_token },
+            data: {
+                imp_uid,
+                identifier,
+                identifier_type,
+                type,
+                buyer_name: user.dataValues.name,
+                buyer_tel: user.dataValues.phone
+            }
+        });
+        const { code } = getReceipt.data;
+
+        if(code === 0) {
+            await transaction.commit();
+
+            return res.status(201).send({
+                status: "success",
+                message: "영수증 발급이 완료되었습니다.",
+                receipt_url: getReceipt.data.response.receipt_url
+            });
+        }
+
+        else {
+            // await transaction.commit();
+
+            return res.status(403).send({ status: "failed", message: "영수증 발급 도중 에러가 발생했습니다. 다시 시도해주세요." });
+        }
     }
 
-    else {
-        // await transaction.commit();
-
-        return res.status(403).send({ status: "failed", message: "영수증 발급 도중 에러가 발생했습니다. 다시 시도해주세요." });
+    catch(err) {
+        console.log(err);
+        return res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요" });
     }
 }));
 
