@@ -209,6 +209,7 @@ router.get("/ark/user", asyncHandler(async (req, res) => {
                 transaction
             });
         });
+        
         const orderList = await Promise.all(orderInfo);
 
         await transaction.commit();
