@@ -1037,7 +1037,6 @@ router.post("/billing", verifyToken, asyncHandler(async (req, res) => {
 router.post("/refund", verifyToken, asyncHandler(async (req, res) => {
     try{
         const { 
-            orders, // order ids in array
             imp_uid,
             reason, // 환불 사유
         } = req.body;
@@ -1063,16 +1062,14 @@ router.post("/refund", verifyToken, asyncHandler(async (req, res) => {
 
         const { access_token } = getToken.data.response;
 
-        const ordersArr = orders.split(",");
-
         // imp_uid 값을 통해 결제 내역 조회
         const wouldBeRefundedOrder = await Order.findAll({
             where: {
-                id: { [Op.in]: ordersArr },
                 imp_uid
             },
             transaction
         });
+        const ordersArr = wouldBeRefundedOrder.map(order => order.dataValues.id);
         const refundedProductId = wouldBeRefundedOrder.map(order => order.dataValues.product_id);
         const refundedQuantity = wouldBeRefundedOrder.map(order => order.dataValues.quantity);
 
