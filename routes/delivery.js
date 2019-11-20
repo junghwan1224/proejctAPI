@@ -3,6 +3,7 @@ const router = express.Router();
 const asyncHandler = require('express-async-handler');
 const verifyToken = require("./verifyToken");
 
+const Account = require("../models").account;
 const Delivery = require("../models").delivery;
 const Order = require("../models").order;
 const Product = require("../models").product;
@@ -10,7 +11,7 @@ const ProductAbstract = require("../models").product_abstract;
 const models = require("../models");
 
 // 배송 조회
-router.get("/get-all", verifyToken, asyncHandler(async (req, res) => {
+router.get("/all", verifyToken, asyncHandler(async (req, res) => {
     try {
         const { account_id } = req;
         const transaction = await models.sequelize.transaction();
@@ -21,7 +22,7 @@ router.get("/get-all", verifyToken, asyncHandler(async (req, res) => {
             transaction
         });
         const deliveryInfo = delivery.map(d => d.dataValues);
-        const result = deliveryInfo.map(d => {
+        const orderInfo = deliveryInfo.map(d => {
             const { order_id } = d;
             return Order.findAll({
                 where: { imp_uid: order_id },
@@ -38,11 +39,33 @@ router.get("/get-all", verifyToken, asyncHandler(async (req, res) => {
                 transaction
             });
         });
-        await Promise.all(result);
+        const orderList = await Promise.all(orderInfo);
 
         await transaction.commit();
 
-        res.status(200).send({ result, deliveryInfo });
+        // order와 delivery 정보 합침
+        const result = orderList.map((order, idx) => {
+            const delInfo = deliveryInfo[idx];
+
+            const info = order.map(o => {
+                const { dataValues } = o;
+                return {
+                    delivery: delInfo,
+                    order: dataValues,
+                };
+            });
+
+            return info;
+        });
+
+        // order.updatedAt(결제 날짜 최신 순)을 기준으로 정렬
+        result.sort((a, b) => {
+            if(a[0].order.updatedAt > b[0].order.updatedAt) { return -1; }
+            else if(a[0].order.updatedAt < b[0].order.updatedAt) { return 1; }
+            return 0;
+        });
+
+        res.status(200).send({ result });
     }
 
     catch(err) {
@@ -86,6 +109,140 @@ router.put("/update/location/:order_id", asyncHandler(async (req, res) => {
     );
 
     res.status(200).send({ message: "update success" });
+}));
+
+
+/************ Ark ************/
+
+router.get("/ark/list", asyncHandler(async (req, res) => {
+    try {
+        const transaction = await models.sequelize.transaction();
+
+        const delivery = await Delivery.findAll({
+            attributes: ["order_id", "status", "location", "arrived_at"],
+            transaction
+        });
+        const deliveryInfo = delivery.map(d => d.dataValues);
+        const orderInfo = deliveryInfo.map(d => {
+            const { order_id } = d;
+            return Order.findAll({
+                where: { imp_uid: order_id },
+                attributes: ["imp_uid", "amount", "quantity", "pay_method", "memo", "updatedAt"],
+                include: [{
+                    model: Product,
+                    required: true,
+                    include: [{
+                        model: ProductAbstract,
+                        required: true,
+                        attributes: ["image", "maker", "maker_number", "type"]
+                    }]
+                },
+                {
+                    model: Account,
+                    required: true,
+                    attributes: ["phone", "name", "crn", "mileage", "email"],
+                }],
+                transaction
+            });
+        });
+        
+        const orderList = await Promise.all(orderInfo);
+
+        await transaction.commit();
+        
+        // order와 delivery 정보 합침
+        const result = orderList.map((order, idx) => {
+            const delInfo = deliveryInfo[idx];
+
+            const info = order.map(o => {
+                const { dataValues } = o;
+                return {
+                    delivery: delInfo,
+                    order: dataValues,
+                };
+            });
+
+            return info;
+        });
+
+        // order.updatedAt(결제 날짜 최신 순)을 기준으로 정렬
+        result.sort((a, b) => {
+            if(a[0].order.updatedAt > b[0].order.updatedAt) { return -1; }
+            else if(a[0].order.updatedAt < b[0].order.updatedAt) { return 1; }
+            return 0;
+        });
+
+        res.status(200).send({ result });
+    }
+
+    catch(err) {
+        console.log(err);
+        res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+    }
+}));
+
+router.get("/ark/user", asyncHandler(async (req, res) => {
+    try {
+        const { account_id } = req.query;
+        const transaction = await models.sequelize.transaction();
+
+        const delivery = await Delivery.findAll({
+            where: { account_id },
+            attributes: ["order_id", "status", "location", "arrived_at"],
+            transaction
+        });
+        const deliveryInfo = delivery.map(d => d.dataValues);
+        const orderInfo = deliveryInfo.map(d => {
+            const { order_id } = d;
+            return Order.findAll({
+                where: { imp_uid: order_id },
+                attributes: ["imp_uid", "amount", "quantity", "pay_method", "memo", "updatedAt"],
+                include: [{
+                    model: Product,
+                    required: true,
+                    include: [{
+                        model: ProductAbstract,
+                        required: true,
+                        attributes: ["image", "maker", "maker_number", "type"]
+                    }]
+                }],
+                transaction
+            });
+        });
+        
+        const orderList = await Promise.all(orderInfo);
+
+        await transaction.commit();
+        
+        // order와 delivery 정보 합침
+        const result = orderList.map((order, idx) => {
+            const delInfo = deliveryInfo[idx];
+
+            const info = order.map(o => {
+                const { dataValues } = o;
+                return {
+                    delivery: delInfo,
+                    order: dataValues,
+                };
+            });
+
+            return info;
+        });
+
+        // order.updatedAt(결제 날짜 최신 순)을 기준으로 정렬
+        result.sort((a, b) => {
+            if(a[0].order.updatedAt > b[0].order.updatedAt) { return -1; }
+            else if(a[0].order.updatedAt < b[0].order.updatedAt) { return 1; }
+            return 0;
+        });
+
+        res.status(200).send({ result });
+    }
+
+    catch(err) {
+        console.log(err);
+        res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+    }
 }));
 
 module.exports = router;
