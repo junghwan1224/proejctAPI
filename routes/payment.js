@@ -26,17 +26,27 @@ const SENS_SENDER = process.env.SENS_SENDER;
 
 
 // imp_uid로 받아온 값 조회
-router.get("/get-order-info", verifyToken, asyncHandler(async (req, res) => {
+// purchaseComplete 페이지 데이터 렌더링 api
+router.get("/order-info", verifyToken, asyncHandler(async (req, res) => {
     try {
         const { account_id } = req;
         const { order_id } = req.query;
+        const transaction = await models.sequelize.transaction();
 
         const order = await Order.findOne({
             where: {
                 account_id,
                 imp_uid: order_id
             },
-            attributes: ["amount", "updatedAt"]
+            transaction
+        });
+
+        const price = await Order.sum("amount", {
+            where: {
+                account_id,
+                imp_uid: order_id
+            },
+            transaction
         });
 
         const delivery = await Delivery.findOne({
@@ -44,11 +54,14 @@ router.get("/get-order-info", verifyToken, asyncHandler(async (req, res) => {
                 account_id,
                 order_id
             },
-            attributes: ["arrived_at"]
+            transaction
         });
+
+        await transaction.commit();
 
         res.status(201).send({
             order: order.dataValues,
+            price: price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
             delivery: delivery.dataValues
         });
     }
