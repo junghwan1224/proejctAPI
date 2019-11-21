@@ -1334,4 +1334,233 @@ router.post("/issue-receipt", verifyToken, asyncHandler(async (req, res) => {
     }
 }));
 
+
+/************ Ark ************/
+
+// refund in ark
+router.post("/ark/refund", asyncHandler(async (req, res) => {
+    try{
+        const {
+            account_id, 
+            imp_uid,
+            reason, // 환불 사유
+        } = req.body;
+        const transaction = await models.sequelize.transaction();
+
+        const user = await Account.findOne({
+            where: { id: account_id },
+            transaction
+        });
+
+        // 아임포트 인증 토큰 발급
+        const getToken = await axios({
+            url: "https://api.iamport.kr/users/getToken",
+            method: "post",
+            headers: { "Content-Type": "application/json" },
+            data: {
+              imp_key: REST_API_KEY, 
+              imp_secret: REST_API_SECRET
+            }
+        });
+
+        const { access_token } = getToken.data.response;
+
+        // imp_uid 값을 통해 결제 내역 조회
+        const wouldBeRefundedOrder = await Order.findAll({
+            where: {
+                imp_uid
+            },
+            transaction
+        });
+        const ordersArr = wouldBeRefundedOrder.map(order => order.dataValues.id);
+        const refundedProductId = wouldBeRefundedOrder.map(order => order.dataValues.product_id);
+        const refundedQuantity = wouldBeRefundedOrder.map(order => order.dataValues.quantity);
+
+        // 환불하고자 하는 금액
+        const wantCancelAmount = await Order.sum("amount", {
+            where: { 
+                id: { [Op.in]: ordersArr },
+                [Op.and]: [
+                    { status: "paid" },
+                    { status: { [Op.not]: "refunded" } }
+                ]
+            },
+            transaction
+        });
+
+        // 이미 환불된 금액
+        let canceled = await Order.sum("amount", {
+            where: {
+                id: { [Op.in]: ordersArr },
+                status: "refunded"
+            },
+            transaction
+        });
+
+        // 환불된 금액이 없으면 null을 반환하므로 값 변경
+        if(! canceled) { canceled = 0; }
+
+        let totalAmount = await Order.sum("amount", {
+            where: { imp_uid },
+            transaction
+        });
+
+        // 환불 가능한 금액
+        const cancelableAmount = totalAmount - canceled;
+
+        // checksum 파라미터 관련 로직
+        if(cancelableAmount <= 0) {
+            await transaction.commit();
+
+            return res.status(201).send({status: "amount over", message: "이미 전액환불된 주문입니다."});
+        }
+
+        // 아임포트 REST API로 환불 요청
+        // 가상계좌로 결제한 경우 - 환불 가상계좌 예금주, 환불 가상계좌 은행코드, 환불 가상계좌번호 필수 입력
+        const cancelPayment = await axios({
+            url: "https://api.iamport.kr/payments/cancel",
+            method: "post",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": access_token
+            },
+            data: {
+                imp_uid,
+                reason,
+                amount: wantCancelAmount,
+                checksum: cancelableAmount
+            }
+        });
+
+        // 환불 결과
+        const { code } = cancelPayment.data;
+
+        if(code === 0) {
+            // 환불 성공인 경우
+
+            // product DB 값 업데이트 ... 재고 업데이트
+            const prodArr = refundedProductId.map((p, idx) => ({
+                "id": p,
+                "quantity": refundedQuantity[idx]
+            }));
+            prodArr.sort((a, b) => { if(a.id < b.id) return -1; else return 1; });
+        
+        
+            const abstractsIds = await Product.findAll({
+                where: { id: { [Op.in]: prodArr.map(e => e.id) } },
+                include: [ProductAbstract],
+                transaction
+            });
+        
+            const abstArr = abstractsIds.map(
+                product => {
+                    const { dataValues } = product;
+                    const { product_abstract } = dataValues;
+                    const prop = product_abstract.dataValues;
+        
+                    return prop.id;
+                });
+            
+            const abstObj = abstArr.map((abst, idx) => ({
+                "id": abst,
+                "quantity": prodArr[idx].quantity
+            }));
+        
+            const abstractMap = abstObj.reduce((prev, cur) => {
+                let count = prev.get(cur.id) || 0;
+                prev.set(cur.id, cur.quantity + count);
+                return prev;
+            }, new Map());
+        
+            const mapToArr = [...abstractMap].map( ([id, quantity]) => { return {id, quantity} });
+            mapToArr.sort((a, b) => { if(a.id < b.id) return -1; else return 1; });
+        
+            const abstracts = await ProductAbstract.findAll({
+                where: {
+                    id: { [Op.in]: abstObj.map(e => e.id) }
+                },
+                transaction
+            });
+        
+            const updatedProducts = abstracts.map(
+                product => {
+                    return product.dataValues;
+                }
+            );
+        
+            updatedProducts.forEach(
+             (product, idx) => {
+                 product.stock += mapToArr[idx].quantity;
+             }
+            );
+        
+            await ProductAbstract.bulkCreate(updatedProducts, {
+                updateOnDuplicate: ["stock"],
+                transaction
+            });
+
+            // order DB 값 업데이트 ... 금액 변경, status 처리
+            await Order.update(
+                {
+                    status: "refunded"
+                },
+                {
+                    where: {
+                        id: { [Op.in]: ordersArr }
+                    },
+                    transaction
+                }
+            );
+
+            // 환불 완료 문자 전송
+            const timestamp = new Date().getTime().toString();
+
+            const products = await Product.findAll({
+                where: { id: { [Op.in]: refundedProductId } },
+                transaction
+            });
+            const productOEN = products.map( p => p.dataValues.oe_number);
+            const smsText = `${productOEN.length > 1 ? `${productOEN[0]}외 ${productOEN.length - 1}개` : productOEN[0]} 상품 주문이 취소되었습니다.`;
+
+            await transaction.commit();
+
+            await axios({
+                url: SENS_API_V2_URL,
+                method: "post",
+                headers: {
+                    "Content-Type": "application/json; charset=utf-8",
+                    "x-ncp-apigw-timestamp": timestamp,
+                    "x-ncp-iam-access-key": SENS_ACCESS_KEY,
+                    "x-ncp-apigw-signature-v2": makeSignature(timestamp)
+                },
+                data: {
+                    type: "SMS",
+                    from: SENS_SENDER,
+                    content: smsText,
+                    messages: [{
+                        to: user.dataValues.phone
+                    }]
+                }
+            });
+
+            return res.status(201).send({
+                status: "success",
+                message: "환불이 정상적으로 처리되었습니다.",
+                receipt_url: cancelPayment.data.response.receipt_url
+            });
+        }
+
+        else {
+            // 환불 실패
+            return res.status(403).send({ status: "success", message: cancelPayment.data.message });
+        }
+    }
+
+    catch(err) {
+        console.log(err);
+        return res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요" });
+    }
+
+}));
+
 module.exports = router;
