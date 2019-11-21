@@ -107,48 +107,53 @@ router.get("/read", verifyToken, function(req, res, next) {
 router.post(
   "/create",
   asyncHandler(async (req, res, next) => {
-    const { phone, crn } = req.body;
+    try {
+      const { phone, crn } = req.body;
 
-    const transaction = await models.sequelize.transaction();
+      const transaction = await models.sequelize.transaction();
 
-    const userByPhone = await Account.findOne({
-      where: { phone },
-      transaction
-    });
+      const userByPhone = await Account.findOne({
+        where: { phone },
+        transaction
+      });
 
-    const userByCRN = await Account.findOne({
-      where: { crn },
-      transaction
-    });
+      const userByCRN = await Account.findOne({
+        where: { crn },
+        transaction
+      });
 
-    if (!userByPhone && !userByCRN) {
-      const account = await Account.create(
-        {
-          phone: req.body.phone,
-          password: req.body.password,
-          name: req.body.name,
-          crn: req.body.crn
-        },
-        {
-          transaction
-        }
-      );
+      if (!userByPhone && !userByCRN) {
+        const account = await Account.create(
+          {
+            phone: req.body.phone,
+            password: req.body.password,
+            name: req.body.name,
+            crn: req.body.crn
+          },
+          {
+            transaction
+          }
+        );
 
-      await transaction.commit();
+        await transaction.commit();
 
-      return res.status(201).send({ account, message: "가입 성공" });
-    } else if (userByPhone && userByCRN) {
-      return res
-        .status(403)
-        .send({ message: "이미 등록된 연락처와 사업자 등록번호입니다." });
-    } else if (userByPhone) {
-      return res
-        .status(403)
-        .send({ message: "연락처가 이미 등록되어 있습니다." });
-    } else if (userByCRN) {
-      return res
-        .status(403)
-        .send({ message: "사업자 등록번호가 이미 등록되어 있습니다." });
+        return res.status(201).send({ account, message: "가입 성공" });
+      } else if (userByPhone && userByCRN) {
+        return res
+          .status(403)
+          .send({ message: "이미 등록된 연락처와 사업자 등록번호입니다." });
+      } else if (userByPhone) {
+        return res
+          .status(403)
+          .send({ message: "연락처가 이미 등록되어 있습니다." });
+      } else if (userByCRN) {
+        return res
+          .status(403)
+          .send({ message: "사업자 등록번호가 이미 등록되어 있습니다." });
+      }
+    }
+    catch(err) {
+      res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
     }
   })
 );
@@ -156,54 +161,59 @@ router.post(
 router.post(
   "/issue-certify-num",
   asyncHandler(async (req, res) => {
-    const { phone } = req.body;
+    try{
+      const { phone } = req.body;
 
-    // 인증 번호 난수 6자리 생성 및 세션에 저장
-    const certifyNumber = Math.floor(Math.random() * 899999 + 100000);
+      // 인증 번호 난수 6자리 생성 및 세션에 저장
+      const certifyNumber = Math.floor(Math.random() * 899999 + 100000);
 
-    const sess = req.session;
-    sess.certifyNumber = certifyNumber;
+      const sess = req.session;
+      sess.certifyNumber = certifyNumber;
 
-    req.session.save(err => {
-      if (err) {
-        console.log("session save error");
-        console.log(err);
-      }
-    });
-
-    // SMS 전송
-    const timestamp = new Date().getTime().toString();
-
-    const sms = await axios({
-      url: SENS_API_V2_URL,
-      method: "post",
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-        "x-ncp-apigw-timestamp": timestamp,
-        "x-ncp-iam-access-key": SENS_ACCESS_KEY,
-        "x-ncp-apigw-signature-v2": makeSignature(timestamp)
-      },
-      data: {
-        type: "SMS",
-        from: SENS_SENDER,
-        content: `HERMES 인증번호 [${certifyNumber}]를 입력해주세요.`,
-        messages: [
-          {
-            to: phone
-          }
-        ]
-      }
-    });
-
-    // 문자 전송 성공
-    if (sms.data.statusCode === "202") {
-      res.status(201).send({ message: "인증번호가 발송되었습니다." });
-    }
-    // 문자 전송 실패
-    else {
-      res.status(403).send({
-        message: "인증번호 발송 중 에러가 발생했습니다. 다시 시도해주세요."
+      req.session.save(err => {
+        if (err) {
+          console.log("session save error");
+          console.log(err);
+        }
       });
+
+      // SMS 전송
+      const timestamp = new Date().getTime().toString();
+
+      const sms = await axios({
+        url: SENS_API_V2_URL,
+        method: "post",
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          "x-ncp-apigw-timestamp": timestamp,
+          "x-ncp-iam-access-key": SENS_ACCESS_KEY,
+          "x-ncp-apigw-signature-v2": makeSignature(timestamp)
+        },
+        data: {
+          type: "SMS",
+          from: SENS_SENDER,
+          content: `HERMES 인증번호 [${certifyNumber}]를 입력해주세요.`,
+          messages: [
+            {
+              to: phone
+            }
+          ]
+        }
+      });
+
+      // 문자 전송 성공
+      if (sms.data.statusCode === "202") {
+        res.status(201).send({ message: "인증번호가 발송되었습니다." });
+      }
+      // 문자 전송 실패
+      else {
+        res.status(403).send({
+          message: "인증번호 발송 중 에러가 발생했습니다. 다시 시도해주세요."
+        });
+      }
+    }
+    catch(err) {
+      res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
     }
   })
 );
@@ -211,24 +221,29 @@ router.post(
 router.post(
   "/certify",
   asyncHandler(async (req, res) => {
-    const { certifyNumber } = req.body;
+    try{
+      const { certifyNumber } = req.body;
 
-    // 저장된 인증번호와 비교
-    if (parseInt(certifyNumber) === req.session.certifyNumber) {
-      req.session.destroy(err => {
-        if (err) {
-          console.log("session destory error");
-          console.log(err);
-        }
-      });
+      // 저장된 인증번호와 비교
+      if (parseInt(certifyNumber) === req.session.certifyNumber) {
+        req.session.destroy(err => {
+          if (err) {
+            console.log("session destory error");
+            console.log(err);
+          }
+        });
 
-      return res
-        .status(201)
-        .send({ message: "인증이 정상적으로 완료되었습니다." });
-    } else {
-      return res
-        .status(403)
-        .send({ message: "인증번호가 일치하지 않습니다. 다시 입력해주세요." });
+        return res
+          .status(201)
+          .send({ message: "인증이 정상적으로 완료되었습니다." });
+      } else {
+        return res
+          .status(403)
+          .send({ message: "인증번호가 일치하지 않습니다. 다시 입력해주세요." });
+      }
+    }
+    catch(err) {
+      res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
     }
   })
 );
@@ -237,26 +252,31 @@ router.get(
   "/get-address/",
   verifyToken,
   asyncHandler(async (req, res) => {
-    const { account_id } = req;
+    try{
+      const { account_id } = req;
 
-    const transaction = await models.sequelize.transaction();
+      const transaction = await models.sequelize.transaction();
 
-    const user = await Account.findOne({
-      where: { id: account_id },
-      transaction
-    });
+      const user = await Account.findOne({
+        where: { id: account_id },
+        transaction
+      });
 
-    const address = await Address.findAll({
-      where: { account_id: { [Op.in]: [user.dataValues.id] } },
-      transaction
-    });
+      const address = await Address.findAll({
+        where: { account_id: { [Op.in]: [user.dataValues.id] } },
+        transaction
+      });
 
-    await transaction.commit();
+      await transaction.commit();
 
-    if (!address.length) {
-      return res.send({ message: "success", address: null });
-    } else {
-      return res.send({ message: "success", address: address[0].dataValues });
+      if (!address.length) {
+        return res.send({ message: "success", address: null });
+      } else {
+        return res.send({ message: "success", address: address[0].dataValues });
+      }
+    }
+    catch(err) {
+      res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
     }
   })
 );
@@ -265,40 +285,97 @@ router.post(
   "/set-address",
   verifyToken,
   asyncHandler(async (req, res) => {
-    const { account_id } = req;
-    const { addr_postcode, addr_primary, addr_detail } = req.body;
+    try {
+      const { account_id } = req;
+      const { addr_postcode, addr_primary, addr_detail } = req.body;
 
-    const transaction = await models.sequelize.transaction();
+      const transaction = await models.sequelize.transaction();
 
-    const address = await Address.findOne({
-      where: { account_id },
-      transaction
-    });
+      const address = await Address.findOne({
+        where: { account_id },
+        transaction
+      });
 
-    if (address) {
-      const { postcode, primary, detail } = address.dataValues;
+      if (address) {
+        const { postcode, primary, detail } = address.dataValues;
 
-      const obj = {
-        postcode: addr_postcode,
-        primary: addr_primary,
-        detail: addr_detail
-      };
+        const obj = {
+          postcode: addr_postcode,
+          primary: addr_primary,
+          detail: addr_detail
+        };
 
-      const addr = {
-        postcode,
-        primary,
-        detail
-      };
+        const addr = {
+          postcode,
+          primary,
+          detail
+        };
 
-      if (!Object.is(JSON.stringify(obj), JSON.stringify(addr))) {
-        await Address.update(
+        if (!Object.is(JSON.stringify(obj), JSON.stringify(addr))) {
+          await Address.update(
+            {
+              postcode: addr_postcode,
+              primary: addr_primary,
+              detail: addr_detail
+            },
+            {
+              where: { id: address.dataValues.id },
+              transaction
+            }
+          );
+
+          await transaction.commit();
+
+          return res.status(201).send({ message: "update success" });
+        }
+      } else {
+        await Address.create(
           {
+            account_id,
             postcode: addr_postcode,
             primary: addr_primary,
             detail: addr_detail
           },
           {
-            where: { id: address.dataValues.id },
+            transaction
+          }
+        );
+
+        await transaction.commit();
+
+        return res.status(200).send({ message: "create success" });
+      }
+
+      res.send({ message: "success" });
+    }
+    catch(err) {
+      res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+    }
+  })
+);
+
+router.post(
+  "/set-email",
+  verifyToken,
+  asyncHandler(async (req, res) => {
+    try {
+      const { email } = req.body;
+      const { account_id } = req;
+
+      const transaction = await models.sequelize.transaction();
+
+      const user = await Account.findOne({
+        where: { id: account_id },
+        transaction
+      });
+
+      if (email !== user.dataValues.email) {
+        await Account.update(
+          {
+            email
+          },
+          {
+            where: { id: account_id },
             transaction
           }
         );
@@ -307,59 +384,12 @@ router.post(
 
         return res.status(201).send({ message: "update success" });
       }
-    } else {
-      await Address.create(
-        {
-          account_id,
-          postcode: addr_postcode,
-          primary: addr_primary,
-          detail: addr_detail
-        },
-        {
-          transaction
-        }
-      );
 
-      await transaction.commit();
-
-      return res.status(200).send({ message: "create success" });
+      res.status(200).send({ message: "success" });
     }
-
-    res.send({ message: "success" });
-  })
-);
-
-router.post(
-  "/set-email",
-  verifyToken,
-  asyncHandler(async (req, res) => {
-    const { email } = req.body;
-    const { account_id } = req;
-
-    const transaction = await models.sequelize.transaction();
-
-    const user = await Account.findOne({
-      where: { id: account_id },
-      transaction
-    });
-
-    if (email !== user.dataValues.email) {
-      await Account.update(
-        {
-          email
-        },
-        {
-          where: { id: account_id },
-          transaction
-        }
-      );
-
-      await transaction.commit();
-
-      return res.status(201).send({ message: "update success" });
+    catch(err) {
+      res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
     }
-
-    res.status(200).send({ message: "success" });
   })
 );
 
@@ -367,35 +397,40 @@ router.post(
   "/change-pwd",
   verifyToken,
   asyncHandler(async (req, res) => {
-    const { account_id } = req;
-    const { password, new_password } = req.body;
+    try {
+      const { account_id } = req;
+      const { password, new_password } = req.body;
 
-    const transaction = await models.sequelize.transaction();
+      const transaction = await models.sequelize.transaction();
 
-    const user = await Account.findOne({
-      where: { id: account_id },
-      transaction
-    });
+      const user = await Account.findOne({
+        where: { id: account_id },
+        transaction
+      });
 
-    if (bcrypt.compareSync(password, user.dataValues.password)) {
-      const bcryptPwd = bcrypt.hashSync(new_password, 10);
-      await Account.update(
-        {
-          password: bcryptPwd
-        },
-        {
-          where: { id: account_id },
-          transaction
-        }
-      );
+      if (bcrypt.compareSync(password, user.dataValues.password)) {
+        const bcryptPwd = bcrypt.hashSync(new_password, 10);
+        await Account.update(
+          {
+            password: bcryptPwd
+          },
+          {
+            where: { id: account_id },
+            transaction
+          }
+        );
 
-      await transaction.commit();
+        await transaction.commit();
 
-      return res.status(201).send({ message: "update success" });
-    } else {
-      return res
-        .status(400)
-        .send({ message: "기존 비밀번호가 일치하지 않습니다." });
+        return res.status(201).send({ message: "update success" });
+      } else {
+        return res
+          .status(400)
+          .send({ message: "기존 비밀번호가 일치하지 않습니다." });
+      }
+    }
+    catch(err) {
+      res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
     }
   })
 );
@@ -428,79 +463,89 @@ router.post(
 router.post(
   "/issue-temporary-pwd",
   asyncHandler(async (req, res) => {
-    const { phone } = req.body;
-    const temporaryPwd = Math.floor(
-      Math.random() * 89999999 + 10000000
-    ).toString();
+    try {
+      const { phone } = req.body;
+      const temporaryPwd = Math.floor(
+        Math.random() * 89999999 + 10000000
+      ).toString();
 
-    const bcryptPwd = bcrypt.hashSync(temporaryPwd, 10);
+      const bcryptPwd = bcrypt.hashSync(temporaryPwd, 10);
 
-    const transaction = await models.sequelize.transaction();
+      const transaction = await models.sequelize.transaction();
 
-    const user = await Account.findOne({
-      where: { phone },
-      transaction
-    });
-
-    await Account.update(
-      {
-        password: bcryptPwd
-      },
-      {
+      const user = await Account.findOne({
         where: { phone },
         transaction
-      }
-    );
-
-    // SMS 전송
-    const timestamp = new Date().getTime().toString();
-
-    const sms = await axios({
-      url: SENS_API_V2_URL,
-      method: "post",
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-        "x-ncp-apigw-timestamp": timestamp,
-        "x-ncp-iam-access-key": SENS_ACCESS_KEY,
-        "x-ncp-apigw-signature-v2": makeSignature(timestamp)
-      },
-      data: {
-        type: "SMS",
-        from: SENS_SENDER,
-        content: `임시 비밀번호 [${temporaryPwd}]가 발급되었습니다.`,
-        messages: [
-          {
-            to: user.dataValues.phone
-          }
-        ]
-      }
-    });
-
-    if (sms.data.statusCode === "202") {
-      await transaction.commit();
-
-      res
-        .status(201)
-        .send({ message: "임시 비밀번호를 SMS로 발송해드립니다." });
-    } else {
-      res.status(403).send({
-        message: "인증번호 발송 중 에러가 발생했습니다. 다시 시도해주세요."
       });
+
+      await Account.update(
+        {
+          password: bcryptPwd
+        },
+        {
+          where: { phone },
+          transaction
+        }
+      );
+
+      // SMS 전송
+      const timestamp = new Date().getTime().toString();
+
+      const sms = await axios({
+        url: SENS_API_V2_URL,
+        method: "post",
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          "x-ncp-apigw-timestamp": timestamp,
+          "x-ncp-iam-access-key": SENS_ACCESS_KEY,
+          "x-ncp-apigw-signature-v2": makeSignature(timestamp)
+        },
+        data: {
+          type: "SMS",
+          from: SENS_SENDER,
+          content: `임시 비밀번호 [${temporaryPwd}]가 발급되었습니다.`,
+          messages: [
+            {
+              to: user.dataValues.phone
+            }
+          ]
+        }
+      });
+
+      if (sms.data.statusCode === "202") {
+        await transaction.commit();
+
+        res
+          .status(201)
+          .send({ message: "임시 비밀번호를 SMS로 발송해드립니다." });
+      } else {
+        res.status(403).send({
+          message: "인증번호 발송 중 에러가 발생했습니다. 다시 시도해주세요."
+        });
+      }
+    }
+    catch(err) {
+      res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
     }
   })
 );
 
-router.post(
-  "/delete-account",
+router.delete(
+  "/",
   verifyToken,
   asyncHandler(async (req, res) => {
-    const { account_id } = req;
+    try {
+      const { account_id } = req;
 
-    await Account.destroy({
-      where: { id: account_id }
-    });
+      await Account.destroy({
+        where: { id: account_id }
+      });
 
-    res.status(201).send({ message: "delete success" });
+      res.status(201).send({ message: "delete success" });
+    }
+    catch(err) {
+      res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+    }
   })
 );
 
