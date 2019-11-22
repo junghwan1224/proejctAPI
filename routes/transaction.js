@@ -6,6 +6,7 @@ const models = require("../models");
 const Account = require("../models").account;
 const Order = require("../models").order;
 const Product = require("../models").product;
+const ProductAbstract = require("../models").product_abstract;
 
 // get transaction list
 router.get("/ark/all", asyncHandler(async (req, res) => {
@@ -39,6 +40,20 @@ router.get("/ark/detail", asyncHandler(async (req, res) => {
 
         const order = await Order.findAll({
             where: { imp_uid },
+            include: [{
+                model: Product,
+                required: true,
+                include: [{
+                    model: ProductAbstract,
+                    required: true,
+                    attributes: ["image", "maker", "maker_number", "type"]
+                }]
+            },
+            {
+                model: Account,
+                required: true,
+                attributes: ["phone", "name", "crn", "mileage", "email"],
+            }],
             transaction
         });
 
