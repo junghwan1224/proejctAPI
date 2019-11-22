@@ -32,4 +32,24 @@ router.get("/ark/all", asyncHandler(async (req, res) => {
     }
 }));
 
+router.get("/ark/detail", asyncHandler(async (req, res) => {
+    try{
+        const { imp_uid } = req.query;
+        const transaction = await models.sequelize.transaction();
+
+        const order = await Order.findAll({
+            where: { imp_uid },
+            transaction
+        });
+
+        await transaction.commit();
+
+        res.status(201).send({ order });
+    }
+    catch(err) {
+        console.log(err);
+        res.status(403).send({ message: "에러가 발생했습니다. 페이지를 새로고침 해주세요." });
+    }
+}));
+
 module.exports = router;
