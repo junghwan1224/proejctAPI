@@ -286,7 +286,7 @@ router.post("/complete", verifyToken, asyncHandler(async (req, res) => {
     }
     catch(e) {
         console.log(e);
-        return res.status(403).send({ status: "failed", message: "결제 시도 중 에러가 발생했습니다. 다시 시도해주세요." });
+        return res.status(403).send({ api: "complete", status: "failed", message: "결제 시도 중 에러가 발생했습니다. 다시 시도해주세요." });
     }
 
 }));
