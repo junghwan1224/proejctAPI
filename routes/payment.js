@@ -286,7 +286,7 @@ router.post("/complete", verifyToken, asyncHandler(async (req, res) => {
     }
     catch(e) {
         console.log(e);
-        return res.status(403).send({ status: "failed", message: "결제 시도 중 에러가 발생했습니다. 다시 시도해주세요." });
+        return res.status(403).send({ api: "complete", status: "failed", message: "결제 시도 중 에러가 발생했습니다. 다시 시도해주세요." });
     }
 
 }));
@@ -1199,7 +1199,7 @@ router.post("/refund", verifyToken, asyncHandler(async (req, res) => {
             // order DB 값 업데이트 ... 금액 변경, status 처리
             await Order.update(
                 {
-                    status: "refunded"
+                    status: "canceled"
                 },
                 {
                     where: {
@@ -1260,6 +1260,123 @@ router.post("/refund", verifyToken, asyncHandler(async (req, res) => {
 
 }));
 
+router.post("/cancel", verifyToken, asyncHandler(async (req, res) => {
+    try {
+        const { imp_uid, reason } = req.body;
+        const { account_id } = req;
+
+        const transaction = await models.sequelize.transaction();
+
+        const user = await Account.findOne({
+            where: { id: account_id },
+            transaction
+        });
+
+        // 아임포트 인증 토큰 발급
+        const getToken = await axios({
+            url: "https://api.iamport.kr/users/getToken",
+            method: "post",
+            headers: { "Content-Type": "application/json" },
+            data: {
+              imp_key: REST_API_KEY, 
+              imp_secret: REST_API_SECRET
+            }
+        });
+
+        const { access_token } = getToken.data.response;
+
+        // imp_uid 값을 통해 결제 내역 조회
+        const wouldBeRefundedOrder = await Order.findAll({
+            where: {
+                imp_uid,
+                account_id
+            },
+            transaction
+        });
+        const ordersArr = wouldBeRefundedOrder.map(order => order.dataValues.id);
+
+        // 환불하고자 하는 금액
+        const wantCancelAmount = await Order.sum("amount", {
+            where: { 
+                id: { [Op.in]: ordersArr }
+            },
+            transaction
+        });
+
+        // 아임포트 REST API로 환불 요청
+        // 가상계좌로 결제한 경우 - 환불 가상계좌 예금주, 환불 가상계좌 은행코드, 환불 가상계좌번호 필수 입력
+        const cancelPayment = await axios({
+            url: "https://api.iamport.kr/payments/cancel",
+            method: "post",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": access_token
+            },
+            data: {
+                imp_uid,
+                reason,
+                amount: wantCancelAmount
+            }
+        });
+
+        // 환불 결과
+        const { code } = cancelPayment.data;
+
+        if(code === 0) {
+            // order DB 값 업데이트 ... 금액 변경, status 처리
+            await Order.update(
+                {
+                    status: "canceled"
+                },
+                {
+                    where: {
+                        id: { [Op.in]: ordersArr }
+                    },
+                    transaction
+                }
+            );
+
+            await transaction.commit();
+
+            const timestamp = new Date().getTime().toString();
+
+            await axios({
+                url: SENS_API_V2_URL,
+                method: "post",
+                headers: {
+                    "Content-Type": "application/json; charset=utf-8",
+                    "x-ncp-apigw-timestamp": timestamp,
+                    "x-ncp-iam-access-key": SENS_ACCESS_KEY,
+                    "x-ncp-apigw-signature-v2": makeSignature(timestamp)
+                },
+                data: {
+                    type: "SMS",
+                    from: SENS_SENDER,
+                    content: `결제가 취소되었습니다.`,
+                    messages: [{
+                        to: user.dataValues.phone
+                    }]
+                }
+            });
+
+            return res.status(201).send({
+                status: "success",
+                message: "환불이 정상적으로 처리되었습니다.",
+                receipt_url: cancelPayment.data.response.receipt_url
+            });
+        }
+
+        else {
+            // 환불 실패
+            return res.status(403).send({ status: "success", message: cancelPayment.data.message });
+        }
+    }
+    catch(err) {
+        res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요" });
+    }
+}));
+
+// 영수증 발급
 router.post("/issue-receipt", verifyToken, asyncHandler(async (req, res) => {
     try {
         const {
