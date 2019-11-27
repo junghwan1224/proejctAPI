@@ -29,6 +29,69 @@ const PRODUCT_ATTRIBUTES = [
   "id"
 ];
 
+router.get("/unique-oen", function(req, res, next) {
+  let where;
+  if (req.query.query) {
+    where = {
+      is_public: 1,
+      [Op.or]: [
+        { oe_number: { [Op.like]: `%${req.query.query}%` } },
+        { brand: { [Op.like]: `%${req.query.query}%` } },
+        { model: { [Op.like]: `%${req.query.query}%` } },
+        { start_year: { [Op.like]: `%${req.query.query}%` } },
+        { end_year: { [Op.like]: `%${req.query.query}%` } },
+        {
+          "$product_abstract.type$": {
+            [Op.like]: `%${req.query.brand}%`
+          }
+        }
+      ]
+    };
+  } else if (req.query.brand) {
+    where = {
+      is_public: 1,
+      brand: req.query.brand
+    };
+  } else {
+    res.status(200).send({});
+    return;
+  }
+
+  Product.findAll({
+    where: where,
+    attributes: PRODUCT_ATTRIBUTES,
+    include: [
+      {
+        model: ProductAbstract,
+        required: true,
+        attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+      }
+    ],
+    order: [
+      ["brand", "ASC"],
+      ["model", "ASC"]
+    ]
+  })
+    .then(raw_products => {
+      let fabricated = {};
+      for (const product in raw_products) {
+        if (
+          fabricated[product.oe_number] &&
+          fabricated[product.oe_number].price < product.price
+        ) {
+          continue;
+        }
+        fabricated[product.oe_number] = product;
+      }
+
+      res.status(200).send(raw_products);
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(400).send(error);
+    });
+});
+
 router.get("/", function(req, res, next) {
   Product.findAll({
     where: {
