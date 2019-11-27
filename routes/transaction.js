@@ -35,11 +35,11 @@ router.get("/ark/all", asyncHandler(async (req, res) => {
 
 router.get("/ark/detail", asyncHandler(async (req, res) => {
     try{
-        const { imp_uid } = req.query;
+        const { merchant_uid } = req.query;
         const transaction = await models.sequelize.transaction();
 
         const order = await Order.findAll({
-            where: { imp_uid },
+            where: { merchant_uid },
             include: [{
                 model: Product,
                 required: true,
