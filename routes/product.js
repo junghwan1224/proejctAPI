@@ -29,6 +29,37 @@ const PRODUCT_ATTRIBUTES = [
   "id"
 ];
 
+router.get("/find-by-oen", function(req, res, next) {
+  if (!req.query.oen) {
+    res.status(200).send({});
+    return;
+  }
+
+  Product.findAll({
+    where: {
+      oe_number: req.query.oen
+    },
+    attributes: PRODUCT_ATTRIBUTES,
+    include: [
+      {
+        model: ProductAbstract,
+        required: true,
+        attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+      }
+    ],
+    order: [
+      ["brand", "ASC"],
+      ["model", "ASC"]
+    ]
+  })
+    .then(products => {
+      res.status(200).send(products);
+    })
+    .catch(error => {
+      res.status(400).send();
+    });
+});
+
 router.get("/unique-oen", function(req, res, next) {
   let where;
   if (req.query.query) {
