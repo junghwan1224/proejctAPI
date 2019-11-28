@@ -77,8 +77,16 @@ router.get("/ark/detail", asyncHandler(async (req, res) => {
     }
 }));
 
+router.post("/ark/create", asyncHandler(async (req, res) => {
+    try {}
+    catch(err) {}
+}));
+
 router.put("/ark/status", asyncHandler(async (req, res) => {
-    const { merchant_uid } = req.body;
+    try {
+        const { merchant_uid } = req.body;
+    }
+    catch(err) {}
 }));
 
 module.exports = router;
