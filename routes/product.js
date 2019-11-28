@@ -78,9 +78,10 @@ router.get("/unique-oen", function(req, res, next) {
         }
       ]
     };
-  } else if (req.query.brand) {
+  } else if (req.query.brand && req.query.category) {
     where = {
       is_public: 1,
+      category: req.query.category,
       brand: req.query.brand
     };
   } else {
