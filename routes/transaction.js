@@ -43,6 +43,7 @@ router.get("/ark/all", asyncHandler(async (req, res) => {
     }
 }));
 
+// get specific transaction detail by using merchant_uid
 router.get("/ark/detail", asyncHandler(async (req, res) => {
     try{
         const { merchant_uid } = req.query;
@@ -77,11 +78,13 @@ router.get("/ark/detail", asyncHandler(async (req, res) => {
     }
 }));
 
+// create new transaction
 router.post("/ark/create", asyncHandler(async (req, res) => {
     try {}
     catch(err) {}
 }));
 
+// update transaction status
 router.put("/ark/status", asyncHandler(async (req, res) => {
     try {
         const { merchant_uid } = req.body;
