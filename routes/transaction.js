@@ -1,7 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const asyncHandler = require("express-async-handler");
+const sequelize = require("sequelize");
 
+const { Op } = sequelize;
 const models = require("../models");
 const Account = require("../models").account;
 const Order = require("../models").order;
@@ -13,13 +15,21 @@ router.get("/ark/all", asyncHandler(async (req, res) => {
     try {
         const transaction = await models.sequelize.transaction();
         const orders = await Order.findAll({
-            include: [{
-                model: Product,
-                required: true
-            }, {
-                model: Account,
-                required: true
-            }],
+            where: {
+                [Op.not]: { status: "not paid" }
+            },
+            group: ["account_id", "merchant_uid", "name", "pay_method", "status", "createdAt", "updatedAt"],
+            attributes: [
+                "account_id", 
+                "name", 
+                "merchant_uid", 
+                "pay_method", 
+                "status", 
+                "createdAt", 
+                "updatedAt", 
+                [sequelize.fn('sum', sequelize.col('quantity')), 'quantity'],
+                [sequelize.fn('sum', sequelize.col('amount')), 'amount']
+            ],
             transaction
         });
 
@@ -65,6 +75,10 @@ router.get("/ark/detail", asyncHandler(async (req, res) => {
         console.log(err);
         res.status(403).send({ message: "에러가 발생했습니다. 페이지를 새로고침 해주세요." });
     }
+}));
+
+router.put("/ark/status", asyncHandler(async (req, res) => {
+    const { merchant_uid } = req.body;
 }));
 
 module.exports = router;
