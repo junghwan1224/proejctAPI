@@ -219,9 +219,14 @@ router.get("/read", function(req, res, next) {
     });
 });
 
-router.post("/create", function(req, res, next) {
+/**
+ * ARK
+ */
+
+router.post("/ark/create/product", function(req, res, next) {
   Product.create({
     abstract_id: req.body.abstract_id,
+    category: req.body.category,
     brand: req.body.brand,
     model: req.body.model,
     oe_number: req.body.oe_number,
@@ -242,7 +247,7 @@ router.post("/create", function(req, res, next) {
     });
 });
 
-router.post("/abstract/create", function(req, res, next) {
+router.post("/ark/create/product-abstract", function(req, res, next) {
   ProductAbstract.create({
     id: req.body.id,
     maker: req.body.maker,
@@ -257,10 +262,6 @@ router.post("/abstract/create", function(req, res, next) {
       res.status(400).send(error);
     });
 });
-
-/**
- * ARK
- */
 
 router.get("/ark/product-list", function(req, res, next) {
   Product.findAll({

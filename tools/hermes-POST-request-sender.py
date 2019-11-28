@@ -5,14 +5,12 @@ from hashlib import md5
 
 # SERVER_BASE = 'http://13.124.230.55:3001'  # e.g. 'http://localhost:3001'
 SERVER_BASE = 'http://localhost:3001'
-ROUTE = None
-ABSTRACT_ROUTE = '/api/product/abstract/create'
-PRODUCT_ROUTE = '/api/product/create'
+ABSTRACT_ROUTE = '/api/product/ark/create/product-abstract'
+PRODUCT_ROUTE = '/api/product/ark/create/product'
 
 
 def main():
     product_list = get_product_list()
-    # POST_request(data=[product_list], key='oen')
 
     for raw_product in product_list:
         abstract = {}
@@ -40,6 +38,7 @@ def main():
 
         product = {}
         product['abstract_id'] = abstract_id
+        product['category'] = 'CAR'  # CAR, COM, AGR
         product['brand'] = raw_product['brand']
         product['model'] = raw_product['model']
         product['oe_number'] = raw_product['oen']
@@ -56,6 +55,7 @@ def main():
         response = requests.post(url=SERVER_BASE+PRODUCT_ROUTE,
                                  data={
                                      'abstract_id': product['abstract_id'],
+                                     'category': product['category'],
                                      'brand': product['brand'],
                                      'model': product['model'],
                                      'oe_number': product['oe_number'],
@@ -71,35 +71,6 @@ def main():
                                  })
 
         print(response)
-
-    # for product in product_list:
-    #     response = requests.post(url=SERVER_BASE+ABSTRACT_ROUTE,
-    #                              data={
-    #                                  'id': str(uuid.uuid4()).upper(),
-    #                                  'price': int(product['price']/10)*10,
-    #                                  'discount_rate:': 0,
-    #                                  'stock': randrange(0, 100),
-    #                                  'maker': product['maker'],
-    #                                  'maker_number': '',
-    #                                  'image': '',
-    #                                  'type': product['description'],
-    #                                  'description': '',
-    #                                  'quality_cert': '',
-    #                              })
-    #     print(response.json())
-    #     abstract_id = (response.json()['id'])
-    #     response = requests.post(url=SERVER_BASE+PRODUCT_ROUTE,
-    #                              data={
-    #                                  'abstract_id': abstract_id,
-    #                                  'brand': product['brand'],
-    #                                  'model': product['model'],
-    #                                  'oen': product['oen'],
-    #                                  'start_year': product['start_year'],
-    #                                  'end_year': product['end_year'],
-    #                                  'engine': '',
-    #                              })
-    #     print('[*] [{}/{}] Adding product {}... '.format(product_list.index(product) +
-    #                                                      1, len(product_list), product['oen']))
 
 
 def POST_request(data, key=None):
@@ -117,7 +88,7 @@ def POST_request(data, key=None):
     """
 
     for item in data:
-        response = requests.post(url=SERVER_BASE + ROUTE, data=item)
+        response = requests.post(url=SERVER_BASE, data=item)
         print("[*] [{}/{}] POST CALL ({}: {}) returned status code {}.".format(
             data.index(item) + 1,
             len(data),

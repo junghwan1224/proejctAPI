@@ -5,6 +5,7 @@ module.exports = (sequelize, DataTypes) => {
     "product",
     {
       abstract_id: DataTypes.UUID,
+      category: DataTypes.STRING, // e.g. car vs com vs agr
       brand: DataTypes.STRING, // e.g. BMW
       model: DataTypes.STRING, // e.g. E-CLASS
       oe_number: DataTypes.STRING, // e.g. A12345

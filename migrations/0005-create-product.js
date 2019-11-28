@@ -17,6 +17,10 @@ module.exports = {
         onDelete: "CASCADE",
         onUpdate: "CASCADE"
       },
+      category: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
       brand: {
         type: Sequelize.STRING,
         allowNull: false
