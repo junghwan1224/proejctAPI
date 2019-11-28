@@ -139,7 +139,7 @@ def get_product_list():
 
         # Fabricate price:
         price = int(int(price)/10)*10 + \
-            1 if int(price[-1]) >= 5 else int(int(price)/10)*10 + 10
+            10 if int(price[-1]) >= 5 else int(int(price)/10)*10
 
         # Fabricate start year:
         start_year = int(
