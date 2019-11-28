@@ -79,11 +79,13 @@ router.get("/unique-oen", function(req, res, next) {
       ]
     };
   } else if (req.query.brand && req.query.category) {
-    where = {
-      is_public: 1,
-      category: req.query.category,
-      brand: req.query.brand
-    };
+    where = Object.assign(
+      {
+        category: req.query.category,
+        is_public: 1
+      },
+      req.query.brand === "*" ? {} : { brand: req.query.brand }
+    );
   } else {
     res.status(200).send({});
     return;
