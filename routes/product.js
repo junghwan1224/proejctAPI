@@ -29,6 +29,101 @@ const PRODUCT_ATTRIBUTES = [
   "id"
 ];
 
+router.get("/find-by-oen", function(req, res, next) {
+  if (!req.query.oen) {
+    res.status(200).send({});
+    return;
+  }
+
+  Product.findAll({
+    where: {
+      oe_number: req.query.oen
+    },
+    attributes: PRODUCT_ATTRIBUTES,
+    include: [
+      {
+        model: ProductAbstract,
+        required: true,
+        attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+      }
+    ],
+    order: [
+      ["brand", "ASC"],
+      ["model", "ASC"]
+    ]
+  })
+    .then(products => {
+      res.status(200).send(products);
+    })
+    .catch(error => {
+      res.status(400).send();
+    });
+});
+
+router.get("/unique-oen", function(req, res, next) {
+  let where;
+  if (req.query.query) {
+    where = {
+      is_public: 1,
+      [Op.or]: [
+        { oe_number: { [Op.like]: `%${req.query.query}%` } },
+        { brand: { [Op.like]: `%${req.query.query}%` } },
+        { model: { [Op.like]: `%${req.query.query}%` } },
+        { start_year: { [Op.like]: `%${req.query.query}%` } },
+        { end_year: { [Op.like]: `%${req.query.query}%` } },
+        {
+          "$product_abstract.type$": {
+            [Op.like]: `%${req.query.brand}%`
+          }
+        }
+      ]
+    };
+  } else if (req.query.brand && req.query.category) {
+    where = {
+      is_public: 1,
+      category: req.query.category,
+      brand: req.query.brand
+    };
+  } else {
+    res.status(200).send({});
+    return;
+  }
+
+  Product.findAll({
+    where: where,
+    attributes: PRODUCT_ATTRIBUTES,
+    include: [
+      {
+        model: ProductAbstract,
+        required: true,
+        attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+      }
+    ],
+    order: [
+      ["brand", "ASC"],
+      ["model", "ASC"]
+    ]
+  })
+    .then(raw_products => {
+      let fabricated = {};
+      for (const product in raw_products) {
+        if (
+          fabricated[product.oe_number] &&
+          fabricated[product.oe_number].price < product.price
+        ) {
+          continue;
+        }
+        fabricated[product.oe_number] = product;
+      }
+
+      res.status(200).send(raw_products);
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(400).send(error);
+    });
+});
+
 router.get("/", function(req, res, next) {
   Product.findAll({
     where: {
@@ -125,9 +220,14 @@ router.get("/read", function(req, res, next) {
     });
 });
 
-router.post("/create", function(req, res, next) {
+/**
+ * ARK
+ */
+
+router.post("/ark/create/product", function(req, res, next) {
   Product.create({
     abstract_id: req.body.abstract_id,
+    category: req.body.category,
     brand: req.body.brand,
     model: req.body.model,
     oe_number: req.body.oe_number,
@@ -148,7 +248,7 @@ router.post("/create", function(req, res, next) {
     });
 });
 
-router.post("/abstract/create", function(req, res, next) {
+router.post("/ark/create/product-abstract", function(req, res, next) {
   ProductAbstract.create({
     id: req.body.id,
     maker: req.body.maker,
@@ -163,10 +263,6 @@ router.post("/abstract/create", function(req, res, next) {
       res.status(400).send(error);
     });
 });
-
-/**
- * ARK
- */
 
 router.get("/ark/product-list", function(req, res, next) {
   Product.findAll({
