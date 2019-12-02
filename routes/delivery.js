@@ -25,8 +25,8 @@ router.get("/all", verifyToken, asyncHandler(async (req, res) => {
         const orderInfo = deliveryInfo.map(d => {
             const { order_id } = d;
             return Order.findAll({
-                where: { imp_uid: order_id },
-                attributes: ["imp_uid", "amount", "quantity", "pay_method", "memo", "updatedAt"],
+                where: { merchant_uid: order_id },
+                attributes: ["merchant_uid", "amount", "quantity", "pay_method", "memo", "updatedAt"],
                 include: [{
                     model: Product,
                     required: true,
@@ -126,8 +126,8 @@ router.get("/ark/list", asyncHandler(async (req, res) => {
         const orderInfo = deliveryInfo.map(d => {
             const { order_id } = d;
             return Order.findAll({
-                where: { imp_uid: order_id },
-                attributes: ["imp_uid", "amount", "quantity", "pay_method", "memo", "updatedAt"],
+                where: { merchant_uid: order_id },
+                attributes: ["merchant_uid", "amount", "quantity", "pay_method", "memo", "updatedAt"],
                 include: [{
                     model: Product,
                     required: true,
@@ -195,8 +195,8 @@ router.get("/ark/user", asyncHandler(async (req, res) => {
         const orderInfo = deliveryInfo.map(d => {
             const { order_id } = d;
             return Order.findAll({
-                where: { imp_uid: order_id },
-                attributes: ["imp_uid", "amount", "quantity", "pay_method", "memo", "updatedAt"],
+                where: { merchant_uid: order_id },
+                attributes: ["merchant_uid", "amount", "quantity", "pay_method", "memo", "updatedAt"],
                 include: [{
                     model: Product,
                     required: true,

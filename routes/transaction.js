@@ -80,16 +80,47 @@ router.get("/ark/detail", asyncHandler(async (req, res) => {
 
 // create new transaction
 router.post("/ark/create", asyncHandler(async (req, res) => {
-    try {}
-    catch(err) {}
+    try {
+        // 외상거래 내용 추가 시 재고처리도 바로??
+        // order bulk create
+    }
+    catch(err) {
+        console.log(err);
+        res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+    }
 }));
 
 // update transaction status
-router.put("/ark/status", asyncHandler(async (req, res) => {
+router.post("/ark/credit-complete", asyncHandler(async (req, res) => {
     try {
         const { merchant_uid } = req.body;
+
+        await Order.update({
+            status: "paid"
+        }, {
+            where: {
+                merchant_uid
+            }
+        });
+
+        res.status(201).send({ message: "결제처리가 완료되었습니다." });
     }
-    catch(err) {}
+    catch(err) {
+        console.log(err);
+        res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+    }
+}));
+
+// cancel deal with credit
+router.post("/ark/cancel-credit", asyncHandler(async (req, res) => {
+    try {
+        // update status value paid or not paid to canceled
+        // update stock
+    }
+    catch(err) {
+        console.log(err);
+        res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+    }
 }));
 
 module.exports = router;
