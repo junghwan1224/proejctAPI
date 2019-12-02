@@ -36,6 +36,11 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true
       },
+      is_user: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: true
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
