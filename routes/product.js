@@ -84,7 +84,7 @@ router.get("/unique-oen", function(req, res, next) {
         category: req.query.category,
         is_public: 1
       },
-      req.query.brand === "*" ? {} : { brand: req.query.brand }
+      req.query.brand === "all" ? {} : { brand: req.query.brand }
     );
   } else {
     res.status(200).send({});
