@@ -19,9 +19,9 @@ module.exports = (sequelize, DataTypes) => {
         afterBulkUpdate: function(options) {
           if(options.attributes.status === "paid") {
             sequelize.models.delivery.create({
-              account_id: options.account_id,
-              delivery_num: options.attributes.imp_uid.slice(4),
-              order_id: options.attributes.imp_uid,
+              account_id: options.attributes.account_id,
+              delivery_num: options.attributes.merchant_uid.slice(13),
+              order_id: options.attributes.merchant_uid,
               status: "결제완료, 배송 준비 중",
               location: "HZY 창고",
               arrived_at: Date.now()
