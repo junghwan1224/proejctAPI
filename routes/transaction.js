@@ -19,6 +19,7 @@ router.get("/ark/all", asyncHandler(async (req, res) => {
                 [Op.not]: { status: "not paid" }
             },
             group: ["account_id", "merchant_uid", "name", "pay_method", "status", "createdAt", "updatedAt"],
+            order: [["createdAt", "DESC"]],
             attributes: [
                 "account_id", 
                 "name", 
