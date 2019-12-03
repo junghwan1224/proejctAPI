@@ -11,7 +11,8 @@ module.exports = (sequelize, DataTypes) => {
       name: DataTypes.STRING,
       crn: DataTypes.STRING,
       mileage: DataTypes.INTEGER,
-      email: DataTypes.STRING
+      email: DataTypes.STRING,
+      is_user: DataTypes.BOOLEAN
     },
     {
       hooks: {
