@@ -1080,7 +1080,7 @@ router.post("/refund", verifyToken, asyncHandler(async (req, res) => {
                 id: { [Op.in]: ordersArr },
                 [Op.and]: [
                     { status: "paid" },
-                    { status: { [Op.not]: "refunded" } }
+                    { status: { [Op.not]: "cancelled" } }
                 ]
             },
             transaction
@@ -1090,7 +1090,7 @@ router.post("/refund", verifyToken, asyncHandler(async (req, res) => {
         let canceled = await Order.sum("amount", {
             where: {
                 id: { [Op.in]: ordersArr },
-                status: "refunded"
+                status: "cancelled"
             },
             transaction
         });
@@ -1200,7 +1200,7 @@ router.post("/refund", verifyToken, asyncHandler(async (req, res) => {
             // order DB 값 업데이트 ... 금액 변경, status 처리
             await Order.update(
                 {
-                    status: "canceled"
+                    status: "cancelled"
                 },
                 {
                     where: {
@@ -1327,7 +1327,7 @@ router.post("/cancel", verifyToken, asyncHandler(async (req, res) => {
             // order DB 값 업데이트 ... 금액 변경, status 처리
             await Order.update(
                 {
-                    status: "canceled"
+                    status: "cancelled"
                 },
                 {
                     where: {
@@ -1669,7 +1669,7 @@ router.post("/ark/refund", asyncHandler(async (req, res) => {
                 id: { [Op.in]: ordersArr },
                 [Op.and]: [
                     { status: "paid" },
-                    { status: { [Op.not]: "refunded" } }
+                    { status: { [Op.not]: "cancelled" } }
                 ]
             },
             transaction
@@ -1679,7 +1679,7 @@ router.post("/ark/refund", asyncHandler(async (req, res) => {
         let canceled = await Order.sum("amount", {
             where: {
                 id: { [Op.in]: ordersArr },
-                status: "refunded"
+                status: "cancelled"
             },
             transaction
         });
@@ -1789,7 +1789,7 @@ router.post("/ark/refund", asyncHandler(async (req, res) => {
             // order DB 값 업데이트 ... 금액 변경, status 처리
             await Order.update(
                 {
-                    status: "refunded"
+                    status: "cancelled"
                 },
                 {
                     where: {
