@@ -410,7 +410,7 @@ router.post("/save-order", verifyToken, asyncHandler(async (req, res) => {
         }
     
         //  update to account address value
-        const parsedAddr = addrArray.split(",");
+        const parsedAddr = addrArray.split("&");
         // 입력된 주소가 없을 경우
         if(! parseInt(address_id)) {
             await Address.create({
@@ -1454,6 +1454,175 @@ router.post("/issue-receipt", verifyToken, asyncHandler(async (req, res) => {
 
 
 /************ Ark ************/
+
+// 결제 요청 전, 요청할 주문 데이터 미리 저장 - 아임포트 서버에서 가져온 결제 정보와 비교하기 위함
+router.post("/ark/save-order", asyncHandler(async (req, res) => {
+    try {
+        const { 
+            account_id,
+            merchant_uid,
+            products,
+            pay_method,
+            name,
+            amount, // array
+            quantity,  // array
+            address_id,
+            addrArray, // buyer_addr
+            buyer_postcode,
+            memo
+         } = req.body;
+    
+        const transaction = await models.sequelize.transaction();
+    
+        // check stock of product
+        const productsIdArr = products.split(",");
+        const productsQuantityArr = quantity.split(",").map(q => parseInt(q));
+        const productsAmountArr = amount.split(",").map(a => parseInt(a));
+    
+        const prodArr = productsIdArr.map((p, idx) => ({
+            "id": p,
+            "amount": productsAmountArr[idx],
+            "quantity": productsQuantityArr[idx]
+        }));
+        prodArr.sort((a, b) => { if(a.id < b.id) return -1; else return 1; });
+    
+        const abstractsIds = await Product.findAll({
+            where: { id: { [Op.in]: prodArr.map(e => e.id) } },
+            include: [ProductAbstract],
+            transaction
+        });
+    
+        const abstArr = abstractsIds.map(
+            product => {
+                const { dataValues } = product;
+                const { product_abstract } = dataValues;
+                const prop = product_abstract.dataValues;
+    
+                return prop.id;
+            });
+        
+        const abstObj = abstArr.map((abst, idx) => ({
+            "id": abst,
+            "quantity": prodArr[idx].quantity
+        }));
+    
+        const abstractMap = abstObj.reduce((prev, cur) => {
+            let count = prev.get(cur.id) || 0;
+            prev.set(cur.id, cur.quantity + count);
+            return prev;
+        }, new Map());
+    
+        const mapToArr = [...abstractMap].map( ([id, quantity]) => { return {id, quantity} });
+        mapToArr.sort((a, b) => { if(a.id < b.id) return -1; else return 1; });
+    
+        const abstracts = await ProductAbstract.findAll({
+            where: {
+                id: { [Op.in]: abstObj.map(e => e.id) }
+            },
+            transaction
+        });
+    
+        // 요청한 수량보다 재고가 적은 abstract의 id를 배열에 저장
+        const scarceProductsArr = abstracts.reduce(
+            (acc, product, idx) => {
+                if(product.dataValues.stock < mapToArr[idx].quantity) {
+                    acc.push(mapToArr[idx].id);
+                    return acc;
+                }
+                else {
+                    return acc;
+                }
+            },
+            []
+        );
+    
+        // 재고가 부족한 제품이 있는 경우
+        if(scarceProductsArr.length > 0) {
+    
+            // abstract_id 값으로 상품 조회
+            const scarceProducts = await Product.findAll({
+                where: {
+                    abstract_id: { [Op.in]: scarceProductsArr }
+                },
+                transaction
+            });
+    
+            await transaction.commit();
+    
+            return res.status(403).send({ api: "saveOrder", message: "재고 부족", scarceProducts });
+        }
+    
+        //  update to account address value
+        const parsedAddr = addrArray.split("&");
+        // 입력된 주소가 없을 경우
+        if(! parseInt(address_id)) {
+            await Address.create({
+                account_id,
+                primary: parsedAddr[0],
+                detail: parsedAddr[1],
+                postcode: buyer_postcode
+            }, {
+                transaction
+            });
+        }
+        // 입력된 주소가 있는 경우
+        else {
+            const addr = await Address.findOne({
+                where: {
+                    id: address_id,
+                    account_id
+                },
+                attributes: ["postcode", "primary", "detail"],
+                transaction
+            });
+       
+            const optionInfoObj = {
+                postcode: buyer_postcode,
+                primary: parsedAddr[0],
+                detail: parsedAddr[1],
+            };
+    
+            // 입력된 주소가 있으나 수정한 경우
+            if(! Object.is(JSON.stringify(addr.dataValues), JSON.stringify(optionInfoObj))) {
+                await Address.update({
+                    postcode: buyer_postcode,
+                    primary: parsedAddr[0],
+                    detail: parsedAddr[1],
+                },
+                {
+                    where: { id: address_id, account_id },
+                    transaction
+                });
+            }
+        }
+    
+        // insert to DB
+        const newOrderArray = productsIdArr.map(
+            (product, idx) => {
+                return {
+                    merchant_uid,
+                    account_id,
+                    product_id: product,
+                    name,
+                    amount: (productsAmountArr[idx] * productsQuantityArr[idx]),
+                    quantity: productsQuantityArr[idx],
+                    pay_method,
+                    status: "credit not paid",
+                    memo
+                };
+            }
+        );
+        await Order.bulkCreate(newOrderArray, { transaction });
+    
+        await transaction.commit();
+    
+        res.status(201).send({ message: "success" });
+    }
+    catch(err) {
+        console.log(err);
+        res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+    }
+}));
 
 // refund in ark
 router.post("/ark/refund", asyncHandler(async (req, res) => {
