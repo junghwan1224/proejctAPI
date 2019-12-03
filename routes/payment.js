@@ -1551,6 +1551,24 @@ router.post("/ark/save-order", asyncHandler(async (req, res) => {
     
             return res.status(403).send({ api: "saveOrder", message: "재고 부족", scarceProducts });
         }
+
+        // update stock if not scarce
+        const updatedProducts = abstracts.map(
+            product => {
+                return product.dataValues;
+            }
+        );
+    
+        updatedProducts.forEach(
+            (product, idx) => {
+                product.stock -= mapToArr[idx].quantity;
+            }
+        );
+    
+        await ProductAbstract.bulkCreate(updatedProducts, { 
+            updateOnDuplicate: ["stock"],
+            transaction
+        });
     
         //  update to account address value
         const parsedAddr = addrArray.split("&");
