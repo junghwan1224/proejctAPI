@@ -22,6 +22,11 @@ router.get("/all", verifyToken, asyncHandler(async (req, res) => {
             transaction
         });
         const deliveryInfo = delivery.map(d => d.dataValues);
+
+        if(! deliveryInfo.length) {
+            return res.status(200).send({ message: "주문 내역이 없습니다.", result: [] });
+        }
+
         const orderInfo = deliveryInfo.map(d => {
             const { order_id } = d;
             return Order.findAll({
@@ -123,6 +128,11 @@ router.get("/ark/list", asyncHandler(async (req, res) => {
             transaction
         });
         const deliveryInfo = delivery.map(d => d.dataValues);
+
+        if(! deliveryInfo.length) {
+            return res.status(200).send({ message: "주문 내역이 없습니다.", result: [] });
+        }
+
         const orderInfo = deliveryInfo.map(d => {
             const { order_id } = d;
             return Order.findAll({
