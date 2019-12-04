@@ -16,12 +16,27 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       hooks: {
-        afterBulkUpdate: function(options) {
+        afterBulkUpdate: options => {
           if(options.attributes.status === "paid") {
             sequelize.models.delivery.create({
               account_id: options.account_id,
               delivery_num: options.merchant_uid.slice(13),
               order_id: options.merchant_uid,
+              status: "결제완료, 배송 준비 중",
+              location: "HZY 창고",
+              arrived_at: Date.now()
+            }, {
+              transaction: options.transaction
+            });
+          }
+        },
+        afterBulkCreate: (instances, options) => {
+          const { account_id, merchant_uid, status } = instances[0].dataValues;
+          if(status === "credit not paid") {
+            sequelize.models.delivery.create({
+              account_id,
+              delivery_num: merchant_uid.slice(7),
+              order_id: merchant_uid,
               status: "결제완료, 배송 준비 중",
               location: "HZY 창고",
               arrived_at: Date.now()
