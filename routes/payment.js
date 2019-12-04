@@ -1263,7 +1263,7 @@ router.post("/refund", verifyToken, asyncHandler(async (req, res) => {
 
 router.post("/cancel", verifyToken, asyncHandler(async (req, res) => {
     try {
-        const { imp_uid, reason } = req.body;
+        const { merchant_uid, reason } = req.body;
         const { account_id } = req;
 
         const transaction = await models.sequelize.transaction();
@@ -1289,7 +1289,7 @@ router.post("/cancel", verifyToken, asyncHandler(async (req, res) => {
         // imp_uid 값을 통해 결제 내역 조회
         const wouldBeRefundedOrder = await Order.findAll({
             where: {
-                imp_uid,
+                merchant_uid,
                 account_id
             },
             transaction
@@ -1314,7 +1314,7 @@ router.post("/cancel", verifyToken, asyncHandler(async (req, res) => {
                 "Authorization": access_token
             },
             data: {
-                imp_uid,
+                merchant_uid,
                 reason,
                 amount: wantCancelAmount
             }
@@ -1373,6 +1373,7 @@ router.post("/cancel", verifyToken, asyncHandler(async (req, res) => {
         }
     }
     catch(err) {
+        console.log(err);
         res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요" });
     }
 }));
