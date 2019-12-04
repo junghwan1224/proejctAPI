@@ -7,7 +7,6 @@ const { Op } = sequelize;
 const models = require("../models");
 const Account = require("../models").account;
 const Order = require("../models").order;
-const Delivery = require("../models").delivery;
 const Product = require("../models").product;
 const ProductAbstract = require("../models").product_abstract;
 
@@ -77,18 +76,6 @@ router.get("/ark/detail", asyncHandler(async (req, res) => {
     catch(err) {
         console.log(err);
         res.status(403).send({ message: "에러가 발생했습니다. 페이지를 새로고침 해주세요." });
-    }
-}));
-
-// create new transaction
-router.post("/ark/create", asyncHandler(async (req, res) => {
-    try {
-        // 외상거래 내용 추가 시 재고처리도 바로??
-        // order bulk create
-    }
-    catch(err) {
-        console.log(err);
-        res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
     }
 }));
 
@@ -202,21 +189,6 @@ router.post("/ark/cancel-credit", asyncHandler(async (req, res) => {
         console.log(err);
         res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
     }
-}));
-
-router.post("/ark/create-delivery", asyncHandler(async (req, res) => {
-    const { account_id, merchant_uid } = req.body;
-
-    await Delivery.create({
-        account_id,
-        delivery_num: merchant_uid.slice(7),
-        order_id: merchant_uid,
-        status: "",
-        location: "",
-        arrived_at: Date.now()
-    });
-
-    res.status(201).send({ message: "success" });
 }));
 
 module.exports = router;
