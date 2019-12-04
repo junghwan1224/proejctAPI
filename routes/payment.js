@@ -36,7 +36,7 @@ router.get("/order-info", verifyToken, asyncHandler(async (req, res) => {
         const order = await Order.findOne({
             where: {
                 account_id,
-                imp_uid: order_id
+                merchant_uid: order_id
             },
             transaction
         });
@@ -44,7 +44,7 @@ router.get("/order-info", verifyToken, asyncHandler(async (req, res) => {
         const price = await Order.sum("amount", {
             where: {
                 account_id,
-                imp_uid: order_id
+                merchant_uid: order_id
             },
             transaction
         });

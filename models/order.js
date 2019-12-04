@@ -20,7 +20,7 @@ module.exports = (sequelize, DataTypes) => {
           if(options.attributes.status === "paid") {
             sequelize.models.delivery.create({
               account_id: options.account_id,
-              delivery_num: options.merchant_uid.slice(13),
+              delivery_num: options.merchant_uid.slice(7),
               order_id: options.merchant_uid,
               status: "결제완료, 배송 준비 중",
               location: "HZY 창고",
