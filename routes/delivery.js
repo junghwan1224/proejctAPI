@@ -204,6 +204,34 @@ router.get("/ark/list", asyncHandler(async (req, res) => {
     }
 }));
 
+router.get("/ark/detail", asyncHandler(async (req, res) => {
+    try {
+        const { order_id } = req.query;
+        const transaction = await models.sequelize.transaction();
+
+        const delivery = await Delivery.findOne({
+            where: { order_id },
+            transaction
+        });
+
+        const orderInfo = await Order.findAll({
+            where: { merchant_uid: order_id },
+            include: [{
+                model: Product,
+                required: true,
+                include: [{
+                    model: ProductAbstract,
+                    required: true,
+                    attributes: ["image", "maker", "maker_number", "type"]
+                }]
+            }],
+            transaction
+        });
+        const orders = orderInfo.map(o => o.dataValues);
+
+        await transaction.commit();
+        res.status(201).send({ delivery, orders });
+    }
     catch(err) {
         console.log(err);
         res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
