@@ -157,9 +157,10 @@ router.post(
           .status(403)
           .send({ message: "사업자 등록번호가 이미 등록되어 있습니다." });
       }
-    }
-    catch(err) {
-      res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+    } catch (err) {
+      res
+        .status(403)
+        .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
     }
   })
 );
@@ -167,7 +168,7 @@ router.post(
 router.post(
   "/issue-certify-num",
   asyncHandler(async (req, res) => {
-    try{
+    try {
       const { phone } = req.body;
 
       // 인증 번호 난수 6자리 생성 및 세션에 저장
@@ -217,9 +218,10 @@ router.post(
           message: "인증번호 발송 중 에러가 발생했습니다. 다시 시도해주세요."
         });
       }
-    }
-    catch(err) {
-      res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+    } catch (err) {
+      res
+        .status(403)
+        .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
     }
   })
 );
@@ -227,7 +229,7 @@ router.post(
 router.post(
   "/certify",
   asyncHandler(async (req, res) => {
-    try{
+    try {
       const { certifyNumber } = req.body;
 
       // 저장된 인증번호와 비교
@@ -243,13 +245,14 @@ router.post(
           .status(201)
           .send({ message: "인증이 정상적으로 완료되었습니다." });
       } else {
-        return res
-          .status(403)
-          .send({ message: "인증번호가 일치하지 않습니다. 다시 입력해주세요." });
+        return res.status(403).send({
+          message: "인증번호가 일치하지 않습니다. 다시 입력해주세요."
+        });
       }
-    }
-    catch(err) {
-      res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+    } catch (err) {
+      res
+        .status(403)
+        .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
     }
   })
 );
@@ -258,7 +261,7 @@ router.get(
   "/get-address/",
   verifyToken,
   asyncHandler(async (req, res) => {
-    try{
+    try {
       const { account_id } = req;
 
       const transaction = await models.sequelize.transaction();
@@ -280,9 +283,10 @@ router.get(
       } else {
         return res.send({ message: "success", address: address[0].dataValues });
       }
-    }
-    catch(err) {
-      res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+    } catch (err) {
+      res
+        .status(403)
+        .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
     }
   })
 );
@@ -353,9 +357,10 @@ router.post(
       }
 
       res.send({ message: "success" });
-    }
-    catch(err) {
-      res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+    } catch (err) {
+      res
+        .status(403)
+        .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
     }
   })
 );
@@ -392,9 +397,10 @@ router.post(
       }
 
       res.status(200).send({ message: "success" });
-    }
-    catch(err) {
-      res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+    } catch (err) {
+      res
+        .status(403)
+        .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
     }
   })
 );
@@ -434,9 +440,10 @@ router.post(
           .status(400)
           .send({ message: "기존 비밀번호가 일치하지 않습니다." });
       }
-    }
-    catch(err) {
-      res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+    } catch (err) {
+      res
+        .status(403)
+        .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
     }
   })
 );
@@ -444,27 +451,33 @@ router.post(
 router.post(
   "/set-new-pwd",
   asyncHandler(async (req, res) => {
-    try{
+    try {
       const { phone, new_password } = req.body;
       const transaction = await models.sequelize.transaction();
 
       const bcryptPwd = bcrypt.hashSync(new_password, 10);
-      await Account.update({
-        password: bcryptPwd
-      },
-      {
-        where: { phone },
-        transaction
-      });
+      await Account.update(
+        {
+          password: bcryptPwd
+        },
+        {
+          where: { phone },
+          transaction
+        }
+      );
 
       await transaction.commit();
 
-      res.status(201).send({ message: "비밀번호가 성공적으로 변경되었습니다." });
+      res
+        .status(201)
+        .send({ message: "비밀번호가 성공적으로 변경되었습니다." });
+    } catch (err) {
+      return res
+        .status(403)
+        .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
     }
-    catch(err) {
-      return res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
-    }
-}));
+  })
+);
 
 router.post(
   "/issue-temporary-pwd",
@@ -529,9 +542,10 @@ router.post(
           message: "인증번호 발송 중 에러가 발생했습니다. 다시 시도해주세요."
         });
       }
-    }
-    catch(err) {
-      res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+    } catch (err) {
+      res
+        .status(403)
+        .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
     }
   })
 );
@@ -548,9 +562,10 @@ router.delete(
       });
 
       res.status(201).send({ message: "delete success" });
-    }
-    catch(err) {
-      res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+    } catch (err) {
+      res
+        .status(403)
+        .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
     }
   })
 );

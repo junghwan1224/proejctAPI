@@ -43,11 +43,10 @@ router.get(
     });
 
     // Fabricate:
-    let basket_items = [];
+    let basket_items = {};
     for (const raw_item of raw_items) {
       let item = {};
       item["quantity"] = raw_item.quantity;
-      item["product_id"] = raw_item.product.id;
       item["oe_number"] = raw_item.product.oe_number;
       item["brand"] = raw_item.product.brand;
       item["model"] = raw_item.product.model;
@@ -59,7 +58,7 @@ router.get(
       item["image"] = raw_item.product.product_abstract.image;
       item["maker"] = raw_item.product.product_abstract.maker;
       item["type"] = raw_item.product.product_abstract.type;
-      basket_items.push(item);
+      basket_items[raw_item.product.id] = item;
     }
 
     res.status(200).send(basket_items);
