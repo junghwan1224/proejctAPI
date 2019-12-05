@@ -124,7 +124,7 @@ router.get("/ark/list", asyncHandler(async (req, res) => {
         const transaction = await models.sequelize.transaction();
 
         const delivery = await Delivery.findAll({
-            attributes: ["order_id", "status", "location", "arrived_at"],
+            attributes: ["delivery_num", "order_id", "status", "location", "arrived_at", "createdAt"],
             transaction
         });
         const deliveryInfo = delivery.map(d => d.dataValues);
@@ -150,7 +150,7 @@ router.get("/ark/list", asyncHandler(async (req, res) => {
                 {
                     model: Account,
                     required: true,
-                    attributes: ["phone", "name", "crn", "mileage", "email"],
+                    attributes: ["id", "phone", "name", "crn", "mileage", "email"],
                 }],
                 transaction
             });
@@ -182,9 +182,56 @@ router.get("/ark/list", asyncHandler(async (req, res) => {
             return 0;
         });
 
-        res.status(200).send({ result });
+        const deliveries = result.map(r => {
+            const { delivery, order } = r[0];
+            let obj = {};
+            obj["account"] = { "id": order.account.id, "name": order.account.name };
+            obj["driver"] = "추가 예정";
+            obj["order_id"] = delivery.order_id;
+            obj["delivery_number"] = delivery.delivery_num;
+            obj["arriveAt"] = delivery.arrived_at;
+            obj["status"] = delivery.status;
+
+            return obj;
+        });
+
+        res.status(200).send({ deliveries });
     }
 
+    catch(err) {
+        console.log(err);
+        res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+    }
+}));
+
+router.get("/ark/detail", asyncHandler(async (req, res) => {
+    try {
+        const { order_id } = req.query;
+        const transaction = await models.sequelize.transaction();
+
+        const delivery = await Delivery.findOne({
+            where: { order_id },
+            transaction
+        });
+
+        const orderInfo = await Order.findAll({
+            where: { merchant_uid: order_id },
+            include: [{
+                model: Product,
+                required: true,
+                include: [{
+                    model: ProductAbstract,
+                    required: true,
+                    attributes: ["image", "maker", "maker_number", "type"]
+                }]
+            }],
+            transaction
+        });
+        const orders = orderInfo.map(o => o.dataValues);
+
+        await transaction.commit();
+        res.status(201).send({ delivery, orders });
+    }
     catch(err) {
         console.log(err);
         res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
