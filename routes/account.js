@@ -25,7 +25,7 @@ const SENS_SENDER = process.env.SENS_SENDER;
 
 router.get("/exist", function(req, res, next) {
   Account.findOne({
-    where: { 
+    where: {
       phone: req.query.phone,
       is_user: true
     },
@@ -51,7 +51,7 @@ router.post("/login", function(req, res, next) {
   }
 
   Account.findOne({
-    where: { 
+    where: {
       phone: req.body.phone,
       is_user: true
     },
@@ -89,15 +89,13 @@ router.post("/login", function(req, res, next) {
   });
 });
 
-router.get("/read", verifyToken, function(req, res, next) {
-  Account.findByPk(req.account_id)
+router.get("/read", function(req, res, next) {
+  Account.findByPk(req.query.account_id)
     .then(account => {
       res.status(200).send({
         id: account.id,
         phone: account.phone,
         name: account.name,
-        password: account.password,
-        mileage: account.mileage,
         email: account.email,
         crn: account.crn,
         address1: account.address1,
@@ -572,46 +570,54 @@ router.delete(
 
 /************ Ark ************/
 
-router.post("/ark/create", asyncHandler(async (req, res) => {
-  try {
-    const { username, crn, phone } = req.body;
+router.post(
+  "/ark/create",
+  asyncHandler(async (req, res) => {
+    try {
+      const { username, crn, phone } = req.body;
 
-    const account = await Account.create({
-      name: username,
-      crn,
-      phone,
-      is_user: false
-    });
+      const account = await Account.create({
+        name: username,
+        crn,
+        phone,
+        is_user: false
+      });
 
-    const { id } = account.dataValues;
+      const { id } = account.dataValues;
 
-    res.status(201).send({ message: "success", account_id: id });
-  }
-  catch(err) {
-    console.log(err);
-    res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
-  }
-}));
+      res.status(201).send({ message: "success", account_id: id });
+    } catch (err) {
+      console.log(err);
+      res
+        .status(403)
+        .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+    }
+  })
+);
 
-router.post("/ark/set-address", asyncHandler(async (req, res) => {
-  try {
-    const { account_id, postcode, addr_primary, addr_detail } = req.body;
+router.post(
+  "/ark/set-address",
+  asyncHandler(async (req, res) => {
+    try {
+      const { account_id, postcode, addr_primary, addr_detail } = req.body;
 
-    const address = await Address.create({
-      account_id,
-      postcode,
-      primary: addr_primary,
-      detail: addr_detail
-    });
+      const address = await Address.create({
+        account_id,
+        postcode,
+        primary: addr_primary,
+        detail: addr_detail
+      });
 
-    const { id } = address.dataValues;
+      const { id } = address.dataValues;
 
-    res.status(201).send({ message: "success", address_id: id });
-  }
-  catch(err) {
-    console.log(err);
-    res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
-  }
-}));
+      res.status(201).send({ message: "success", address_id: id });
+    } catch (err) {
+      console.log(err);
+      res
+        .status(403)
+        .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+    }
+  })
+);
 
 module.exports = router;
