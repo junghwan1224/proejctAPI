@@ -74,6 +74,7 @@ const basketRouter = require("./routes/basket");
 const favoriteRouter = require("./routes/favorite");
 const productRouter = require("./routes/product");
 const deliveryRouter = require("./routes/delivery");
+const addressRouter = require("./routes/address");
 const inquiryRouter = require("./routes/inquiry");
 const transactionRouter = require("./routes/transaction");
 
