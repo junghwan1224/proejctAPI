@@ -76,7 +76,7 @@ router.get("/unique-oen", asyncHandler(async (req, res, next) => {
       const keywords = query.split(/(?:,| )+/);
 
       // 추후 필터링에 이용할 product id 값을 담고있는 배열, 초기에는 모두 가져온다.
-      let filteredId = await Product.findAll().map(p => p.dataValues.id);
+      let filteredId = await Product.findAll({ attributes: ["id"] }).map(p => p.dataValues.id);
 
       // oe number
       // 공백과 , 로 분리된 키워드 하나하나로 like 쿼리문 배열 반환
