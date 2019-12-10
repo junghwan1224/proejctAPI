@@ -1,5 +1,6 @@
 var express = require("express");
 var router = express.Router();
+const asyncHandler = require('express-async-handler');
 
 const Product = require("../models").product;
 const ProductAbstract = require("../models").product_abstract;
@@ -60,70 +61,226 @@ router.get("/find-by-oen", function(req, res, next) {
     });
 });
 
-router.get("/unique-oen", function(req, res, next) {
-  let where;
-  if (req.query.query) {
-    where = {
-      is_public: 1,
-      [Op.or]: [
-        { oe_number: { [Op.like]: `%${req.query.query}%` } },
-        { brand: { [Op.like]: `%${req.query.query}%` } },
-        { model: { [Op.like]: `%${req.query.query}%` } },
-        { start_year: { [Op.like]: `%${req.query.query}%` } },
-        { end_year: { [Op.like]: `%${req.query.query}%` } },
-        {
-          "$product_abstract.type$": {
-            [Op.like]: `%${req.query.brand}%`
-          }
-        }
-      ]
-    };
-  } else if (req.query.brand && req.query.category) {
-    where = Object.assign(
-      {
-        category: req.query.category,
-        is_public: 1
-      },
-      req.query.brand === "all" ? {} : { brand: req.query.brand }
-    );
-  } else {
-    res.status(200).send({});
-    return;
-  }
+router.get("/unique-oen", asyncHandler(async (req, res, next) => {
+  try{
+    let where;
+    if (req.query.query) {
+      console.log(req.query);
+      const { category, brand, query } = req.query;
+      /*
+        각각의 배열들을 갖고 product 테이블에서 값 findAll
+        조회된 값이 없을 시([]) pass
+        조회된 값이 있는 항목들 끼리 비교 후 공통된 값들 필터링 
+      */
 
-  Product.findAll({
-    where: where,
-    attributes: PRODUCT_ATTRIBUTES,
-    include: [
-      {
-        model: ProductAbstract,
-        required: true,
-        attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+      // 검색 키워드를 공백과 , 기준으로 분리
+      const keywords = query.split(/(?:,| )+/);
+
+      // 추후 필터링에 이용할 product id 값을 담고있는 배열, 초기에는 모두 가져온다.
+      let filteredId = await Product.findAll().map(p => p.dataValues.id);
+
+      // oe number
+      // 공백과 , 로 분리된 키워드 하나하나로 like 쿼리문 배열 반환
+      const oeQuery = keywords.reduce((acc, word) => {
+        acc.push({ [Op.like]: `%${word}%` });
+        return acc;
+      }, []);
+
+      // 반환된 배열을 통해 해당 product id 값 추출
+      const oeArr = await Product.findAll({
+        where: {
+          oe_number: { [Op.or]: oeQuery }
+        },
+        attributes: ["id"]
+      }).map(p => p.dataValues.id);
+
+      // 반환된 배열에 값이 하나라도 존재할 시 필터링
+      if(oeArr.length) {
+        filteredId = filteredId.filter(p => oeArr.indexOf(p) !== -1);
       }
-    ],
-    order: [
-      ["brand", "ASC"],
-      ["model", "ASC"]
-    ]
-  })
-    .then(raw_products => {
-      let fabricated = {};
-      for (const product of raw_products) {
-        if (
-          fabricated[product.oe_number] &&
-          fabricated[product.oe_number].price < product.price
-        ) {
-          continue;
+
+      // brand
+      const brandQuery = keywords.reduce((acc, word) => {
+        acc.push({ [Op.like]: `%${word}%` });
+        return acc;
+      }, []);
+
+      const brandArr = await Product.findAll({
+        where: {
+          brand: { [Op.or]: brandQuery }
+        },
+        attributes: ["id"]
+      }).map(p => p.dataValues.id);
+
+      if(brandArr.length) {
+        filteredId = filteredId.filter(p => brandArr.indexOf(p) !== -1);
+      }
+
+      // model
+      const modelQuery = keywords.reduce((acc, word) => {
+        acc.push({ [Op.like]: `%${word}%` });
+        return acc;
+      }, []);
+
+      const modelArr = await Product.findAll({
+        where: {
+          model: { [Op.or]: modelQuery }
+        },
+        attributes: ["id"]
+      }).map(p => p.dataValues.id);
+
+      if(modelArr.length) {
+        filteredId = filteredId.filter(p => modelArr.indexOf(p) !== -1);
+      }
+
+      // start year
+      const startQuery = keywords.reduce((acc, word) => {
+        acc.push({ [Op.like]: `%${word}%` });
+        return acc;
+      }, []);
+
+      const startArr = await Product.findAll({
+        where: {
+          start_year: { [Op.or]: startQuery }
+        },
+        attributes: ["id"]
+      }).map(p => p.dataValues.id);
+
+      if(startArr.length) {
+        filteredId = filteredId.filter(p => startArr.indexOf(p) !== -1);
+      }
+
+      // end year
+      const endQuery = keywords.reduce((acc, word) => {
+        acc.push({ [Op.like]: `%${word}%` });
+        return acc;
+      }, []);
+
+      const endArr = await Product.findAll({
+        where: {
+          end_year: { [Op.or]: endQuery }
+        },
+        attributes: ["id"]
+      }).map(p => p.dataValues.id);
+
+      if(endArr.length) {
+        filteredId = filteredId.filter(p => endArr.indexOf(p) !== -1);
+      }
+
+      // product abstract
+      const abstractQuery = keywords.reduce((acc, word) => {
+        acc.push({ [Op.like]: `%${word}%` });
+        return acc;
+      }, []);
+
+      const abstractArr = await Product.findAll({
+        where: {
+          "$product_abstract.type$": {
+            [Op.or]: abstractQuery
+          },
+        },
+        attributes: ["id"],
+        include: [
+          {
+            model: ProductAbstract,
+            required: true,
+            attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+          }
+        ],
+      }).map(p => p.dataValues.id);
+
+      if(abstractArr.length) {
+        filteredId = filteredId.filter(p => abstractArr.indexOf(p) !== -1);
+      }
+
+      // 필터링된 product id 값으로 상품 조회
+      const filteredProducts = await Product.findAll({
+        where: {
+          id: { [Op.in]: filteredId },
+          is_public: 1,
+          category,
+        },
+        attributes: PRODUCT_ATTRIBUTES,
+        include: [
+          {
+            model: ProductAbstract,
+            required: true,
+            attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+          }
+        ],
+        order: [
+          ["brand", "ASC"],
+          ["model", "ASC"]
+        ]
+      });
+
+      return res.status(200).send(filteredProducts);
+      // const orQuery = keywords.reduce((acc, word) => {
+      //   acc.push({ oe_number: { [Op.like]: `%${word}%` } });
+      //   acc.push({ brand: { [Op.like]: `%${word}%` } });
+      //   acc.push({ model: { [Op.like]: `%${word}%` } });
+      //   acc.push({ start_year: { [Op.like]: `%${word}%` } });
+      //   acc.push({ end_year: { [Op.like]: `%${word}%` } });
+      //   acc.push({
+      //     "$product_abstract.type$": {
+      //       [Op.like]: `%${word}%`
+      //     }
+      //   });
+      //   return acc;
+      // }, []);
+
+    } else if (req.query.brand && req.query.category) {
+      where = Object.assign(
+        {
+          category: req.query.category,
+          is_public: 1
+        },
+        req.query.brand === "all" ? {} : { brand: req.query.brand }
+      );
+    } else {
+      res.status(200).send({});
+      return;
+    }
+
+    Product.findAll({
+      where: where,
+      attributes: PRODUCT_ATTRIBUTES,
+      include: [
+        {
+          model: ProductAbstract,
+          required: true,
+          attributes: PRODUCT_ABSTRACT_ATTRIBUTES
         }
-        fabricated[product.oe_number] = product;
-      }
-      res.status(200).send(fabricated);
+      ],
+      order: [
+        ["brand", "ASC"],
+        ["model", "ASC"]
+      ]
     })
-    .catch(error => {
-      console.log(error);
-      res.status(400).send(error);
-    });
-});
+      .then(raw_products => {
+        let fabricated = {};
+        for (const product of raw_products) {
+          if (
+            fabricated[product.oe_number] &&
+            fabricated[product.oe_number].price < product.price
+          ) {
+            continue;
+          }
+          fabricated[product.oe_number] = product;
+        }
+
+        res.status(200).send(fabricated);
+      })
+      .catch(error => {
+        console.log(error);
+        res.status(400).send(error);
+      });
+  }
+  catch(err) {
+    console.log(err);
+    res.status(400).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+  }
+}));
 
 router.get("/", function(req, res, next) {
   Product.findAll({
