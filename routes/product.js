@@ -65,7 +65,6 @@ router.get("/unique-oen", asyncHandler(async (req, res, next) => {
   try{
     let where;
     if (req.query.query) {
-      console.log(req.query);
       const { category, brand, query } = req.query;
       /*
         각각의 배열들을 갖고 product 테이블에서 값 findAll
@@ -100,20 +99,23 @@ router.get("/unique-oen", asyncHandler(async (req, res, next) => {
       }
 
       // brand
-      const brandQuery = keywords.reduce((acc, word) => {
-        acc.push({ [Op.like]: `%${word}%` });
-        return acc;
-      }, []);
-
-      const brandArr = await Product.findAll({
-        where: {
-          brand: { [Op.or]: brandQuery }
-        },
-        attributes: ["id"]
-      }).map(p => p.dataValues.id);
-
-      if(brandArr.length) {
-        filteredId = filteredId.filter(p => brandArr.indexOf(p) !== -1);
+      // brand 값이 "all" 인 경우: 브랜드 선택을 안했으므로, brand 필드에 검색 키워드 적용
+      if(brand === "all") {
+        const brandQuery = keywords.reduce((acc, word) => {
+          acc.push({ [Op.like]: `%${word}%` });
+          return acc;
+        }, []);
+  
+        const brandArr = await Product.findAll({
+          where: {
+            brand: { [Op.or]: brandQuery }
+          },
+          attributes: ["id"]
+        }).map(p => p.dataValues.id);
+  
+        if(brandArr.length) {
+          filteredId = filteredId.filter(p => brandArr.indexOf(p) !== -1);
+        }
       }
 
       // model
@@ -199,6 +201,8 @@ router.get("/unique-oen", asyncHandler(async (req, res, next) => {
           id: { [Op.in]: filteredId },
           is_public: 1,
           category,
+          // 브랜드 선택이 안돼있을 시, 전체를 가져옴
+          brand: brand === "all" ? { [Op.not]: "all" } : { [Op.like]: `%${brand}%` }
         },
         attributes: PRODUCT_ATTRIBUTES,
         include: [
@@ -215,6 +219,7 @@ router.get("/unique-oen", asyncHandler(async (req, res, next) => {
       });
 
       return res.status(200).send(filteredProducts);
+
       // const orQuery = keywords.reduce((acc, word) => {
       //   acc.push({ oe_number: { [Op.like]: `%${word}%` } });
       //   acc.push({ brand: { [Op.like]: `%${word}%` } });
@@ -235,11 +240,10 @@ router.get("/unique-oen", asyncHandler(async (req, res, next) => {
           category: req.query.category,
           is_public: 1
         },
-        req.query.brand === "all" ? {} : { brand: req.query.brand }
+        req.query.brand === "all" ? {} : { brand: { [Op.like]: `%${req.query.brand}%` } }
       );
     } else {
-      res.status(200).send({});
-      return;
+      return res.status(200).send({});
     }
 
     Product.findAll({
