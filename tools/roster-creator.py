@@ -18,7 +18,7 @@ EXCEPTIONS = [
     datetime(2020, 4, 30),  # 석가탄신일
     datetime(2020, 5, 5),  # 어린이날
     datetime(2020, 6, 6),  # 현충일
-    datetime(2020, 7, 15)  # 회사창립일
+    datetime(2020, 7, 15),  # 회사창립일
     datetime(2020, 8, 15),  # 광복절
     datetime(2020, 9, 30),  # 추석
     datetime(2020, 10, 1),  # 추석
