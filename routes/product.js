@@ -108,7 +108,7 @@ router.get("/unique-oen", function(req, res, next) {
   })
     .then(raw_products => {
       let fabricated = {};
-      for (const product in raw_products) {
+      for (const product of raw_products) {
         if (
           fabricated[product.oe_number] &&
           fabricated[product.oe_number].price < product.price
@@ -117,8 +117,7 @@ router.get("/unique-oen", function(req, res, next) {
         }
         fabricated[product.oe_number] = product;
       }
-
-      res.status(200).send(raw_products);
+      res.status(200).send(fabricated);
     })
     .catch(error => {
       console.log(error);

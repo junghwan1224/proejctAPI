@@ -75,6 +75,7 @@ const favoriteRouter = require("./routes/favorite");
 const productRouter = require("./routes/product");
 const deliveryRouter = require("./routes/delivery");
 const addressRouter = require("./routes/address");
+const rosterRouter = require("./routes/roster");
 const inquiryRouter = require("./routes/inquiry");
 const transactionRouter = require("./routes/transaction");
 
@@ -88,6 +89,7 @@ app.use("/api/product", productRouter);
 app.use("/api/delivery", deliveryRouter);
 app.use("/api/inquiry", inquiryRouter);
 app.use("/api/transaction", transactionRouter);
+app.use("/api/roster", rosterRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
