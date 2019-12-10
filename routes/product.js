@@ -257,22 +257,6 @@ router.get("/unique-oen", asyncHandler(async (req, res, next) => {
         return res.status(200).send(allProductsByQuery);
       }
 
-      // return res.status(200).send(filteredProducts);
-
-      // const orQuery = keywords.reduce((acc, word) => {
-      //   acc.push({ oe_number: { [Op.like]: `%${word}%` } });
-      //   acc.push({ brand: { [Op.like]: `%${word}%` } });
-      //   acc.push({ model: { [Op.like]: `%${word}%` } });
-      //   acc.push({ start_year: { [Op.like]: `%${word}%` } });
-      //   acc.push({ end_year: { [Op.like]: `%${word}%` } });
-      //   acc.push({
-      //     "$product_abstract.type$": {
-      //       [Op.like]: `%${word}%`
-      //     }
-      //   });
-      //   return acc;
-      // }, []);
-
     } else if (req.query.brand && req.query.category) {
       where = Object.assign(
         {
