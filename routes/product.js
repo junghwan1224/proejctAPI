@@ -216,9 +216,48 @@ router.get("/unique-oen", asyncHandler(async (req, res, next) => {
           ["brand", "ASC"],
           ["model", "ASC"]
         ]
-      });
+      }).map(p => p.dataValues);
 
-      return res.status(200).send(filteredProducts);
+      if(filteredProducts.length) {
+        return res.status(200).send(filteredProducts);
+      }
+      else {
+        const orQuery = keywords.reduce((acc, word) => {
+            acc.push({ oe_number: { [Op.like]: `%${word}%` } });
+            acc.push({ brand: { [Op.like]: `%${word}%` } });
+            acc.push({ model: { [Op.like]: `%${word}%` } });
+            acc.push({ start_year: { [Op.like]: `%${word}%` } });
+            acc.push({ end_year: { [Op.like]: `%${word}%` } });
+            acc.push({
+              "$product_abstract.type$": {
+                [Op.like]: `%${word}%`
+              }
+            });
+            return acc;
+        }, []);
+
+        const allProductsByQuery = await Product.findAll({
+          where: {
+            is_public: 1,
+            [Op.or]: orQuery
+          },
+          include: [
+            {
+              model: ProductAbstract,
+              required: true,
+              attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+            }
+          ],
+          order: [
+            ["brand", "ASC"],
+            ["model", "ASC"]
+          ]
+        });
+
+        return res.status(200).send(allProductsByQuery);
+      }
+
+      // return res.status(200).send(filteredProducts);
 
       // const orQuery = keywords.reduce((acc, word) => {
       //   acc.push({ oe_number: { [Op.like]: `%${word}%` } });
