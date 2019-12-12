@@ -66,14 +66,56 @@ router.get("/unique-oen", asyncHandler(async (req, res, next) => {
     let where;
     if (req.query.query) {
       const { category, brand, query } = req.query;
+
+      // 검색 키워드를 공백과 , 기준으로 분리
+      const keywords = query.split(/(?:,| )+/);
+
+      // 키워드 별로 검색 결과가 있는지 조회
+      const searchByWord = keywords.map(async word => {
+        const countArr = [];
+
+        const brand = await Product.count({ where: { brand: { [Op.like]: `%${word}%` } } });
+        countArr.push(brand);
+  
+        const model = await Product.count({ where: { model: { [Op.like]: `%${word}%` } } });
+        countArr.push(model);
+  
+        const oen = await Product.count({ where: { oe_number: { [Op.like]: `%${word}%` } } });
+        countArr.push(oen);
+
+        const start = await Product.count({ where: { start_year: { [Op.like]: `%${word}%` } } });
+        countArr.push(start);
+
+        const end = await Product.count({ where: { end_year: { [Op.like]: `%${word}%` } } });
+        countArr.push(end);
+
+        const type = await Product.count({
+          where: {
+            "$product_abstract.type$": { [Op.like]: `%${word}%` }
+          },
+          include: [{
+            model: ProductAbstract,
+            required: true
+          }]
+        });
+        countArr.push(type);
+  
+        return Math.max(...countArr);
+      });
+  
+      // 키워드 별 검색 결과 수 배열로 반환
+      const searchResult = await Promise.all(searchByWord);
+
+      // 단어 별로 검색했을 시 하나라도 0인 값이 존재하는 경우 빈 배열 send
+      if(searchResult.includes(0)) {
+        return res.status(200).send([]);
+      }
+
       /*
         각각의 배열들을 갖고 product 테이블에서 값 findAll
         조회된 값이 없을 시([]) pass
         조회된 값이 있는 항목들 끼리 비교 후 공통된 값들 필터링 
       */
-
-      // 검색 키워드를 공백과 , 기준으로 분리
-      const keywords = query.split(/(?:,| )+/);
 
       // 추후 필터링에 이용할 product id 값을 담고있는 배열, 초기에는 모두 가져온다.
       let filteredId = await Product.findAll({ attributes: ["id"] }).map(p => p.dataValues.id);
