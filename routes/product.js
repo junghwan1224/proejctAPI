@@ -279,10 +279,10 @@ router.get("/unique-oen", asyncHandler(async (req, res, next) => {
             return acc;
         }, []);
 
-        const allProductsByQuery = await Product.findAll({
+        const productsByOrQuery = await Product.findAll({
           where: {
             is_public: 1,
-            [Op.or]: orQuery
+            [Op.or]: orQuery,
           },
           include: [
             {
@@ -297,7 +297,7 @@ router.get("/unique-oen", asyncHandler(async (req, res, next) => {
           ]
         });
 
-        return res.status(200).send(allProductsByQuery);
+        return res.status(200).send(productsByOrQuery);
       }
 
     } else if (req.query.brand && req.query.category) {
