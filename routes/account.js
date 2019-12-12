@@ -54,8 +54,7 @@ router.post("/login", function(req, res, next) {
     where: {
       phone: req.body.phone,
       is_user: true
-    },
-    attributes: ["id", "name", "password", "phone", "crn", "email", "mileage"]
+    }
   }).then(account => {
     if (account) {
       // If hashed password === stored password:
@@ -68,10 +67,7 @@ router.post("/login", function(req, res, next) {
         res.status(200).send({
           id: account.id,
           name: account.name,
-          crn: account.crn,
           phone: account.phone,
-          email: account.email,
-          mileage: account.mileage,
           token: token
         });
       } else {
