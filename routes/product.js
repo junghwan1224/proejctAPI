@@ -142,22 +142,20 @@ router.get("/unique-oen", asyncHandler(async (req, res, next) => {
 
       // brand
       // brand 값이 "all" 인 경우: 브랜드 선택을 안했으므로, brand 필드에 검색 키워드 적용
-      if(brand === "all") {
-        const brandQuery = keywords.reduce((acc, word) => {
-          acc.push({ [Op.like]: `%${word}%` });
-          return acc;
-        }, []);
-  
-        const brandArr = await Product.findAll({
-          where: {
-            brand: { [Op.or]: brandQuery }
-          },
-          attributes: ["id"]
-        }).map(p => p.dataValues.id);
-  
-        if(brandArr.length) {
-          filteredId = filteredId.filter(p => brandArr.indexOf(p) !== -1);
-        }
+      const brandQuery = keywords.reduce((acc, word) => {
+        acc.push({ [Op.like]: `%${word}%` });
+        return acc;
+      }, []);
+
+      const brandArr = await Product.findAll({
+        where: {
+          brand: brand === "all" ? { [Op.or]: brandQuery } : { [Op.like]: `%${brand}%` }
+        },
+        attributes: ["id"]
+      }).map(p => p.dataValues.id);
+
+      if(brandArr.length) {
+        filteredId = filteredId.filter(p => brandArr.indexOf(p) !== -1);
       }
 
       // model
@@ -243,8 +241,6 @@ router.get("/unique-oen", asyncHandler(async (req, res, next) => {
           id: { [Op.in]: filteredId },
           is_public: 1,
           category,
-          // 브랜드 선택이 안돼있을 시, 전체를 가져옴
-          brand: brand === "all" ? { [Op.not]: "all" } : { [Op.like]: `%${brand}%` }
         },
         attributes: PRODUCT_ATTRIBUTES,
         include: [
@@ -260,9 +256,14 @@ router.get("/unique-oen", asyncHandler(async (req, res, next) => {
         ]
       }).map(p => p.dataValues);
 
+      // 필터링되고 남은 검색 결과가 존재하는 경우
       if(filteredProducts.length) {
         return res.status(200).send(filteredProducts);
       }
+
+      // 필터링된 결과가 빈 배열인 경우 검색 키워드의 합집합의 결과를 보여준다.
+      // ex) "bm"이란 키워드로 검색했을 때 brand에서 'bmw'를 가져오고, 다른 필드에서 해당 키워드가 포함되면
+      //      겹치지 않아 필터링이 제대로 이루어지지 않는다. 이 경우, 모든 케이스 반환
       else {
         const orQuery = keywords.reduce((acc, word) => {
             acc.push({ oe_number: { [Op.like]: `%${word}%` } });
