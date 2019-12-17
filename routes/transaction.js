@@ -191,4 +191,20 @@ router.post("/ark/cancel-credit", asyncHandler(async (req, res) => {
     }
 }));
 
+router.delete("/ark/credit", asyncHandler(async (req, res) => {
+    try {
+        const { merchant_uid } = req.body;
+
+        await Order.destroy({
+            where: { merchant_uid }
+        });
+
+        res.sendStatus(200);
+    }
+    catch(err) {
+        console.log(err);
+        res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+    }
+}));
+
 module.exports = router;
