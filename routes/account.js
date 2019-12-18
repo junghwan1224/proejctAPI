@@ -566,6 +566,25 @@ router.delete(
 
 /************ Ark ************/
 
+router.get("/ark/read", function(req, res, next) {
+  Account.findByPk(req.query.account_id)
+    .then(account => {
+      res.status(200).send({
+        id: account.id,
+        phone: account.phone,
+        name: account.name,
+        email: account.email,
+        crn: account.crn,
+        address1: account.address1,
+        address2: account.address2
+      });
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(400).send(error);
+    });
+});
+
 router.post(
   "/ark/create",
   asyncHandler(async (req, res) => {
@@ -609,6 +628,39 @@ router.post(
       res.status(201).send({ message: "success", address_id: id });
     } catch (err) {
       console.log(err);
+      res
+        .status(403)
+        .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+    }
+  })
+);
+
+router.get(
+  "/ark/get-address/",
+  asyncHandler(async (req, res) => {
+    try {
+      const { account_id } = req.query;
+
+      const transaction = await models.sequelize.transaction();
+
+      const user = await Account.findOne({
+        where: { id: account_id },
+        transaction
+      });
+
+      const address = await Address.findAll({
+        where: { account_id: { [Op.in]: [user.dataValues.id] } },
+        transaction
+      });
+
+      await transaction.commit();
+
+      if (!address.length) {
+        return res.send({ message: "success", address: null });
+      } else {
+        return res.send({ message: "success", address: address[0].dataValues });
+      }
+    } catch (err) {
       res
         .status(403)
         .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
