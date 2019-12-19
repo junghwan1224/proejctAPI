@@ -30,10 +30,10 @@ module.exports = (sequelize, DataTypes) => {
             });
           }
         },
-        afterBulkCreate: (instances, options) => {
+        afterBulkCreate: async (instances, options) => {
           const { account_id, merchant_uid, status } = instances[0].dataValues;
           if(status === "credit not paid") {
-            sequelize.models.delivery.create({
+            await sequelize.models.delivery.create({
               account_id,
               delivery_num: merchant_uid.slice(7),
               order_id: merchant_uid,
@@ -43,6 +43,21 @@ module.exports = (sequelize, DataTypes) => {
             }, {
               transaction: options.transaction
             });
+
+            // 외상거래 수정 시 배송 테이블에 계속 새로 추가되는 이슈 해결 코드
+            // 주문 id(merchant_uid)에 대해 같은 행이 2개 이상인 경우 제일 먼저 추가된 행을 삭제
+            const deliveryCount = await sequelize.models.delivery.count({
+              where: { order_id: merchant_uid },
+              transaction: options.transaction
+            });
+
+            if(deliveryCount >= 2) {
+              await sequelize.models.delivery.destroy({
+                where: { order_id: merchant_uid },
+                limit: 1,
+                transaction: options.transaction
+              });
+            }
           }
         }
       }
