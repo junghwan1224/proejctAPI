@@ -1,4 +1,7 @@
 "use strict";
+
+const Op = require("sequelize").Op;
+
 module.exports = (sequelize, DataTypes) => {
   const order = sequelize.define(
     "order",
@@ -16,15 +19,24 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       hooks: {
-        afterBulkUpdate: options => {
+        afterBulkUpdate: async options => {
           if(options.attributes.status === "paid") {
-            sequelize.models.delivery.create({
+            const roster = await sequelize.models.roster.findAll({
+              where: {
+                departure: { [Op.gt]: new Date() }
+              },
+              attributes: ["arrival"],
+              limit: 1,
+              transaction: options.transaction
+            });
+
+            await sequelize.models.delivery.create({
               account_id: options.account_id,
               delivery_num: options.merchant_uid.slice(7),
               order_id: options.merchant_uid,
               status: "결제완료, 배송 준비 중",
               location: "HZY 창고",
-              arrived_at: Date.now()
+              arrived_at: roster[0].dataValues.arrival
             }, {
               transaction: options.transaction
             });
@@ -33,13 +45,22 @@ module.exports = (sequelize, DataTypes) => {
         afterBulkCreate: async (instances, options) => {
           const { account_id, merchant_uid, status } = instances[0].dataValues;
           if(status === "credit not paid") {
+            const roster = await sequelize.models.roster.findAll({
+              where: {
+                departure: { [Op.gt]: new Date() }
+              },
+              attributes: ["arrival"],
+              limit: 1,
+              transaction: options.transaction
+            });
+
             await sequelize.models.delivery.create({
               account_id,
               delivery_num: merchant_uid.slice(7),
               order_id: merchant_uid,
               status: "결제완료, 배송 준비 중",
               location: "HZY 창고",
-              arrived_at: Date.now()
+              arrived_at: roster[0].dataValues.arrival
             }, {
               transaction: options.transaction
             });
