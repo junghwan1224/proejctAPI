@@ -59,7 +59,7 @@ router.get("/order-info", verifyToken, asyncHandler(async (req, res) => {
 
         await transaction.commit();
 
-        res.status(201).send({
+        res.status(200).send({
             order: order.dataValues,
             price: price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
             delivery: delivery.dataValues
