@@ -87,6 +87,7 @@ app.use("/api/basket", basketRouter);
 app.use("/api/favorite", favoriteRouter);
 app.use("/api/product", productRouter);
 app.use("/api/delivery", deliveryRouter);
+app.use("/api/address", addressRouter);
 app.use("/api/inquiry", inquiryRouter);
 app.use("/api/transaction", transactionRouter);
 app.use("/api/roster", rosterRouter);
