@@ -405,7 +405,7 @@ router.get("/", function(req, res, next) {
 
 // 검색 필터
 // year
-router.get("filter-year", asyncHandler(async (req, res) => {
+router.get("/filter-year", asyncHandler(async (req, res) => {
   try {
     const { year } = req.query;
   }
@@ -457,7 +457,7 @@ router.get("/filter-model", asyncHandler(async (req, res) => {
 }));
 
 // engine
-router.get("filter-engine", asyncHandler(async (req, res) => {
+router.get("/filter-engine", asyncHandler(async (req, res) => {
   try {
     const { year, brand, model, engine } = req.query;
   }
