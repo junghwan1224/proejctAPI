@@ -403,6 +403,70 @@ router.get("/", function(req, res, next) {
     });
 });
 
+// 검색 필터
+// year
+router.get("filter-year", asyncHandler(async (req, res) => {
+  try {
+    const { year } = req.query;
+  }
+  catch(err) {
+    console.log(err);
+    res.status(400).send({ message: "에러가 발생했습니다. 다시 시도해주세요." })
+  }
+}));
+
+// brand
+router.get("/filter-brand", asyncHandler(async (req, res) => {
+  try {
+    const { year, brand } = req.query;
+
+    const products = await Product.findAll({
+      where: {
+        start_year: year,
+        brand
+      },
+      attributes: PRODUCT_ATTRIBUTES,
+      include: [
+        {
+          model: ProductAbstract,
+          required: true,
+          attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+        }
+      ],
+      order: [
+        ["brand", "ASC"],
+        ["model", "ASC"]
+      ]
+    });
+  }
+  catch(err) {
+    console.log(err);
+    res.status(400).send({ message: "에러가 발생했습니다. 다시 시도해주세요." })
+  }
+}));
+
+// model
+router.get("/filter-model", asyncHandler(async (req, res) => {
+  try {
+    const { year, brand, model } = req.query;
+  }
+  catch(err) {
+    console.log(err);
+    res.status(400).send({ message: "에러가 발생했습니다. 다시 시도해주세요." })
+  }
+}));
+
+// engine
+router.get("filter-engine", asyncHandler(async (req, res) => {
+  try {
+    const { year, brand, model, engine } = req.query;
+  }
+  catch(err) {
+    console.log(err);
+    res.status(400).send({ message: "에러가 발생했습니다. 다시 시도해주세요." })
+  }
+}));
+
 router.get("/abstract/list", function(req, res, next) {
   // Get list of items
   ProductAbstract.findAll({
