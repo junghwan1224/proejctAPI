@@ -93,9 +93,7 @@ router.get("/read", function(req, res, next) {
         phone: account.phone,
         name: account.name,
         email: account.email,
-        crn: account.crn,
-        address1: account.address1,
-        address2: account.address2
+        crn: account.crn
       });
     })
     .catch(error => {
