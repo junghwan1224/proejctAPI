@@ -61,6 +61,22 @@ router.get("/find-by-oen", function(req, res, next) {
     });
 });
 
+router.get("/search", asyncHandler(async (req, res) => {
+  try {
+    const { key, value} = req.query;
+
+    const products = await Product.findAll({
+      where: { [key]: value }
+    });
+
+    res.status(200).send({ products });
+  }
+  catch(err) {
+    console.log(err);
+    res.status(400).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+  }
+}));
+
 router.get(
   "/unique-oen",
   asyncHandler(async (req, res, next) => {
