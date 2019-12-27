@@ -390,6 +390,39 @@ router.get(
   })
 );
 
+// get search result filtered by category keyword
+router.post("/filter", asyncHandler(async (req, res) => {
+  try {
+    const { year, brand, model } = req.body;
+
+    const products = await Product.findAll({
+      where: {
+        brand,
+        model,
+        [Op.or]: [
+          { start_year: { [Op.lte]: year } },
+          { end_year: { [Op.gte]: year } }
+        ]
+      },
+      attributes: PRODUCT_ATTRIBUTES,
+      include: [
+        {
+          model: ProductAbstract,
+          required: true,
+          attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+        }
+      ],
+    });
+
+    // send
+    res.status(200).send({ products });
+  }
+  catch(err) {
+    console.log(err);
+    res.status(400).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+  }
+}));
+
 router.get("/", function(req, res, next) {
   Product.findAll({
     where: {
