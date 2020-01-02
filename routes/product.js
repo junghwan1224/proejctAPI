@@ -66,7 +66,19 @@ router.get("/search", asyncHandler(async (req, res) => {
     const { key, value} = req.query;
 
     const products = await Product.findAll({
-      where: { [key]: value }
+      where: { [key]: value },
+      attributes: PRODUCT_ATTRIBUTES,
+      include: [
+        {
+          model: ProductAbstract,
+          required: true,
+          attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+        }
+      ],
+      order: [
+        ["brand", "ASC"],
+        ["model", "ASC"]
+      ]
     });
 
     res.status(200).send({ products });
