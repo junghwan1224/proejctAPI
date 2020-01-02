@@ -424,6 +424,10 @@ router.post("/filter", asyncHandler(async (req, res) => {
           attributes: PRODUCT_ABSTRACT_ATTRIBUTES
         }
       ],
+      order: [
+        ["brand", "ASC"],
+        ["model", "ASC"]
+      ]
     });
 
     // send
