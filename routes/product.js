@@ -63,23 +63,96 @@ router.get("/find-by-oen", function(req, res, next) {
 
 router.get("/search", asyncHandler(async (req, res) => {
   try {
-    const { key, value} = req.query;
+    const { category, key, value } = req.query;
+    let products = null;
 
-    const products = await Product.findAll({
-      where: { [key]: value },
-      attributes: PRODUCT_ATTRIBUTES,
-      include: [
-        {
-          model: ProductAbstract,
-          required: true,
-          attributes: PRODUCT_ABSTRACT_ATTRIBUTES
-        }
-      ],
-      order: [
-        ["brand", "ASC"],
-        ["model", "ASC"]
-      ]
-    });
+    if(value === "" || value === undefined) {
+      products = await Product.findAll({
+        where: { category, is_public: 1 },
+        attributes: PRODUCT_ATTRIBUTES,
+        include: [
+          {
+            model: ProductAbstract,
+            required: true,
+            attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+          }
+        ],
+        order: [
+          ["brand", "ASC"],
+          ["model", "ASC"]
+        ]
+      });
+    }
+
+    else {
+      // 로직 추가 필요
+      if(key === "all") {
+        products = await Product.findAll({
+          where: { category, is_public: 1 },
+          attributes: PRODUCT_ATTRIBUTES,
+          include: [
+            {
+              model: ProductAbstract,
+              required: true,
+              attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+            }
+          ],
+          order: [
+            ["brand", "ASC"],
+            ["model", "ASC"]
+          ]
+        });
+      }
+  
+      else if(key === "type" || key === "maker") {
+        // abstract
+        const abstractIds = await ProductAbstract.findAll({
+          where: { [key]: { [Op.like]: `%${value}%` } }
+        }).map(p => p.dataValues.id);
+  
+        products = await Product.findAll({
+          where: {
+            category,
+            is_public: 1,
+            abstract_id: { [Op.in]: abstractIds }
+          },
+          attributes: PRODUCT_ATTRIBUTES,
+          include: [
+            {
+              model: ProductAbstract,
+              required: true,
+              attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+            }
+          ],
+          order: [
+            ["brand", "ASC"],
+            ["model", "ASC"]
+          ]
+        });
+      }
+  
+      else {
+        products = await Product.findAll({
+          where: {
+            category,
+            is_public: 1,
+            [key]: { [Op.like]: `%${value}%` }
+          },
+          attributes: PRODUCT_ATTRIBUTES,
+          include: [
+            {
+              model: ProductAbstract,
+              required: true,
+              attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+            }
+          ],
+          order: [
+            ["brand", "ASC"],
+            ["model", "ASC"]
+          ]
+        });
+      }
+    }
 
     res.status(200).send({ products });
   }
