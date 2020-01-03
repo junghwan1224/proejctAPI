@@ -58,6 +58,7 @@ router.get("/ark/detail", asyncHandler(async (req, res) => {
                 include: [{
                     model: ProductAbstract,
                     required: true,
+                    as: "product_abstract",
                     attributes: ["image", "maker", "maker_number", "type"]
                 }]
             },
@@ -122,7 +123,13 @@ router.post("/ark/cancel-credit", asyncHandler(async (req, res) => {
 
         const abstractsIds = await Product.findAll({
             where: { id: { [Op.in]: prodArr.map(e => e.id) } },
-            include: [ProductAbstract],
+            include: [
+                {
+                    model: ProductAbstract,
+                    required: true,
+                    as: "product_abstract",
+                }
+            ],
             transaction
         });
 

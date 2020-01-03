@@ -165,7 +165,13 @@ router.post("/complete", verifyToken, asyncHandler(async (req, res) => {
                     // abstract id 값 조회
                     const abstractsIds = await Product.findAll({
                         where: { id: { [Op.in]: prodArr.map(e => e.id) } },
-                        include: [ProductAbstract],
+                        include: [
+                            {
+                                model: ProductAbstract,
+                                required: true,
+                                as: "product_abstract",
+                            }
+                        ],
                         transaction
                     });
                 
@@ -334,7 +340,13 @@ router.post("/save-order", verifyToken, asyncHandler(async (req, res) => {
     
         const abstractsIds = await Product.findAll({
             where: { id: { [Op.in]: prodArr.map(e => e.id) } },
-            include: [ProductAbstract],
+            include: [
+                {
+                    model: ProductAbstract,
+                    required: true,
+                    as: "product_abstract",
+                }
+            ],
             transaction
         });
     
@@ -564,7 +576,13 @@ router.post("/iamport-webhook", asyncHandler(async (req, res) => {
                 
                     const abstractsIds = await Product.findAll({
                         where: { id: { [Op.in]: prodArr.map(e => e.id) } },
-                        include: [ProductAbstract],
+                        include: [
+                            {
+                                model: ProductAbstract,
+                                required: true,
+                                as: "product_abstract",
+                            }
+                        ],
                         transaction
                     });
                 
@@ -876,7 +894,13 @@ router.post("/billing", verifyToken, asyncHandler(async (req, res) => {
                 
                     const abstractsIds = await Product.findAll({
                         where: { id: { [Op.in]: prodArr.map(e => e.id) } },
-                        include: [ProductAbstract],
+                        include: [
+                            {
+                                model: ProductAbstract,
+                                required: true,
+                                as: "product_abstract",
+                            }
+                        ],
                         transaction
                     });
                 
@@ -1146,7 +1170,13 @@ router.post("/refund", verifyToken, asyncHandler(async (req, res) => {
         
             const abstractsIds = await Product.findAll({
                 where: { id: { [Op.in]: prodArr.map(e => e.id) } },
-                include: [ProductAbstract],
+                include: [
+                    {
+                        model: ProductAbstract,
+                        required: true,
+                        as: "product_abstract",
+                    }
+                ],
                 transaction
             });
         
@@ -1489,7 +1519,13 @@ router.post("/ark/save-order", asyncHandler(async (req, res) => {
     
         const abstractsIds = await Product.findAll({
             where: { id: { [Op.in]: prodArr.map(e => e.id) } },
-            include: [ProductAbstract],
+            include: [
+                {
+                    model: ProductAbstract,
+                    required: true,
+                    as: "product_abstract",
+                }
+            ],
             transaction
         });
     
@@ -1754,7 +1790,13 @@ router.post("/ark/refund", asyncHandler(async (req, res) => {
         
             const abstractsIds = await Product.findAll({
                 where: { id: { [Op.in]: prodArr.map(e => e.id) } },
-                include: [ProductAbstract],
+                include: [
+                    {
+                        model: ProductAbstract,
+                        required: true,
+                        as: "product_abstract",
+                    }
+                ],
                 transaction
             });
         

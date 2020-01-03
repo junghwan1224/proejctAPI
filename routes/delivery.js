@@ -38,6 +38,7 @@ router.get("/all", verifyToken, asyncHandler(async (req, res) => {
                     include: [{
                         model: ProductAbstract,
                         required: true,
+                        as: "product_abstract",
                         attributes: ["image", "maker", "maker_number", "type"]
                     }]
                 }],
@@ -144,6 +145,7 @@ router.get("/ark/list", asyncHandler(async (req, res) => {
                     include: [{
                         model: ProductAbstract,
                         required: true,
+                        as: "product_abstract",
                         attributes: ["image", "maker", "maker_number", "type"]
                     }]
                 },
@@ -222,6 +224,7 @@ router.get("/ark/detail", asyncHandler(async (req, res) => {
                 include: [{
                     model: ProductAbstract,
                     required: true,
+                    as: "product_abstract",
                     attributes: ["image", "maker", "maker_number", "type"]
                 }]
             }],
@@ -260,6 +263,7 @@ router.get("/ark/user", asyncHandler(async (req, res) => {
                     include: [{
                         model: ProductAbstract,
                         required: true,
+                        as: "product_abstract",
                         attributes: ["image", "maker", "maker_number", "type"]
                     }]
                 }],

@@ -45,6 +45,7 @@ router.get("/find-by-oen", function(req, res, next) {
       {
         model: ProductAbstract,
         required: true,
+        as: "product_abstract",
         attributes: PRODUCT_ABSTRACT_ATTRIBUTES
       }
     ],
@@ -60,6 +61,118 @@ router.get("/find-by-oen", function(req, res, next) {
       res.status(400).send();
     });
 });
+
+router.get("/search", asyncHandler(async (req, res) => {
+  try {
+    const { category, key, value } = req.query;
+    let products = null;
+
+    if(value === "" || value === undefined) {
+      products = await Product.findAll({
+        where: { category, is_public: 1 },
+        attributes: PRODUCT_ATTRIBUTES,
+        include: [
+          {
+            model: ProductAbstract,
+            required: true,
+            as: "product_abstract",
+            attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+          }
+        ],
+        order: [
+          ["brand", "ASC"],
+          ["model", "ASC"]
+        ]
+      });
+    }
+
+    else {
+      if(key === "all") {
+        products = await Product.findAll({
+          where: {
+            category,
+            is_public: 1,
+            [Op.or]: [
+              { oe_number: { [Op.like]: `%${value}%` } },
+              { "$product_abstract.type$": { [Op.like]: `%${value}%` } },
+              { "$product_abstract.maker$": { [Op.like]: `%${value}%` } }
+            ]
+          },
+          attributes: PRODUCT_ATTRIBUTES,
+          include: [
+            {
+              model: ProductAbstract,
+              required: true,
+              as: "product_abstract",
+              attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+            }
+          ],
+          order: [
+            ["brand", "ASC"],
+            ["model", "ASC"]
+          ]
+        });
+      }
+  
+      else if(key === "type" || key === "maker") {
+        // abstract
+        const abstractIds = await ProductAbstract.findAll({
+          where: { [key]: { [Op.like]: `%${value}%` } }
+        }).map(p => p.dataValues.id);
+  
+        products = await Product.findAll({
+          where: {
+            category,
+            is_public: 1,
+            abstract_id: { [Op.in]: abstractIds }
+          },
+          attributes: PRODUCT_ATTRIBUTES,
+          include: [
+            {
+              model: ProductAbstract,
+              required: true,
+              as: "product_abstract",
+              attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+            }
+          ],
+          order: [
+            ["brand", "ASC"],
+            ["model", "ASC"]
+          ]
+        });
+      }
+  
+      else {
+        products = await Product.findAll({
+          where: {
+            category,
+            is_public: 1,
+            [key]: { [Op.like]: `%${value}%` }
+          },
+          attributes: PRODUCT_ATTRIBUTES,
+          include: [
+            {
+              model: ProductAbstract,
+              required: true,
+              as: "product_abstract",
+              attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+            }
+          ],
+          order: [
+            ["brand", "ASC"],
+            ["model", "ASC"]
+          ]
+        });
+      }
+    }
+
+    res.status(200).send({ products });
+  }
+  catch(err) {
+    console.log(err);
+    res.status(400).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+  }
+}));
 
 router.get(
   "/unique-oen",
@@ -108,6 +221,7 @@ router.get(
             include: [
               {
                 model: ProductAbstract,
+                as: "product_abstract",
                 required: true
               }
             ]
@@ -245,6 +359,7 @@ router.get(
             {
               model: ProductAbstract,
               required: true,
+              as: "product_abstract",
               attributes: PRODUCT_ABSTRACT_ATTRIBUTES
             }
           ]
@@ -266,6 +381,7 @@ router.get(
             {
               model: ProductAbstract,
               required: true,
+              as: "product_abstract",
               attributes: PRODUCT_ABSTRACT_ATTRIBUTES
             }
           ],
@@ -307,6 +423,7 @@ router.get(
               {
                 model: ProductAbstract,
                 required: true,
+                as: "product_abstract",
                 attributes: PRODUCT_ABSTRACT_ATTRIBUTES
               }
             ],
@@ -339,6 +456,7 @@ router.get(
           {
             model: ProductAbstract,
             required: true,
+            as: "product_abstract",
             attributes: PRODUCT_ABSTRACT_ATTRIBUTES
           }
         ],
@@ -374,6 +492,44 @@ router.get(
   })
 );
 
+// get search result filtered by category keyword
+router.post("/filter", asyncHandler(async (req, res) => {
+  try {
+    const { year, brand, model } = req.body;
+
+    const products = await Product.findAll({
+      where: {
+        brand,
+        model,
+        [Op.or]: [
+          { start_year: { [Op.lte]: year } },
+          { end_year: { [Op.gte]: year } }
+        ]
+      },
+      attributes: PRODUCT_ATTRIBUTES,
+      include: [
+        {
+          model: ProductAbstract,
+          required: true,
+          as: "product_abstract",
+          attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+        }
+      ],
+      order: [
+        ["brand", "ASC"],
+        ["model", "ASC"]
+      ]
+    });
+
+    // send
+    res.status(200).send({ products });
+  }
+  catch(err) {
+    console.log(err);
+    res.status(400).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+  }
+}));
+
 router.get("/", function(req, res, next) {
   Product.findAll({
     where: {
@@ -386,6 +542,7 @@ router.get("/", function(req, res, next) {
       {
         model: ProductAbstract,
         required: true,
+        as: "product_abstract",
         attributes: PRODUCT_ABSTRACT_ATTRIBUTES
       }
     ],
@@ -451,6 +608,7 @@ router.get("/read", function(req, res, next) {
       {
         model: ProductAbstract,
         required: true,
+        as: "product_abstract",
         attributes: PRODUCT_ABSTRACT_ATTRIBUTES
       }
     ],
@@ -519,7 +677,8 @@ router.get("/ark/product-list", function(req, res, next) {
     include: [
       {
         model: ProductAbstract,
-        required: true
+        required: true,
+        as: "product_abstract",
       }
     ],
     order: [
@@ -559,6 +718,7 @@ router.get("/ark/product-detail", function(req, res, next) {
       {
         model: ProductAbstract,
         required: true,
+        as: "product_abstract",
         attributes: ["image", "maker", "maker_number", "stock", "type"]
       }
     ]
@@ -687,7 +847,8 @@ router.get("/fetch-all", function(req, res, next) {
     include: [
       {
         model: ProductAbstract,
-        required: true
+        required: true,
+        as: "product_abstract",
       }
     ],
     order: [
