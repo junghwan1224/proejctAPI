@@ -35,6 +35,7 @@ router.get(
           include: [
             {
               model: ProductAbstract,
+              as: "product_abstract",
               attributes: ["image", "maker", "maker_number", "stock", "type"]
             }
           ]
