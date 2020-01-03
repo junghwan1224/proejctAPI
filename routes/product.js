@@ -45,6 +45,7 @@ router.get("/find-by-oen", function(req, res, next) {
       {
         model: ProductAbstract,
         required: true,
+        as: "product_abstract",
         attributes: PRODUCT_ABSTRACT_ATTRIBUTES
       }
     ],
@@ -74,6 +75,7 @@ router.get("/search", asyncHandler(async (req, res) => {
           {
             model: ProductAbstract,
             required: true,
+            as: "product_abstract",
             attributes: PRODUCT_ABSTRACT_ATTRIBUTES
           }
         ],
@@ -85,15 +87,23 @@ router.get("/search", asyncHandler(async (req, res) => {
     }
 
     else {
-      // 로직 추가 필요
       if(key === "all") {
         products = await Product.findAll({
-          where: { category, is_public: 1 },
+          where: {
+            category,
+            is_public: 1,
+            [Op.or]: [
+              { oe_number: { [Op.like]: `%${value}%` } },
+              { "$product_abstract.type$": { [Op.like]: `%${value}%` } },
+              { "$product_abstract.maker$": { [Op.like]: `%${value}%` } }
+            ]
+          },
           attributes: PRODUCT_ATTRIBUTES,
           include: [
             {
               model: ProductAbstract,
               required: true,
+              as: "product_abstract",
               attributes: PRODUCT_ABSTRACT_ATTRIBUTES
             }
           ],
@@ -121,6 +131,7 @@ router.get("/search", asyncHandler(async (req, res) => {
             {
               model: ProductAbstract,
               required: true,
+              as: "product_abstract",
               attributes: PRODUCT_ABSTRACT_ATTRIBUTES
             }
           ],
@@ -143,6 +154,7 @@ router.get("/search", asyncHandler(async (req, res) => {
             {
               model: ProductAbstract,
               required: true,
+              as: "product_abstract",
               attributes: PRODUCT_ABSTRACT_ATTRIBUTES
             }
           ],
@@ -209,6 +221,7 @@ router.get(
             include: [
               {
                 model: ProductAbstract,
+                as: "product_abstract",
                 required: true
               }
             ]
@@ -346,6 +359,7 @@ router.get(
             {
               model: ProductAbstract,
               required: true,
+              as: "product_abstract",
               attributes: PRODUCT_ABSTRACT_ATTRIBUTES
             }
           ]
@@ -367,6 +381,7 @@ router.get(
             {
               model: ProductAbstract,
               required: true,
+              as: "product_abstract",
               attributes: PRODUCT_ABSTRACT_ATTRIBUTES
             }
           ],
@@ -408,6 +423,7 @@ router.get(
               {
                 model: ProductAbstract,
                 required: true,
+                as: "product_abstract",
                 attributes: PRODUCT_ABSTRACT_ATTRIBUTES
               }
             ],
@@ -440,6 +456,7 @@ router.get(
           {
             model: ProductAbstract,
             required: true,
+            as: "product_abstract",
             attributes: PRODUCT_ABSTRACT_ATTRIBUTES
           }
         ],
@@ -494,6 +511,7 @@ router.post("/filter", asyncHandler(async (req, res) => {
         {
           model: ProductAbstract,
           required: true,
+          as: "product_abstract",
           attributes: PRODUCT_ABSTRACT_ATTRIBUTES
         }
       ],
@@ -524,6 +542,7 @@ router.get("/", function(req, res, next) {
       {
         model: ProductAbstract,
         required: true,
+        as: "product_abstract",
         attributes: PRODUCT_ABSTRACT_ATTRIBUTES
       }
     ],
@@ -589,6 +608,7 @@ router.get("/read", function(req, res, next) {
       {
         model: ProductAbstract,
         required: true,
+        as: "product_abstract",
         attributes: PRODUCT_ABSTRACT_ATTRIBUTES
       }
     ],
@@ -657,7 +677,8 @@ router.get("/ark/product-list", function(req, res, next) {
     include: [
       {
         model: ProductAbstract,
-        required: true
+        required: true,
+        as: "product_abstract",
       }
     ],
     order: [
@@ -697,6 +718,7 @@ router.get("/ark/product-detail", function(req, res, next) {
       {
         model: ProductAbstract,
         required: true,
+        as: "product_abstract",
         attributes: ["image", "maker", "maker_number", "stock", "type"]
       }
     ]
@@ -825,7 +847,8 @@ router.get("/fetch-all", function(req, res, next) {
     include: [
       {
         model: ProductAbstract,
-        required: true
+        required: true,
+        as: "product_abstract",
       }
     ],
     order: [
