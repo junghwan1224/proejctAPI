@@ -502,8 +502,8 @@ router.post("/filter", asyncHandler(async (req, res) => {
         brand,
         model,
         [Op.and]: [
-          { start_year: { [Op.gte]: year } },
-          { end_year: { [Op.lte]: year } }
+          { start_year: { [Op.lte]: year } },
+          { end_year: { [Op.gte]: year } }
         ]
       },
       attributes: PRODUCT_ATTRIBUTES,
