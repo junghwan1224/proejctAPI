@@ -501,7 +501,7 @@ router.post("/filter", asyncHandler(async (req, res) => {
       where: {
         brand,
         model,
-        [Op.or]: [
+        [Op.and]: [
           { start_year: { [Op.lte]: year } },
           { end_year: { [Op.gte]: year } }
         ]
