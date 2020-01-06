@@ -83,180 +83,86 @@ router.get("/find-by-type", asyncHandler(async (req, res) => {
   try {
     const { category, type } = req.query;
 
-        // end year
-        const endQuery = keywords.reduce((acc, word) => {
-          acc.push({ [Op.like]: `%${word}%` });
-          return acc;
-        }, []);
-
-        const endArr = await Product.findAll({
-          where: {
-            end_year: { [Op.or]: endQuery }
-          },
-          attributes: ["id"]
-        }).map(p => p.dataValues.id);
-
-        if (endArr.length) {
-          filteredId = filteredId.filter(p => endArr.indexOf(p) !== -1);
+    const products = await Product.findAll({
+      where: {
+        category,
+        "$product_abstract.type$": { [Op.like]: `%${type}%` }
+      },
+      attributes: PRODUCT_ATTRIBUTES,
+      include: [
+        {
+          model: ProductAbstract,
+          required: true,
+          as: "product_abstract",
+          attributes: PRODUCT_ABSTRACT_ATTRIBUTES
         }
+      ],
+      order: [
+        ["brand", "ASC"],
+        ["model", "ASC"]
+      ]
+    }).map(p => p.dataValues);
 
-        // product abstract
-        const abstractQuery = keywords.reduce((acc, word) => {
-          acc.push({ [Op.like]: `%${word}%` });
-          return acc;
-        }, []);
-
-        const abstractArr = await Product.findAll({
-          where: {
-            "$product_abstract.type$": {
-              [Op.or]: abstractQuery
-            }
-          },
-          attributes: ["id"],
-          include: [
-            {
-              model: ProductAbstract,
-              required: true,
-              as: "product_abstract",
-              attributes: PRODUCT_ABSTRACT_ATTRIBUTES
-            }
-          ]
-        }).map(p => p.dataValues.id);
-
-        if (abstractArr.length) {
-          filteredId = filteredId.filter(p => abstractArr.indexOf(p) !== -1);
-        }
-
-        // 필터링된 product id 값으로 상품 조회
-        const filteredProducts = await Product.findAll({
-          where: {
-            id: { [Op.in]: filteredId },
-            is_public: 1,
-            category
-          },
-          attributes: PRODUCT_ATTRIBUTES,
-          include: [
-            {
-              model: ProductAbstract,
-              required: true,
-              as: "product_abstract",
-              attributes: PRODUCT_ABSTRACT_ATTRIBUTES
-            }
-          ],
-          order: [
-            ["brand", "ASC"],
-            ["model", "ASC"]
-          ]
-        }).map(p => p.dataValues);
-
-        // 필터링되고 남은 검색 결과가 존재하는 경우
-        if (filteredProducts.length) {
-          return res.status(200).send(filteredProducts);
-        }
-
-        // 필터링된 결과가 빈 배열인 경우 검색 키워드의 합집합의 결과를 보여준다.
-        // ex) "bm"이란 키워드로 검색했을 때 brand에서 'bmw'를 가져오고, 다른 필드에서 해당 키워드가 포함되면
-        //      겹치지 않아 필터링이 제대로 이루어지지 않는다. 이 경우, 모든 케이스 반환
-        else {
-          const orQuery = keywords.reduce((acc, word) => {
-            acc.push({ oe_number: { [Op.like]: `%${word}%` } });
-            acc.push({ brand: { [Op.like]: `%${word}%` } });
-            acc.push({ model: { [Op.like]: `%${word}%` } });
-            acc.push({ start_year: { [Op.like]: `%${word}%` } });
-            acc.push({ end_year: { [Op.like]: `%${word}%` } });
-            acc.push({
-              "$product_abstract.type$": {
-                [Op.like]: `%${word}%`
-              }
-            });
-            return acc;
-          }, []);
-
-          const productsByOrQuery = await Product.findAll({
-            where: {
-              is_public: 1,
-              [Op.or]: orQuery
-            },
-            include: [
-              {
-                model: ProductAbstract,
-                required: true,
-                as: "product_abstract",
-                attributes: PRODUCT_ABSTRACT_ATTRIBUTES
-              }
-            ],
-            order: [
-              ["brand", "ASC"],
-              ["model", "ASC"]
-            ]
-          });
-
-          return res.status(200).send(productsByOrQuery);
-        }
-      } else if (req.query.brand && req.query.category) {
-        where = Object.assign(
-          {
-            category: req.query.category,
-            is_public: 1
-          },
-          req.query.brand === "all"
-            ? {}
-            : { brand: { [Op.like]: `%${req.query.brand}%` } }
-        );
-      } else {
-        return res.status(200).send({});
+    let fabricated = {};
+    for (const product of products) {
+      if (
+        fabricated[product.oe_number] &&
+        fabricated[product.oe_number].price < product.price
+      ) {
+        continue;
       }
-
-      Product.findAll({
-        where: where,
-        attributes: PRODUCT_ATTRIBUTES,
-        include: [
-          {
-            model: ProductAbstract,
-            required: true,
-            as: "product_abstract",
-            attributes: PRODUCT_ABSTRACT_ATTRIBUTES
-          }
-        ],
-        order: [
-          ["brand", "ASC"],
-          ["model", "ASC"]
-        ]
-      })
-        .then(raw_products => {
-          let fabricated = {};
-          for (const product of raw_products) {
-            if (
-              fabricated[product.oe_number] &&
-              fabricated[product.oe_number].price < product.price
-            ) {
-              continue;
-            }
-            fabricated[product.oe_number] = product;
-          }
-
-          res.status(200).send(fabricated);
-        })
-        .catch(error => {
-          console.log(error);
-          res.status(400).send(error);
-        });
-    } catch (err) {
-      console.log(err);
-      res
-        .status(400)
-        .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+      fabricated[product.oe_number] = product;
     }
-  })
-);
 
-// get search result filtered by category keyword
-router.post("/filter", asyncHandler(async (req, res) => {
+    res.status(200).send(fabricated);
+  }
+  catch(err) {
+    console.log(err);
+    res.status(400).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+  }
+}));
+
+/* 메이커 검색: 패러미터 oe_number에 대한 제품 리스트 반환 */
+router.get("/find-by-maker", asyncHandler(async (req, res) => {
   try {
-    const { year, brand, model } = req.body;
+    const { category, oe_number } = req.query;
 
     const products = await Product.findAll({
       where: {
+        category,
+        oe_number
+      },
+      attributes: PRODUCT_ATTRIBUTES,
+      include: [
+        {
+          model: ProductAbstract,
+          required: true,
+          as: "product_abstract",
+          attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+        }
+      ],
+      order: [
+        ["brand", "ASC"],
+        ["model", "ASC"]
+      ]
+    });
+
+    res.status(200).send(products);
+  }
+  catch(err) {
+    console.log(err);
+    res.status(400).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+  }
+}));
+
+/* 차량별 검색 : 패러미터 year,brand,model에 대한 제품 리스트 반환 */
+router.get("/find-by-car", asyncHandler(async (req, res) => {
+  try {
+    const { category, year, brand, model } = req.body;
+
+    const products = await Product.findAll({
+      where: {
+        category,
         brand,
         model,
         [Op.and]: [
@@ -277,7 +183,18 @@ router.post("/filter", asyncHandler(async (req, res) => {
         ["brand", "ASC"],
         ["model", "ASC"]
       ]
-    });
+    }).map(p => p.dataValues);
+
+    let fabricated = {};
+    for (const product of products) {
+      if (
+        fabricated[product.oe_number] &&
+        fabricated[product.oe_number].price < product.price
+      ) {
+        continue;
+      }
+      fabricated[product.oe_number] = product;
+    }
 
     // send
     res.status(200).send({ products });
@@ -287,6 +204,118 @@ router.post("/filter", asyncHandler(async (req, res) => {
     res.status(400).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
   }
 }));
+
+// router.get("/search", asyncHandler(async (req, res) => {
+//   try {
+//     const { category, key, value } = req.query;
+//     let products = null;
+
+//     if(value === "" || value === undefined) {
+//       products = await Product.findAll({
+//         where: { category, is_public: 1 },
+//         attributes: PRODUCT_ATTRIBUTES,
+//         include: [
+//           {
+//             model: ProductAbstract,
+//             required: true,
+//             as: "product_abstract",
+//             attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+//           }
+//         ],
+//         order: [
+//           ["brand", "ASC"],
+//           ["model", "ASC"]
+//         ]
+//       });
+//     }
+
+//     else {
+//       if(key === "all") {
+//         products = await Product.findAll({
+//           where: {
+//             category,
+//             is_public: 1,
+//             [Op.or]: [
+//               { oe_number: { [Op.like]: `%${value}%` } },
+//               { "$product_abstract.type$": { [Op.like]: `%${value}%` } },
+//               { "$product_abstract.maker$": { [Op.like]: `%${value}%` } }
+//             ]
+//           },
+//           attributes: PRODUCT_ATTRIBUTES,
+//           include: [
+//             {
+//               model: ProductAbstract,
+//               required: true,
+//               as: "product_abstract",
+//               attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+//             }
+//           ],
+//           order: [
+//             ["brand", "ASC"],
+//             ["model", "ASC"]
+//           ]
+//         });
+//       }
+  
+//       else if(key === "type" || key === "maker") {
+//         // abstract
+//         const abstractIds = await ProductAbstract.findAll({
+//           where: { [key]: { [Op.like]: `%${value}%` } }
+//         }).map(p => p.dataValues.id);
+  
+//         products = await Product.findAll({
+//           where: {
+//             category,
+//             is_public: 1,
+//             abstract_id: { [Op.in]: abstractIds }
+//           },
+//           attributes: PRODUCT_ATTRIBUTES,
+//           include: [
+//             {
+//               model: ProductAbstract,
+//               required: true,
+//               as: "product_abstract",
+//               attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+//             }
+//           ],
+//           order: [
+//             ["brand", "ASC"],
+//             ["model", "ASC"]
+//           ]
+//         });
+//       }
+  
+//       else {
+//         products = await Product.findAll({
+//           where: {
+//             category,
+//             is_public: 1,
+//             [key]: { [Op.like]: `%${value}%` }
+//           },
+//           attributes: PRODUCT_ATTRIBUTES,
+//           include: [
+//             {
+//               model: ProductAbstract,
+//               required: true,
+//               as: "product_abstract",
+//               attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+//             }
+//           ],
+//           order: [
+//             ["brand", "ASC"],
+//             ["model", "ASC"]
+//           ]
+//         });
+//       }
+//     }
+
+//     res.status(200).send({ products });
+//   }
+//   catch(err) {
+//     console.log(err);
+//     res.status(400).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+//   }
+// }));
 
 router.get("/", function(req, res, next) {
   Product.findAll({
