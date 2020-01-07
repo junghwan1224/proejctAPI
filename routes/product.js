@@ -158,7 +158,7 @@ router.get("/find-by-maker", asyncHandler(async (req, res) => {
 /* 차량별 검색 : 패러미터 year,brand,model에 대한 제품 리스트 반환 */
 router.get("/find-by-car", asyncHandler(async (req, res) => {
   try {
-    const { category, year, brand, model } = req.body;
+    const { category, year, brand, model } = req.query;
 
     const products = await Product.findAll({
       where: {
