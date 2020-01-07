@@ -197,7 +197,7 @@ router.get("/find-by-car", asyncHandler(async (req, res) => {
     }
 
     // send
-    res.status(200).send({ products });
+    res.status(200).send(products);
   }
   catch(err) {
     console.log(err);
@@ -205,6 +205,7 @@ router.get("/find-by-car", asyncHandler(async (req, res) => {
   }
 }));
 
+// 기존 카테고리 검색 api
 // router.get("/search", asyncHandler(async (req, res) => {
 //   try {
 //     const { category, key, value } = req.query;
