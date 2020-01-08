@@ -239,16 +239,15 @@ router.post("/complete", verifyToken, asyncHandler(async (req, res) => {
                         transaction
                     });
 
+                    await transaction.commit();
+
                     // 결제 완료 문자 전송
                     const timestamp = new Date().getTime().toString();
                     const products = await Product.findAll({
                         where: { id: { [Op.in]: orderedProductId } },
-                        transaction
                     });
                     const productOEN = products.map( p => p.dataValues.oe_number);
                     const smsText = `${productOEN.length > 1 ? `${productOEN[0]}외 ${productOEN.length - 1}종류` : productOEN[0]} 상품의 결제가 완료되었습니다.`;
-
-                    await transaction.commit();
 
                     await axios({
                         url: SENS_API_V2_URL,
