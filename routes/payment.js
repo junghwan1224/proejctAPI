@@ -791,7 +791,7 @@ router.post("/issue-billing", verifyToken, asyncHandler(async (req, res) => {
     }
 }));
 
-router.delete("/delete-billing", verifyToken, asyncHandler(async (req, res) => {
+router.delete("/billing", verifyToken, asyncHandler(async (req, res) => {
     try{
         const { customer_uid } = req.body;
 
