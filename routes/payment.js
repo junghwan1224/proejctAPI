@@ -239,16 +239,15 @@ router.post("/complete", verifyToken, asyncHandler(async (req, res) => {
                         transaction
                     });
 
+                    await transaction.commit();
+
                     // 결제 완료 문자 전송
                     const timestamp = new Date().getTime().toString();
                     const products = await Product.findAll({
                         where: { id: { [Op.in]: orderedProductId } },
-                        transaction
                     });
                     const productOEN = products.map( p => p.dataValues.oe_number);
                     const smsText = `${productOEN.length > 1 ? `${productOEN[0]}외 ${productOEN.length - 1}종류` : productOEN[0]} 상품의 결제가 완료되었습니다.`;
-
-                    await transaction.commit();
 
                     await axios({
                         url: SENS_API_V2_URL,
@@ -494,7 +493,6 @@ router.post("/save-order", verifyToken, asyncHandler(async (req, res) => {
 }));
 
 // iamport webhook
-// TODO: webhook 호출 시 SMS?
 router.post("/iamport-webhook", asyncHandler(async (req, res) => {
     try {
         const { imp_uid, merchant_uid } = req.body;
@@ -528,12 +526,13 @@ router.post("/iamport-webhook", asyncHandler(async (req, res) => {
         // DB에서 미리 저장된 결제 요청 정보
         const orderData = await Order.findAll({
             where: { merchant_uid },
-            attributes: ["id", "product_id", "quantity"],
+            attributes: ["id", "product_id", "quantity", "status"],
             transaction
         });
         const orderedId = orderData.map(order => order.dataValues.id);
         const orderedProductId = orderData.map(order => order.dataValues.product_id);
         const orderedQuantity = orderData.map(order => order.dataValues.quantity);
+        const orderStatus = orderData[0].dataValues.status;
 
         // DB에 저장된 해당 주문의 총 금액
         const amountToBePaid = await Order.sum("amount", {
@@ -646,6 +645,36 @@ router.post("/iamport-webhook", asyncHandler(async (req, res) => {
                     });
 
                     await transaction.commit();
+
+                    // 가상계좌 입금 완료 시 결제 완료 문자 전송
+                    if(orderStatus === "ready") {
+                        // 결제 완료 문자 전송
+                        const timestamp = new Date().getTime().toString();
+                        const products = await Product.findAll({
+                            where: { id: { [Op.in]: orderedProductId } },
+                        });
+                        const productOEN = products.map( p => p.dataValues.oe_number);
+                        const smsText = `${productOEN.length > 1 ? `${productOEN[0]}외 ${productOEN.length - 1}종류` : productOEN[0]} 상품의 결제가 완료되었습니다.`;
+
+                        await axios({
+                            url: SENS_API_V2_URL,
+                            method: "post",
+                            headers: {
+                                "Content-Type": "application/json; charset=utf-8",
+                                "x-ncp-apigw-timestamp": timestamp,
+                                "x-ncp-iam-access-key": SENS_ACCESS_KEY,
+                                "x-ncp-apigw-signature-v2": makeSignature(timestamp)
+                            },
+                            data: {
+                                type: "SMS",
+                                from: SENS_SENDER,
+                                content: smsText,
+                                messages: [{
+                                    to: user.dataValues.phone
+                                }]
+                            }
+                        });
+                    }
 
                     res.status(201).send({ status: "success", message: "결제가 정상적으로 완료되었습니다." });
                     break;
