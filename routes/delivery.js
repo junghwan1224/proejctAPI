@@ -88,7 +88,7 @@ router.get("/:order_id", asyncHandler(async (req, res) => {
 }));
 
 // 배송 상태 업데이트
-router.put("/update/status/:order_id", asyncHandler(async (req, res) => {
+router.put("/status/:order_id", asyncHandler(async (req, res) => {
     const { order_id } = req.params;
     const { status } = req.body;
 
@@ -103,7 +103,7 @@ router.put("/update/status/:order_id", asyncHandler(async (req, res) => {
 }));
 
 // 배송 위치 업데이트
-router.put("/update/location/:order_id", asyncHandler(async (req, res) => {
+router.put("/location/:order_id", asyncHandler(async (req, res) => {
     const { order_id } = req.params;
     const { location } = req.body;
    
