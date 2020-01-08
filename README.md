@@ -287,6 +287,9 @@
 - `delivery` 배송 현황 정보
 - `favorite` 관심 제품
 - `order` 주문
+  - `trigger`
+    - `afterBulkUpdate` 아임포트 결제가 완료되었을 때 배송 현황 테이블(delivery)에 새로운 정보 insert
+    - `afterBulkCreate` 전산에서 외상거래 주문이 추가(생성)되었을 때 배송 현황 테이블(delivery)에 새로운 정보 insert
 - `product_abstract` 제품
 - `product` 제품
 - `purchase_list` 수입 현황
