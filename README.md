@@ -280,21 +280,155 @@
 ## Model 명세
 
 - `account` 계정
-- `address` 유저 주소
-- `article` 공지사항
-- `basket` 장바구니
-- `card_info` 카드 정보
-- `delivery` 배송 현황 정보
-- `favorite` 관심 제품
-- `order` 주문
+
+  - `phone` 연락처
+  - `password` 비밀번호
+  - `name` 사업자명
+  - `crn` 사업자등록번호
+  - `mileage` 마일리지
+  - `email` 이메일 주소
+  - `is_user` 회원, 비회원 여부(1-회원 / 0-비회원)
+
+  
+
   - `trigger`
+
+    - `beforeCreate`
+
+      - DB에 저장 전 유저 비밀번호 암호화
+
+      
+
+- `address` 유저 주소
+
+  - `account_id` 유저 PK (외래키)
+  - `postcode` 우편번호
+  - `primary` 기본주소
+  - `detail` 상세주소
+
+  
+
+- `article` 공지사항
+
+  - `title` 제목
+  - `type` 글 카테고리
+  - `contents` 내용
+  - `date` 작성 날짜
+
+  
+
+- `basket` 장바구니
+
+  - `account_id` 유저PK (외래키)
+  - `product_id` 제품PK (외래키)
+  - `quantity` 제품 수량
+
+  
+
+- `card_info` 카드 정보
+
+  - `account_id` 유저PK (외래키)
+  - `customer_uid` 빌링키 - 아임포트를 통해 카드 정보를 저장하면 발급되는 키
+
+  
+
+- `delivery` 배송 현황 정보
+
+  - `delivery_num` 주문번호
+  - `account_id` 유저PK (외래키)
+  - `order_id` 주문 ID
+  - `status` 현재 배송 상태
+  - `location` 배송 차량의 현재 위치
+  - `arrived_at` 도착 예정 시간
+
+  
+
+- `favorite` 관심 제품
+
+  - `account_id` 유저PK (외래키)
+  - `product_id` 제품PK (외래키)
+
+  
+
+- `order` 주문
+
+  - `merchant_uid` 주문 고유 ID
+  - `imp_uid` 주문 고유 ID - 결제 시 아임포트에서 발급
+  - `account_id` 유저PK (외래키)
+  - `product_id` 제품PK (외래키)
+  - `name`  주문자명
+  - `amount`  제품 총 가격
+  - `quantity` 제품 수량
+  - `pay_method` 결제 수단
+  - `status` 최종 결제 상태
+  - `memo` 요청 사항
+
+  
+
+  - `trigger`
+
     - `afterBulkUpdate` 아임포트 결제가 완료되었을 때 배송 현황 테이블(delivery)에 새로운 정보 insert
     - `afterBulkCreate` 전산에서 외상거래 주문이 추가(생성)되었을 때 배송 현황 테이블(delivery)에 새로운 정보 insert
+
+    
+
 - `product_abstract` 제품
+
+  - `image` 제품 사진
+  - `maker` 제조사
+  - `maker_number` 제조사에서 부여한 부품 번호
+  - `stock` 재고
+  - `type` 부품 타입
+
+  
+
 - `product` 제품
+
+  - `abstract_id` product_abstract PK (외래키)
+  - `category` 카테고리(승용차 / 상용차)
+  - `brand` 차량 브랜드
+  - `model` 차량 모델
+  - `oe_number` oe 번호
+  - `start_year` 모델의 연식(시작하는 년도)
+  - `end_year` 모델의 연식(끝나는 년도)
+  - `engine` 차량의 엔진타입
+  - `price` 부품 가격
+  - `discount_rate` 할인율
+  - `memo` 제품에 대한 전산 상의 메모
+  - `description` 제품 설명 URL 이미지
+  - `quality_cert` 품질인증 정보
+  - `is_public` 고객에게 보여줄 것인지에 대한 여부
+
+  
+
 - `purchase_list` 수입 현황
+
+  - `parts_id` product_abstract PK (외래키)
+  - `krw_price` 수입 액수(원화)
+  - `foreign_price` 수입 액수(외화-달러)
+  - `foreign_currency` 환율
+  - `date` 수입 날짜
+  - `seller` 수출자
+  - `state` 현재 상태
+
+  
+
 - `roster` 순회차 스케줄
+
+  - `departure` 출발 시간
+  - `arrival` 도착 시간
+
+  
+
 - `sales_list` 수출 현황
+
+  - `parts_id` product_abstract PK (외래키)
+  - `krw_price` 수입 액수(원화)
+  - `foreign_price` 수출 액수(외화-달러)
+  - `foreign_currency` 환율
+  - `date` 수출 날짜
+  - `buyer` 수입자
+  - `state` 현재 상태
 
 
 
@@ -303,4 +437,4 @@
 - `tools` 상품 DB 필드 및 Map File, Roster DB 필드 생성 파이썬 코드
 - `public/js/signature.js` nCloud SENS API 사용을 위한 makeSignature 함수 작성
 - `config/config.json` DB 연결 설정
-- `.env` 노출되어서는 안되는 값들을 환경변수로 설정
+- `.env` 노출되어서는 안되는 값(ex. 키값)들을 환경변수로 설정
