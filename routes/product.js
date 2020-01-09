@@ -42,7 +42,7 @@ router.get("/find-by-oen", asyncHandler(async (req, res, next) => {
     const products = await Product.findAll({
       where: {
         category,
-        oe_number: oen
+        oe_number: { [Op.like]: `%${oen}%` }
       },
       attributes: PRODUCT_ATTRIBUTES,
       include: [
