@@ -197,7 +197,7 @@ router.get("/find-by-car", asyncHandler(async (req, res) => {
     }
 
     // send
-    res.status(200).send(products);
+    res.status(200).send(fabricated);
   }
   catch(err) {
     console.log(err);
