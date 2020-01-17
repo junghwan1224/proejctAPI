@@ -3,7 +3,6 @@ const router = express.Router();
 const nodemailer = require("nodemailer");
 const asyncHandler = require("express-async-handler");
 const verifyToken = require("./verifyToken");
-const iconv = require("iconv-lite");
 
 const EMAIL_ADDRESS = process.env.EMAIL_ADDRESS;
 const EMAIL_PASSWORD = process.env.EMAIL_PASSWORD;
@@ -74,7 +73,7 @@ router.post(
 
       await transporter.sendMail(mailOptions);
 
-      return res.status(201).send({ message: "success" });
+      return res.status(200).send({ message: "success" });
     } catch (err) {
       console.log(err);
       res
