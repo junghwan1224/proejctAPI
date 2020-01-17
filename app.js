@@ -5,6 +5,7 @@ var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 var session = require("express-session");
 var MySQLStore = require("express-mysql-session")(session);
+var fileUpload = require('express-fileupload');
 
 var cors = require("cors");
 require("dotenv").config();
@@ -54,6 +55,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
+app.use(fileUpload());
 
 app.use(
   session({
