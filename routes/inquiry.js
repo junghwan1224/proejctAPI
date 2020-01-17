@@ -3,6 +3,7 @@ const router = express.Router();
 const nodemailer = require("nodemailer");
 const asyncHandler = require("express-async-handler");
 const verifyToken = require("./verifyToken");
+const iconv = require("iconv-lite");
 
 const EMAIL_ADDRESS = process.env.EMAIL_ADDRESS;
 const EMAIL_PASSWORD = process.env.EMAIL_PASSWORD;
@@ -47,9 +48,33 @@ router.post(
             `
       };
 
+      if(req.files) {
+        const { file } = req.files;
+
+        // 첨부파일이 2개 이상인 경우 - 파일 값들이 배열로 넘어옴
+        if(Array.isArray(file)) {
+          const uploadedFiles = file.map(f => ({
+            filename: f.name,
+            content: f.data
+          }));
+
+          mailOptions.attachments = uploadedFiles;
+        }
+
+        // 첨부파일이 1개인 경우 - 파일 값이 객체로 넘어옴
+        else {
+          mailOptions.attachments = [
+            {
+              filename: file.name,
+              content: file.data,
+            }
+          ];
+        }
+      }
+
       await transporter.sendMail(mailOptions);
 
-      res.status(201).send({ message: "success" });
+      return res.status(201).send({ message: "success" });
     } catch (err) {
       console.log(err);
       res
