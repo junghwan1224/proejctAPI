@@ -1453,6 +1453,7 @@ router.post("/issue-receipt", verifyToken, asyncHandler(async (req, res) => {
         const user = await Account.findOne({
             where: { id: account_id },
         });
+        const { name, phone, email } = user.dataValues;
 
         const getToken = await axios({
             url: "https://api.iamport.kr/users/getToken",
@@ -1466,18 +1467,24 @@ router.post("/issue-receipt", verifyToken, asyncHandler(async (req, res) => {
 
         const { access_token } = getToken.data.response;
 
+        const data = {
+            imp_uid,
+            identifier,
+            identifier_type,
+            type,
+            buyer_name: name,
+            buyer_tel: phone
+        };
+
+        if(email) {
+            data.buyer_email = email;
+        }
+
         const getReceipt = await axios({
             url: `https://api.iamport.kr/receipts/${imp_uid}`,
             method: "post",
             headers: { "Authorization": access_token },
-            data: {
-                imp_uid,
-                identifier,
-                identifier_type,
-                type,
-                buyer_name: user.dataValues.name,
-                buyer_tel: user.dataValues.phone
-            }
+            data
         });
         const { code } = getReceipt.data;
 
@@ -1511,6 +1518,7 @@ router.post("/issue-external-receipts", verifyToken, asyncHandler(async (req, re
         const user = await Account.findOne({
             where: { id: account_id }
         });
+        const { name, phone, email } = user.dataValues;
 
         const getToken = await axios({
             url: "https://api.iamport.kr/users/getToken",
@@ -1523,18 +1531,24 @@ router.post("/issue-external-receipts", verifyToken, asyncHandler(async (req, re
         });
         const { access_token } = getToken.data.response;
 
+        const data = {
+            imp_uid,
+            identifier,
+            identifier_type,
+            type,
+            buyer_name: name,
+            buyer_tel: phone
+        };
+
+        if(email) {
+            data.buyer_email = email;
+        }
+
         const getReceipt = await axios({
             url: `https://api.iamport.kr/receipts/external/${merchant_uid}`,
             method: "post",
             headers: { "Authorization": access_token },
-            data: {
-                imp_uid,
-                identifier,
-                identifier_type,
-                type,
-                buyer_name: user.dataValues.name,
-                buyer_tel: user.dataValues.phone
-            }
+            data
         });
         const { code } = getReceipt.data;
 
