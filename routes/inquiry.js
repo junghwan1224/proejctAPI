@@ -48,20 +48,26 @@ router.post(
       };
 
       if(req.files) {
-        const { file } = req.files;
+        const fileValue = Array.from(Object.values(req.files));
+        
+        // 첨부파일이 2개 이상인 경우
+        if(fileValue.length > 1) {
+          const option = [];
 
-        // 첨부파일이 2개 이상인 경우 - 파일 값들이 배열로 넘어옴
-        if(Array.isArray(file)) {
-          const uploadedFiles = file.map(f => ({
-            filename: f.name,
-            content: f.data
-          }));
+          for(let i=0; i<fileValue.length; i++) {
+            option.push({
+              filename: fileValue[i].name,
+              content: fileValue[i].data
+            });
+          }
 
-          mailOptions.attachments = uploadedFiles;
+          mailOptions.attachments = option;
         }
 
-        // 첨부파일이 1개인 경우 - 파일 값이 객체로 넘어옴
+        // 첨부파일이 1개인 경우
         else {
+          const { file } = req.files;
+
           mailOptions.attachments = [
             {
               filename: file.name,
