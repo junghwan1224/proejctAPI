@@ -68,6 +68,7 @@ router.post("/login", function(req, res, next) {
           id: account.id,
           name: account.name,
           phone: account.phone,
+          category: account.category,
           token: token
         });
       } else {
@@ -93,7 +94,8 @@ router.get("/read", function(req, res, next) {
         phone: account.phone,
         name: account.name,
         email: account.email,
-        crn: account.crn
+        crn: account.crn,
+        category: account.category
       });
     })
     .catch(error => {
@@ -126,7 +128,8 @@ router.post(
             phone: req.body.phone,
             password: req.body.password,
             name: req.body.name,
-            crn: req.body.crn
+            crn: req.body.crn,
+            category: req.body.category
           },
           {
             transaction
@@ -397,6 +400,25 @@ router.post(
   })
 );
 
+router.post("/set-category", verifyToken, asyncHandler(async(req, res) => {
+  try {
+    const { category } = req.body;
+    const { account_id } = req;
+
+    await Account.update({
+      category
+    }, { where: { id: account_id } });
+
+    res.status(200).send({ message: "update success" });
+  }
+  catch(err) {
+    console.log(err);
+    res
+      .status(403)
+      .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+  }
+}));
+
 router.post(
   "/change-pwd",
   verifyToken,
@@ -573,6 +595,7 @@ router.get("/ark/read", function(req, res, next) {
         name: account.name,
         email: account.email,
         crn: account.crn,
+        category: account.category,
         address1: account.address1,
         address2: account.address2
       });
@@ -587,13 +610,14 @@ router.post(
   "/ark/create",
   asyncHandler(async (req, res) => {
     try {
-      const { username, crn, phone } = req.body;
+      const { username, crn, phone, category } = req.body;
 
       const account = await Account.create({
         name: username,
         crn,
         phone,
-        is_user: false
+        is_user: false,
+        category
       });
 
       const { id } = account.dataValues;
