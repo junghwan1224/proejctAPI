@@ -38,7 +38,7 @@ def main():
 
         product = {}
         product['abstract_id'] = abstract_id
-        product['category'] = 'CAR'  # CAR, COM, AGR
+        product['category'] = raw_product['category']  # CAR, COM, AGR
         product['brand'] = raw_product['brand']
         product['model'] = raw_product['model']
         product['oe_number'] = raw_product['oen']
@@ -128,10 +128,11 @@ def get_product_list():
         data = fp.read()
 
     for row in data.strip().split('\n')[1:]:
-        brand, model, year, oen, price, dtype, maker = [
+        category, brand, model, year, oen, price, dtype, maker = [
             x.strip() for x in row.split(',')]
 
         # Fabricate strings:
+        category = category.upper()
         brand = brand.upper()
         model = model.upper()
         oen = oen.upper()
@@ -156,6 +157,7 @@ def get_product_list():
 
         # Append the product to the list:
         item = {}
+        item['category'] = category
         item['brand'] = brand
         item['model'] = model
         item['oen'] = oen
