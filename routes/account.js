@@ -449,7 +449,10 @@ router.post(
 
       // 현재 비밀번호를 제대로 입력했을 때
       if (bcrypt.compareSync(password, user.dataValues.password)) {
+        // 비밀번호 암호화
         const bcryptPwd = bcrypt.hashSync(new_password, 10);
+
+        // 비밀번호 변경
         await Account.update(
           {
             password: bcryptPwd
