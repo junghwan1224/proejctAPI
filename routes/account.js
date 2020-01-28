@@ -423,6 +423,14 @@ router.post(
   "/change-pwd",
   verifyToken,
   asyncHandler(async (req, res) => {
+    // 비밀번호를 바꾸기 위해 입력한 기존 비밀번호가 일치하지 않을 때 발생
+    function DifferentPassword() {}
+    DifferentPassword.prototype = new Error();
+
+    // 새로 바꾸고자 하는 비밀번호의 값이 기존 비밀번호와 같을 때 발생
+    function SameWithOriginalPassword() {}
+    SameWithOriginalPassword.prototype = new Error();
+
     try {
       const { account_id } = req;
       const { password, new_password } = req.body;
@@ -434,6 +442,12 @@ router.post(
         transaction
       });
 
+      // 새로 입력한 비밀번호가 기존 비밀번호와 같을 때
+      if(bcrypt.compareSync(new_password, user.dataValues.password)) {
+        throw new SameWithOriginalPassword;
+      }
+
+      // 현재 비밀번호를 제대로 입력했을 때
       if (bcrypt.compareSync(password, user.dataValues.password)) {
         const bcryptPwd = bcrypt.hashSync(new_password, 10);
         await Account.update(
@@ -449,15 +463,30 @@ router.post(
         await transaction.commit();
 
         return res.status(201).send({ message: "update success" });
-      } else {
-        return res
-          .status(400)
-          .send({ message: "기존 비밀번호가 일치하지 않습니다." });
+      } 
+      
+      else {
+        throw new DifferentPassword;
       }
+
     } catch (err) {
-      res
+      if(err instanceof DifferentPassword) {
+        res
+        .status(403)
+        .send({ message: "기존 비밀번호가 일치하지 않습니다. 정확히 입력해주세요." });
+      }
+
+      else if(err instanceof SameWithOriginalPassword) {
+        res
+        .status(403)
+        .send({ message: "새로운 비밀번호가 기존 비밀번호와 일치합니다. 새로운 비밀번호를 입력해주세요." });
+      }
+
+      else {
+        res
         .status(403)
         .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+      }
     }
   })
 );
