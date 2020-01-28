@@ -3,8 +3,8 @@ import uuid
 from random import randrange
 from hashlib import md5
 
-# SERVER_BASE = 'http://13.124.230.55:3001'  # e.g. 'http://localhost:3001'
-SERVER_BASE = 'http://localhost:3001'
+SERVER_BASE = 'http://13.124.25.4:3001'  # e.g. 'http://localhost:3001'
+# SERVER_BASE = 'http://localhost:3001'
 ABSTRACT_ROUTE = '/api/product/ark/create/product-abstract'
 PRODUCT_ROUTE = '/api/product/ark/create/product'
 

@@ -5,7 +5,7 @@ var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 var session = require("express-session");
 var MySQLStore = require("express-mysql-session")(session);
-var fileUpload = require('express-fileupload');
+var fileUpload = require("express-fileupload");
 
 var cors = require("cors");
 require("dotenv").config();
@@ -25,6 +25,12 @@ app.use(
   cors({
     credentials: true,
     origin: [
+      "http://www.montar.co.kr",
+      "https://www.montar.co.kr",
+      "http://montar.co.kr",
+      "https://montar.co.kr",
+      "http://13.124.25.4",
+      "https://13.124.25.4",
       "http://localhost:3000",
       "http://localhost:3001",
       "http://localhost:3002"

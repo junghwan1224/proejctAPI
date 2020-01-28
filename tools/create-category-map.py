@@ -2,7 +2,8 @@ import requests
 import json
 from pprint import pprint
 
-BASE_ROUTE = 'http://localhost:3001'
+# BASE_ROUTE = 'http://localhost:3001'
+BASE_ROUTE = "http://13.124.230.55:3001"
 PRODUCT_ROUTE = '/api/product/fetch-all'
 
 
