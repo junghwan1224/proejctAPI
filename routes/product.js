@@ -31,179 +31,195 @@ const PRODUCT_ATTRIBUTES = [
 ];
 
 /* OEN으로 검색: 패러미터 쿼리에 상응하는 OEN을 가진 제품 리스트 반환 */
-router.get("/find-by-oen", asyncHandler(async (req, res, next) => {
-  try {
-    if (!req.query.oen) {
-      res.status(200).send({});
-      return;
-    }
-    const { category, oen } = req.query;
-  
-    const products = await Product.findAll({
-      where: {
-        category,
-        oe_number: { [Op.like]: `%${oen}%` }
-      },
-      attributes: PRODUCT_ATTRIBUTES,
-      include: [
-        {
-          model: ProductAbstract,
-          required: true,
-          as: "product_abstract",
-          attributes: PRODUCT_ABSTRACT_ATTRIBUTES
-        }
-      ],
-      order: [
-        ["brand", "ASC"],
-        ["model", "ASC"]
-      ]
-    }).map(p => p.dataValues);
-
-    let fabricated = {};
-    for (const product of products) {
-      if (
-        fabricated[product.oe_number] &&
-        fabricated[product.oe_number].price < product.price
-      ) {
-        continue;
+router.get(
+  "/find-by-oen",
+  asyncHandler(async (req, res, next) => {
+    try {
+      if (!req.query.oen) {
+        res.status(200).send({});
+        return;
       }
-      fabricated[product.oe_number] = product;
-    }
+      const { category, oen } = req.query;
 
-    res.status(200).send(fabricated);
-  }
-  catch(err) {
-    console.log(err);
-    res.status(400).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
-  }
-}));
+      const products = await Product.findAll({
+        where: {
+          category,
+          oe_number: { [Op.like]: `%${oen}%` }
+        },
+        attributes: PRODUCT_ATTRIBUTES,
+        include: [
+          {
+            model: ProductAbstract,
+            required: true,
+            as: "product_abstract",
+            attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+          }
+        ],
+        order: [
+          ["brand", "ASC"],
+          ["model", "ASC"]
+        ]
+      }).map(p => p.dataValues);
+
+      let fabricated = {};
+      for (const product of products) {
+        if (
+          fabricated[product.oe_number] &&
+          fabricated[product.oe_number].price < product.price
+        ) {
+          continue;
+        }
+        fabricated[product.oe_number] = product;
+      }
+
+      res.status(200).send(fabricated);
+    } catch (err) {
+      console.log(err);
+      res
+        .status(400)
+        .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+    }
+  })
+);
 
 /* 부품 별 검색: 패러미터 type에 대한 제품 리스트 반환 */
-router.get("/find-by-type", asyncHandler(async (req, res) => {
-  try {
-    const { category, type } = req.query;
+router.get(
+  "/find-by-type",
+  asyncHandler(async (req, res) => {
+    try {
+      const { category, type } = req.query;
 
-    const products = await Product.findAll({
-      where: {
-        category,
-        "$product_abstract.type$": { [Op.like]: `%${type}%` }
-      },
-      attributes: PRODUCT_ATTRIBUTES,
-      include: [
-        {
-          model: ProductAbstract,
-          required: true,
-          as: "product_abstract",
-          attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+      const products = await Product.findAll({
+        where: {
+          category,
+          "$product_abstract.type$": { [Op.like]: `%${type}%` }
+        },
+        attributes: PRODUCT_ATTRIBUTES,
+        include: [
+          {
+            model: ProductAbstract,
+            required: true,
+            as: "product_abstract",
+            attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+          }
+        ],
+        order: [
+          ["brand", "ASC"],
+          ["model", "ASC"]
+        ]
+      }).map(p => p.dataValues);
+
+      let fabricated = {};
+      for (const product of products) {
+        if (
+          fabricated[product.oe_number] &&
+          fabricated[product.oe_number].price < product.price
+        ) {
+          continue;
         }
-      ],
-      order: [
-        ["brand", "ASC"],
-        ["model", "ASC"]
-      ]
-    }).map(p => p.dataValues);
-
-    let fabricated = {};
-    for (const product of products) {
-      if (
-        fabricated[product.oe_number] &&
-        fabricated[product.oe_number].price < product.price
-      ) {
-        continue;
+        fabricated[product.oe_number] = product;
       }
-      fabricated[product.oe_number] = product;
-    }
 
-    res.status(200).send(fabricated);
-  }
-  catch(err) {
-    console.log(err);
-    res.status(400).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
-  }
-}));
+      res.status(200).send(fabricated);
+    } catch (err) {
+      console.log(err);
+      res
+        .status(400)
+        .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+    }
+  })
+);
 
 /* 메이커 검색: 패러미터 oe_number에 대한 제품 리스트 반환 */
-router.get("/find-by-maker", asyncHandler(async (req, res) => {
-  try {
-    const { category, oe_number } = req.query;
+router.get(
+  "/find-by-maker",
+  asyncHandler(async (req, res) => {
+    try {
+      const { category, oe_number } = req.query;
 
-    const products = await Product.findAll({
-      where: {
-        category,
-        oe_number
-      },
-      attributes: PRODUCT_ATTRIBUTES,
-      include: [
-        {
-          model: ProductAbstract,
-          required: true,
-          as: "product_abstract",
-          attributes: PRODUCT_ABSTRACT_ATTRIBUTES
-        }
-      ],
-      order: [
-        ["brand", "ASC"],
-        ["model", "ASC"]
-      ]
-    });
+      const products = await Product.findAll({
+        where: {
+          category,
+          oe_number
+        },
+        attributes: PRODUCT_ATTRIBUTES,
+        include: [
+          {
+            model: ProductAbstract,
+            required: true,
+            as: "product_abstract",
+            attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+          }
+        ],
+        order: [
+          ["brand", "ASC"],
+          ["model", "ASC"]
+        ]
+      });
 
-    res.status(200).send(products);
-  }
-  catch(err) {
-    console.log(err);
-    res.status(400).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
-  }
-}));
+      res.status(200).send(products);
+    } catch (err) {
+      console.log(err);
+      res
+        .status(400)
+        .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+    }
+  })
+);
 
 /* 차량별 검색 : 패러미터 year,brand,model에 대한 제품 리스트 반환 */
-router.get("/find-by-car", asyncHandler(async (req, res) => {
-  try {
-    const { category, year, brand, model } = req.query;
+router.get(
+  "/find-by-car",
+  asyncHandler(async (req, res) => {
+    try {
+      const { category, year, brand, model } = req.query;
 
-    const products = await Product.findAll({
-      where: {
-        category,
-        brand,
-        model,
-        [Op.and]: [
-          { start_year: { [Op.lte]: year } },
-          { end_year: { [Op.gte]: year } }
+      const products = await Product.findAll({
+        where: {
+          category,
+          brand,
+          model,
+          [Op.and]: [
+            { start_year: { [Op.lte]: year } },
+            { end_year: { [Op.gte]: year } }
+          ]
+        },
+        attributes: PRODUCT_ATTRIBUTES,
+        include: [
+          {
+            model: ProductAbstract,
+            required: true,
+            as: "product_abstract",
+            attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+          }
+        ],
+        order: [
+          ["brand", "ASC"],
+          ["model", "ASC"]
         ]
-      },
-      attributes: PRODUCT_ATTRIBUTES,
-      include: [
-        {
-          model: ProductAbstract,
-          required: true,
-          as: "product_abstract",
-          attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+      }).map(p => p.dataValues);
+
+      let fabricated = {};
+      for (const product of products) {
+        if (
+          fabricated[product.oe_number] &&
+          fabricated[product.oe_number].price < product.price
+        ) {
+          continue;
         }
-      ],
-      order: [
-        ["brand", "ASC"],
-        ["model", "ASC"]
-      ]
-    }).map(p => p.dataValues);
-
-    let fabricated = {};
-    for (const product of products) {
-      if (
-        fabricated[product.oe_number] &&
-        fabricated[product.oe_number].price < product.price
-      ) {
-        continue;
+        fabricated[product.oe_number] = product;
       }
-      fabricated[product.oe_number] = product;
-    }
 
-    // send
-    res.status(200).send(fabricated);
-  }
-  catch(err) {
-    console.log(err);
-    res.status(400).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
-  }
-}));
+      // send
+      res.status(200).send(fabricated);
+    } catch (err) {
+      console.log(err);
+      res
+        .status(400)
+        .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+    }
+  })
+);
 
 // 기존 카테고리 검색 api
 // router.get("/search", asyncHandler(async (req, res) => {
@@ -257,13 +273,13 @@ router.get("/find-by-car", asyncHandler(async (req, res) => {
 //           ]
 //         });
 //       }
-  
+
 //       else if(key === "type" || key === "maker") {
 //         // abstract
 //         const abstractIds = await ProductAbstract.findAll({
 //           where: { [key]: { [Op.like]: `%${value}%` } }
 //         }).map(p => p.dataValues.id);
-  
+
 //         products = await Product.findAll({
 //           where: {
 //             category,
@@ -285,7 +301,7 @@ router.get("/find-by-car", asyncHandler(async (req, res) => {
 //           ]
 //         });
 //       }
-  
+
 //       else {
 //         products = await Product.findAll({
 //           where: {
@@ -466,7 +482,7 @@ router.get("/ark/product-list", function(req, res, next) {
       {
         model: ProductAbstract,
         required: true,
-        as: "product_abstract",
+        as: "product_abstract"
       }
     ],
     order: [
@@ -636,7 +652,7 @@ router.get("/fetch-all", function(req, res, next) {
       {
         model: ProductAbstract,
         required: true,
-        as: "product_abstract",
+        as: "product_abstract"
       }
     ],
     order: [
@@ -660,7 +676,8 @@ router.get("/fetch-all", function(req, res, next) {
           quantity: product.product_abstract.stock,
           is_public: product.is_public,
           start_year: product.start_year,
-          end_year: product.end_year
+          end_year: product.end_year,
+          category: product.category
         });
       }
       res.status(200).send(fabricated);
