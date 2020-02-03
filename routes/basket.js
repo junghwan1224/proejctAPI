@@ -30,7 +30,8 @@ router.get(
             "oe_number",
             "start_year",
             "end_year",
-            "id"
+            "id",
+            "category"
           ],
           include: [
             {
@@ -58,7 +59,9 @@ router.get(
       item["discount_rate"] = raw_item.product.discount_rate;
       item["image"] = raw_item.product.product_abstract.image;
       item["maker"] = raw_item.product.product_abstract.maker;
+      item["maker_number"] = raw_item.product.product_abstract.maker_number;
       item["type"] = raw_item.product.product_abstract.type;
+      item["category"] = raw_item.product.category;
       basket_items[raw_item.product.id] = item;
     }
 
