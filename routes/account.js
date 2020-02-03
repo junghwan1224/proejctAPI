@@ -331,7 +331,7 @@ router.post(
 
           await transaction.commit();
 
-          return res.status(201).send({ message: "update success" });
+          return res.status(200).send({ message: "update success" });
         }
       } else {
         await Address.create(
@@ -388,7 +388,7 @@ router.post(
 
         await transaction.commit();
 
-        return res.status(201).send({ message: "update success" });
+        return res.status(200).send({ message: "update success" });
       }
 
       res.status(200).send({ message: "success" });
@@ -465,7 +465,7 @@ router.post(
 
         await transaction.commit();
 
-        return res.status(201).send({ message: "update success" });
+        return res.status(200).send({ message: "update success" });
       } 
       
       else {
