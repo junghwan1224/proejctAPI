@@ -4,7 +4,8 @@ const Basket = require("../models/basket");
 const ProductAbstract = require("../models").product_abstract;
 const Product = require("../models").product;
 
-exports.addToBasket = async (req, res) => {
+// By user
+exports.addToBasketByUser = async (req, res) => {
     try {
         const { account_id } = req.query;
 
@@ -67,7 +68,7 @@ exports.addToBasket = async (req, res) => {
     }
 };
 
-exports.createOrUpdateBasket = async (req, res) => {
+exports.createOrUpdateBasketByUser = async (req, res) => {
     try {
         const { account_id } = req.body;
         const products = JSON.parse(req.body.products);
