@@ -1438,14 +1438,51 @@ router.post("/cancel", verifyToken, asyncHandler(async (req, res) => {
 }));
 
 // 아임포트 결제에 대한 영수증 발급
-router.post("/issue-receipt", verifyToken, asyncHandler(async (req, res) => {
+router.route("/issue-receipt")
+.all(verifyToken)
+.get(asyncHandler(async (req, res) => {
+    try {
+        // req.query?
+        const { imp_uid } = req.body;
+
+        const getToken = await axios({
+                url: "https://api.iamport.kr/users/getToken",
+                method: "post",
+                headers: { "Content-Type": "application/json" },
+                data: {
+                imp_key: REST_API_KEY, 
+                imp_secret: REST_API_SECRET
+            }
+        });
+
+        const { access_token } = getToken.data.response;
+
+        const getReceipt = await axios({
+            url: `https://api.iamport.kr/receipts/${imp_uid}`,
+            method: "get",
+            headers: { "Authorization": access_token },
+            data: { imp_uid }
+        });
+        const { code } = getReceipt.data;
+
+        if(code === 0) {
+            return res.status(200).send({
+                status: "success",
+                message: "영수증 발급이 완료되었습니다.",
+                receipt_url: getReceipt.data.response.receipt_url
+            });
+        }
+    }
+    catch(err) {
+        console.log(err);
+        return res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요" });
+    }
+}))
+.post(asyncHandler(async (req, res) => {
     try {
         const {
             imp_uid,
-            identifier,
-            identifier_type, // 현금영수증 발행대상 식별정보 유형
-            // person - 주민등록번호 / business - 사업자등록번호 / phone - 연락처 / taxcard - 국세청 현금영수증카드
-            type,
+            // identifier
         } = req.body;
 
         const { account_id } = req;
@@ -1453,15 +1490,15 @@ router.post("/issue-receipt", verifyToken, asyncHandler(async (req, res) => {
         const user = await Account.findOne({
             where: { id: account_id },
         });
-        const { name, phone, email } = user.dataValues;
+        const { name, phone, email, crn } = user.dataValues;
 
         const getToken = await axios({
             url: "https://api.iamport.kr/users/getToken",
             method: "post",
             headers: { "Content-Type": "application/json" },
             data: {
-            imp_key: REST_API_KEY, 
-            imp_secret: REST_API_SECRET
+                imp_key: REST_API_KEY, 
+                imp_secret: REST_API_SECRET
             }
         });
 
@@ -1469,9 +1506,7 @@ router.post("/issue-receipt", verifyToken, asyncHandler(async (req, res) => {
 
         const data = {
             imp_uid,
-            identifier,
-            identifier_type,
-            type,
+            identifier: crn,
             buyer_name: name,
             buyer_tel: phone
         };
@@ -1489,7 +1524,7 @@ router.post("/issue-receipt", verifyToken, asyncHandler(async (req, res) => {
         const { code } = getReceipt.data;
 
         if(code === 0) {
-            return res.status(201).send({
+            return res.status(200).send({
                 status: "success",
                 message: "영수증 발급이 완료되었습니다.",
                 receipt_url: getReceipt.data.response.receipt_url
@@ -1504,45 +1539,87 @@ router.post("/issue-receipt", verifyToken, asyncHandler(async (req, res) => {
 }));
 
 // 아임포트와 별개로 거래된 거래에 대한 영수증 발급
-router.post("/issue-external-receipts", verifyToken, asyncHandler(async (req, res) => {
+router.route("/issue-external-receipts")
+.get(asyncHandler(async (req, res) => {
     try {
-        const {
-            merchant_uid,
-            identifier,
-            identifier_type, // 현금영수증 발행대상 식별정보 유형
-            // person - 주민등록번호 / business - 사업자등록번호 / phone - 연락처 / taxcard - 국세청 현금영수증카드
-            type,
-        } = req.body;
-        const { account_id } = req;
-
-        const user = await Account.findOne({
-            where: { id: account_id }
-        });
-        const { name, phone, email } = user.dataValues;
+        const { merchant_uid } = req.query;
 
         const getToken = await axios({
             url: "https://api.iamport.kr/users/getToken",
             method: "post",
             headers: { "Content-Type": "application/json" },
             data: {
-            imp_key: REST_API_KEY, 
-            imp_secret: REST_API_SECRET
+                imp_key: REST_API_KEY, 
+                imp_secret: REST_API_SECRET
+            }
+        });
+        const { access_token } = getToken.data.response;
+
+        const getReceipt = await axios({
+            url: `https://api.iamport.kr/receipts/external/${merchant_uid}`,
+            method: "get",
+            headers: { "Authorization": access_token },
+        });
+        const { code } = getReceipt.data;
+
+        if(code === 0) {
+            return res.status(200).send({
+                status: "success",
+                message: "영수증 발급이 완료되었습니다.",
+                receipt_url: getReceipt.data.response.receipt_url
+            });
+        }
+    }
+    catch(err) {
+        console.log(err);
+        return res.status(403).send({ message: "에러가 발생했습니다. 다시 시도해주세요" });
+    }
+}))
+.post(asyncHandler(async (req, res) => {
+    try {
+        const {
+            merchant_uid,
+            // identifier,
+        } = req.body;
+        // const { account_id } = req;
+
+        // const user = await Account.findOne({
+        //     where: { id: account_id }
+        // });
+        // const { name, phone, email, crn } = user.dataValues;
+
+        const order = await Order.findAll({
+            where: { merchant_uid }
+        }).map(o => o.dataValues);
+
+        const orderName = order[0].merchant_uid.slice(7);
+
+        const amount = await Order.sum("amount", {
+            where: { merchant_uid }
+        });
+
+        const getToken = await axios({
+            url: "https://api.iamport.kr/users/getToken",
+            method: "post",
+            headers: { "Content-Type": "application/json" },
+            data: {
+                imp_key: REST_API_KEY,
+                imp_secret: REST_API_SECRET
             }
         });
         const { access_token } = getToken.data.response;
 
         const data = {
-            imp_uid,
-            identifier,
-            identifier_type,
-            type,
-            buyer_name: name,
-            buyer_tel: phone
+            name: orderName,
+            amount,
+            identifier: "01024569959",
+            buyer_name: "park",
+            buyer_tel: "01024569959"
         };
 
-        if(email) {
-            data.buyer_email = email;
-        }
+        // if(email) {
+        //     data.buyer_email = email;
+        // }
 
         const getReceipt = await axios({
             url: `https://api.iamport.kr/receipts/external/${merchant_uid}`,
@@ -1553,7 +1630,7 @@ router.post("/issue-external-receipts", verifyToken, asyncHandler(async (req, re
         const { code } = getReceipt.data;
 
         if(code === 0) {
-            return res.status(201).send({
+            return res.status(200).send({
                 status: "success",
                 message: "영수증 발급이 완료되었습니다.",
                 receipt_url: getReceipt.data.response.receipt_url
