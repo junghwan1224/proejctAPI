@@ -11,6 +11,15 @@ module.exports = {
         defaultValue: () => uuid(),
         type: Sequelize.UUID
       },
+      account_level_name: {
+        type: Sequelize.STRING,
+        references: {
+          model: "account_levels",
+          key: "name"
+        },
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE"
+      },
       phone: {
         type: Sequelize.STRING,
         allowNull: false
@@ -25,7 +34,7 @@ module.exports = {
       },
       crn: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: true
       },
       mileage: {
         type: Sequelize.INTEGER,
@@ -36,15 +45,10 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true
       },
-      is_user: {
-        type: Sequelize.BOOLEAN,
+      type: {
+        type: Sequelize.INTEGER,
         allowNull: false,
-        defaultValue: true
-      },
-      category: {
-        type: Sequelize.STRING,
-        allowNull: false,
-        defaultValue: "CAR"
+        defaultValue: 11
       },
       createdAt: {
         allowNull: false,

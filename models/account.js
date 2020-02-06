@@ -6,14 +6,14 @@ module.exports = (sequelize, DataTypes) => {
   const account = sequelize.define(
     "account",
     {
+      account_level_name: DataTypes.STRING,
       phone: DataTypes.STRING,
       password: DataTypes.STRING,
       name: DataTypes.STRING,
       crn: DataTypes.STRING,
       mileage: DataTypes.INTEGER,
       email: DataTypes.STRING,
-      is_user: DataTypes.BOOLEAN,
-      category: DataTypes.STRING
+      type: DataTypes.INTEGER
     },
     {
       hooks: {
@@ -32,15 +32,13 @@ module.exports = (sequelize, DataTypes) => {
       }
     }
   );
-
   account.associate = function(models) {
-    // associations can be defined here
-    // account.hasMany(models.address);
-    // account.hasMany(models.order);
-    // account.hasMany(models.card_info);
-    // account.hasMany(models.basket);
-    // account.hasMany(models.favorite);
-    // account.hasMany(models.sales_list);
+    // account.belongsTo(models.account_level, {
+    //   as: "account_level",
+    //   foreignKey: "account_level_name",
+    //   onDelete: "cascade",
+    //   onUpdate: "cascade"
+    // });
   };
   return account;
 };

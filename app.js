@@ -75,7 +75,7 @@ app.use(
 
 // Router setup
 const verifyTokenRouter = require("./routes/verify");
-const accountRouter = require("./routes/account");
+// const accountRouter = require("./routes/account");
 const articleRouter = require("./routes/article");
 const paymentRouter = require("./routes/payment");
 const basketRouter = require("./routes/basket");
@@ -88,7 +88,7 @@ const inquiryRouter = require("./routes/inquiry");
 const transactionRouter = require("./routes/transaction");
 
 app.use("/api/verify-token", verifyTokenRouter);
-app.use("/api/account", accountRouter);
+// app.use("/api/account", accountRouter);
 app.use("/api/article", articleRouter);
 app.use("/api/payment", paymentRouter);
 app.use("/api/basket", basketRouter);
@@ -99,6 +99,14 @@ app.use("/api/address", addressRouter);
 app.use("/api/inquiry", inquiryRouter);
 app.use("/api/transaction", transactionRouter);
 app.use("/api/roster", rosterRouter);
+
+/******** START ********* */
+const userRouter = require("./routes/user");
+const adminRouter = require("./routes/admin");
+userRouter(app);
+adminRouter(app);
+
+/******** END ********* */
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
