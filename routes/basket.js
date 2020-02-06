@@ -1,4 +1,5 @@
 module.exports = app => {
+  const asyncHandler = require("express-async-handler");
   const basket = require("../controllers/basket");
 
   app
@@ -6,8 +7,8 @@ module.exports = app => {
     .all((req, res, next) => {
       next();
     })
-    .get(basket.addToBasket)
-    .post(basket.createOrUpdateBasket);
+    .get(asyncHandler(basket.addToBasket))
+    .post(asyncHandler(basket.createOrUpdateBasket));
 }
 
 // const express = require("express");
