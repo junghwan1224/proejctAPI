@@ -105,6 +105,7 @@ const userRouter = require("./routes/user");
 const adminRouter = require("./routes/admin");
 userRouter(app);
 adminRouter(app);
+basketRouter(app);
 
 /******** END ********* */
 
