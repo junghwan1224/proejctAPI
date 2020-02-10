@@ -91,7 +91,7 @@ app.use("/api/verify-token", verifyTokenRouter);
 // app.use("/api/account", accountRouter);
 app.use("/api/article", articleRouter);
 app.use("/api/payment", paymentRouter);
-app.use("/api/basket", basketRouter);
+// app.use("/api/basket", basketRouter);
 app.use("/api/favorite", favoriteRouter);
 app.use("/api/product", productRouter);
 app.use("/api/delivery", deliveryRouter);
