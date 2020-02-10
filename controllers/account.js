@@ -62,18 +62,24 @@ exports.readByUser = async (req, res) => {
   const account_id = req.query.account_id;
 
   /* Fetch account data including level attributes:  */
-  const response = await Account.findOne({
-    where: { id: account_id },
-    attributes: ALLOWED_ATTRIBUTES,
-    include: [
-      {
-        model: AccountLevel,
-        required: true,
-        as: "level_detail",
-        attributes: ["discount_rate"]
-      }
-    ]
-  });
+  try {
+    const response = await Account.findOne({
+      where: { id: account_id },
+      attributes: ALLOWED_ATTRIBUTES,
+      include: [
+        {
+          model: AccountLevel,
+          required: true,
+          as: "level_detail",
+          attributes: ["discount_rate"]
+        }
+      ]
+    });
+  } catch (err) {
+    return res
+      .status(400)
+      .send({ message: "에러가 발생했습니다. 잠시 후 다시 시도해주세요." });
+  }
 
   /* Return attributes based on the user request(parameters): */
   try {
