@@ -107,44 +107,26 @@ exports.getDeliveryByUser = async (req, res) => {
     } 
 };
 
-// 배송 상태 업데이트
-exports.updateStatusByUser = async (req, res) => {
-    try {
-        const { order_id } = req.params;
-        const { status } = req.body;
+// 배송 상태, 위치 동시 업데이트
+exports.updateDeliveryByUser = async (req, res) => {
+  try {
+    const { order_id } = req.body;
+    const data = {};
 
-        await Delivery.update({
-                status
-            },
-            { where: order_id }
-        );
+    if(req.body["status"]) Object.assign(data, { status: req.body.status });
+    
+    if(req.body["location"]) Object.assign(data, { location: req.body.location });
 
-        res.status(200).send({ message: "update success" });
-    }
-    catch(err) {
-        console.log(err);
-        res.status(400).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
-    } 
-};
+    await Delivery.update(data, {
+      where: { order_id }
+    });
 
-// 배송 위치 업데이트
-exports.updateLocationByUser = async (req, res) => {
-    try {
-        const { order_id } = req.params;
-        const { location } = req.body;
-
-        await Delivery.update({
-                location
-            },
-            { where: order_id }
-        );
-
-        res.status(200).send({ message: "update success" });
-    }
-    catch(err) {
-        console.log(err);
-        res.status(400).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
-    } 
+    res.status(200).send({ message: "업데이트가 완료되었습니다." });
+  }
+  catch(err) {
+    console.log(err);
+    res.status(400).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+  }
 };
 
 
