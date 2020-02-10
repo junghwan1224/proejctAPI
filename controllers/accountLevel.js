@@ -2,27 +2,50 @@
 
 const AccountLevel = require("../models").account_level;
 
-exports.createByAdmin = (req, res) => {
+exports.createByAdmin = async (req, res) => {
   if (!req.body.discount_rate) {
     return res.status(400).send({
-      text: "No sufficient data."
+      message: "No sufficient data."
     });
   }
 
-  AccountLevel.create({
-    id: req.body.id,
-    discount_rate: req.body.discount_rate
-  })
-    .then(account => {
-      res.status(201).send();
-    })
-    .catch(error => {
-      console.log(error);
+  try {
+    const response = await AccountLevel.findOne({
+      where: { id: req.body.id }
     });
+    if (response) {
+      return res
+        .status(400)
+        .send({ message: "Duplicated ID `" + req.body.id + "`." });
+    }
+  } catch (err) {
+    return res
+      .status(400)
+      .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+  }
+
+  try {
+    await AccountLevel.create({
+      id: req.body.id,
+      discount_rate: req.body.discount_rate
+    });
+    return res.status(201).send();
+  } catch (err) {
+    return res
+      .status(400)
+      .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+  }
 };
 
-exports.readByAdmin = (req, res) => {
-  AccountLevel.findAll({ attributes: ["discount_rate"] }).then(accountLevel => {
-    res.status(200).send(accountLevel);
-  });
+exports.readByAdmin = async (req, res) => {
+  try {
+    const response = await AccountLevel.findAll({
+      attributes: ["id", "discount_rate"]
+    });
+    return res.status(200).send(response);
+  } catch (err) {
+    return res
+      .status(400)
+      .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+  }
 };
