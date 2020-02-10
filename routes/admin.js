@@ -16,4 +16,16 @@ module.exports = app => {
     })
     .post(accountLevel.createByAdmin)
     .get(accountLevel.readByAdmin);
+
+  app.route(ADMIN_ROUTE + "/product").all((req, res, next) => {
+    next();
+  });
+
+  app.route(ADMIN_ROUTE + "/basket").all((req, res, next) => {
+    next();
+  });
+
+  app.route(ADMIN_ROUTE + "/delivery").all((req, res, next) => {
+    next();
+  });
 };
