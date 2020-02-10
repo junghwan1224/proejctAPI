@@ -3,12 +3,14 @@
 const AccountLevel = require("../models").account_level;
 
 exports.createByAdmin = async (req, res) => {
+  /* If discount_rate is not included, return 400: */
   if (!req.body.discount_rate) {
     return res.status(400).send({
       message: "No sufficient data."
     });
   }
 
+  /* Verify whether the ID already exists: */
   try {
     const response = await AccountLevel.findOne({
       where: { id: req.body.id }
@@ -24,6 +26,7 @@ exports.createByAdmin = async (req, res) => {
       .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
   }
 
+  /* Create AccountLevel data: */
   try {
     await AccountLevel.create({
       id: req.body.id,
@@ -38,6 +41,7 @@ exports.createByAdmin = async (req, res) => {
 };
 
 exports.readByAdmin = async (req, res) => {
+  /* Read AccountLevel data: */
   try {
     const response = await AccountLevel.findAll({
       attributes: ["id", "discount_rate"]
