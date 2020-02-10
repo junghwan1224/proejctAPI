@@ -1,6 +1,7 @@
 "use strict";
 
 const Account = require("../models").account;
+const AccountLevel = require("../models").account_level;
 
 exports.createByUser = (req, res) => {
   if (
@@ -17,9 +18,10 @@ exports.createByUser = (req, res) => {
     name: req.body.name,
     crn: req.body.crn,
     type: req.body.type,
-    email: req.body.email
+    email: req.body.email,
+    level: "NORMAL"
   }).then(account => {
-    res.status(200).send();
+    res.status(201).send();
   });
 };
 
@@ -31,28 +33,43 @@ exports.readByUser = (req, res) => {
     "email",
     "crn",
     "type",
-    "mileage"
+    "mileage",
+    "level"
   ];
-  const fields = req.query.fields;
+  const fields = req.query.fields || "";
   const account_id = req.query.account_id;
-  Account.findByPk(account_id, {
-    attributes: ALLOWED_ATTRIBUTES
-  }).then(account => {
-    if (account) {
-      const attributes = fields.toLowerCase().split(",");
-      let data = {};
-      if (fields.toLowerCase() != "all") {
-        attributes.map(
-          attribute => (data[attribute.trim()] = account[attribute.trim()])
-        );
-      } else {
-        data = account;
+
+  Account.findOne({
+    where: { id: account_id },
+    attributes: ALLOWED_ATTRIBUTES,
+    include: [
+      {
+        model: AccountLevel,
+        required: true,
+        as: "level_detail",
+        attributes: ["discount_rate"]
       }
-      res.status(200).send(data);
-    } else {
-      res.status(400).send({ text: "User data not found." });
-    }
-  });
+    ]
+  })
+    .then(account => {
+      if (account) {
+        const attributes = fields.toLowerCase().split(",");
+        let data = {};
+        if (fields.toLowerCase() != "all") {
+          attributes.map(
+            attribute => (data[attribute.trim()] = account[attribute.trim()])
+          );
+        } else {
+          data = account;
+        }
+        res.status(200).send(data);
+      } else {
+        res.status(400).send({ text: "User data not found." });
+      }
+    })
+    .catch(error => {
+      console.log(error);
+    });
 };
 
 exports.updateByUser = (req, res) => {

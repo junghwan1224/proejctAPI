@@ -6,7 +6,7 @@ module.exports = (sequelize, DataTypes) => {
   const account = sequelize.define(
     "account",
     {
-      account_level_name: DataTypes.STRING,
+      level: DataTypes.STRING,
       phone: DataTypes.STRING,
       password: DataTypes.STRING,
       name: DataTypes.STRING,
@@ -33,12 +33,12 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
   account.associate = function(models) {
-    // account.belongsTo(models.account_level, {
-    //   as: "account_level",
-    //   foreignKey: "account_level_name",
-    //   onDelete: "cascade",
-    //   onUpdate: "cascade"
-    // });
+    account.belongsTo(models.account_level, {
+      as: "level_detail",
+      foreignKey: "level",
+      onDelete: "cascade",
+      onUpdate: "cascade"
+    });
   };
   return account;
 };

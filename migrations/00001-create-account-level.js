@@ -2,9 +2,9 @@
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable("account_levels", {
-      name: {
+      id: {
         type: Sequelize.STRING,
-        autoIncrement: false,
+        allowNull: false,
         primaryKey: true
       },
       discount_rate: {
