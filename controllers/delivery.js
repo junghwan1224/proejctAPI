@@ -8,7 +8,7 @@ const models = require("../models");
 // By user
 
 // 유저의 모든 배송정보 조회
-exports.readAllByUser = async (req, res) => {
+exports.readByUser = async (req, res) => {
     try {
         const { account_id } = req;
         const transaction = await models.sequelize.transaction();
@@ -93,47 +93,12 @@ exports.readAllByUser = async (req, res) => {
       }
 };
 
-// 특정 주문에 대한 배송정보 조회
-exports.readByUser = async (req, res) => {
-    try {
-        const { order_id } = req.params;
-        const delivery = await Delivery.findOne({ where: order_id });
 
-        res.status(200).send({ data: delivery.dataValues });
-    }
-    catch(err) {
-        console.log(err);
-        res.status(400).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
-    } 
-};
+// By Admin
 
-// 배송 상태, 위치 동시 업데이트
-exports.updateByUser = async (req, res) => {
-  try {
-    const { order_id } = req.body;
-    const data = {};
-
-    if(req.body["status"]) Object.assign(data, { status: req.body.status });
-    
-    if(req.body["location"]) Object.assign(data, { location: req.body.location });
-
-    await Delivery.update(data, {
-      where: { order_id }
-    });
-
-    res.status(200).send();
-  }
-  catch(err) {
-    console.log(err);
-    res.status(400).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
-  }
-};
-
-
-// By admin
 
 // 모든 배송정보 리스트 조회
-exports.readAllByAdmin = async (req, res) => {
+exports.readByAdmin = async (req, res) => {
     try {
         const transaction = await models.sequelize.transaction();
   
@@ -237,9 +202,31 @@ exports.readAllByAdmin = async (req, res) => {
     } catch (err) {
         console.log(err);
         res
-          .status(403)
+          .status(400)
           .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
     }
+};
+
+// 배송 상태, 위치 동시 업데이트
+exports.updateByAdmin = async (req, res) => {
+  try {
+    const { order_id } = req.body;
+    const data = {};
+
+    if(req.body["status"]) Object.assign(data, { status: req.body.status });
+    
+    if(req.body["location"]) Object.assign(data, { location: req.body.location });
+
+    await Delivery.update(data, {
+      where: { order_id }
+    });
+
+    res.status(200).send();
+  }
+  catch(err) {
+    console.log(err);
+    res.status(400).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+  }
 };
 
 // 상세 배송정보 조회
@@ -278,7 +265,7 @@ exports.readDetailByAdmin = async (req, res) => {
     } catch (err) {
         console.log(err);
         res
-          .status(403)
+          .status(400)
           .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
     }
 };
@@ -358,7 +345,7 @@ exports.readUserByAdmin = async (req, res) => {
   } catch (err) {
     console.log(err);
     res
-      .status(403)
+      .status(400)
       .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
   }
 };
