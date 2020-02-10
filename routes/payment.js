@@ -1467,7 +1467,6 @@ router.route("/issue-receipt")
 
         if(code === 0) {
             return res.status(200).send({
-                status: "success",
                 message: "영수증 발급이 완료되었습니다.",
                 receipt_url: getReceipt.data.response.receipt_url
             });
@@ -1525,7 +1524,6 @@ router.route("/issue-receipt")
 
         if(code === 0) {
             return res.status(200).send({
-                status: "success",
                 message: "영수증 발급이 완료되었습니다.",
                 receipt_url: getReceipt.data.response.receipt_url
             });
@@ -1564,7 +1562,6 @@ router.route("/issue-external-receipts")
 
         if(code === 0) {
             return res.status(200).send({
-                status: "success",
                 message: "영수증 발급이 완료되었습니다.",
                 receipt_url: getReceipt.data.response.receipt_url
             });
