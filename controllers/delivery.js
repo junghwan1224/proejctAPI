@@ -23,7 +23,7 @@ exports.readByUser = async (req, res) => {
         if (!deliveryInfo.length) {
           return res
             .status(200)
-            .send({ message: "주문 내역이 없습니다.", result: [] });
+            .send();
         }
   
         const orderInfo = deliveryInfo.map(d => {
@@ -84,7 +84,7 @@ exports.readByUser = async (req, res) => {
           return 0;
         });
   
-        res.status(200).send({ result });
+        res.status(200).send(result);
       } catch (err) {
         console.log(err);
         res
@@ -118,7 +118,7 @@ exports.readByAdmin = async (req, res) => {
         if (!deliveryInfo.length) {
           return res
             .status(200)
-            .send({ message: "주문 내역이 없습니다.", result: [] });
+            .send();
         }
   
         const orderInfo = deliveryInfo.map(d => {
@@ -198,7 +198,7 @@ exports.readByAdmin = async (req, res) => {
           return obj;
         });
   
-        res.status(200).send({ deliveries });
+        res.status(200).send(deliveries);
     } catch (err) {
         console.log(err);
         res
@@ -341,7 +341,7 @@ exports.readUserByAdmin = async (req, res) => {
       return 0;
     });
 
-    res.status(200).send({ result });
+    res.status(200).send(result);
   } catch (err) {
     console.log(err);
     res
