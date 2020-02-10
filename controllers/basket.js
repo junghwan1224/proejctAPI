@@ -5,7 +5,7 @@ const ProductAbstract = require("../models").product_abstract;
 const Product = require("../models").product;
 
 // By user
-exports.addToBasketByUser = async (req, res) => {
+exports.getProductsInBasketByUser = async (req, res) => {
     try {
         const { account_id } = req.query;
 
