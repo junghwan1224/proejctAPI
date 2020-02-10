@@ -1,50 +1,55 @@
 "use strict";
 
-const AccountLevel = require("../models").account;
+const AccountLevel = require("../models").account_level;
 
-exports.createByAdmin = (req, res) => {
-  if (!(req.body.name && req.body.discount_rate)) {
+exports.createByAdmin = async (req, res) => {
+  /* If discount_rate is not included, return 400: */
+  if (!req.body.discount_rate) {
     return res.status(400).send({
-      text: "No sufficient data."
+      message: "No sufficient data."
     });
   }
 
-  AccountLevel.create({
-    name: req.body.name,
-    discount_rate: req.body.discount_rate
-  }).then(account => {
-    res.status(200).send();
-  });
+  /* Verify whether the ID already exists: */
+  try {
+    const response = await AccountLevel.findOne({
+      where: { id: req.body.id }
+    });
+    if (response) {
+      return res
+        .status(400)
+        .send({ message: "Duplicated ID `" + req.body.id + "`." });
+    }
+  } catch (err) {
+    return res
+      .status(400)
+      .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+  }
+
+  /* Create AccountLevel data: */
+  try {
+    await AccountLevel.create({
+      id: req.body.id,
+      discount_rate: req.body.discount_rate
+    });
+    return res.status(201).send();
+  } catch (err) {
+    return res
+      .status(400)
+      .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+  }
 };
 
-exports.readByAdmin = (req, res) => {
-  AccountLevel.findAll().then(account => {
-    res.status(200).send(account);
-  });
+exports.readByAdmin = async (req, res) => {
+  /* Read AccountLevel data: */
+  try {
+    const response = await AccountLevel.findAll({
+      attributes: ["id", "discount_rate"]
+    });
+    return res.status(200).send(response);
+  } catch (err) {
+    return res
+      .status(400)
+      .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+  }
 };
-
-// exports.updateByUser = (req, res) => {
-//   let POSSIBLE_ATTRIBUTES = ["email", "crn", "name", "type", "password"];
-//   let newData = {};
-
-//   POSSIBLE_ATTRIBUTES.map(
-//     attribute => (newData[attribute] = req.body[attribute])
-//   );
-
-//   AccountLevel.update(newData, {
-//     where: {
-//       id: req.query.account_id
-//     }
-//   }).then(account => {
-//     res.status(200).send();
-//   });
-// };
-
-// exports.deleteByAdmin = (req, res) => {
-//   AccountLevel.destroy({
-//     where: { id: req.query.account_id },
-//     limit: 1
-//   }).then(account => {
-//     res.status(200).send();
-//   });
-// };

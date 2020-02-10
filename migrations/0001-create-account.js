@@ -11,11 +11,11 @@ module.exports = {
         defaultValue: () => uuid(),
         type: Sequelize.UUID
       },
-      account_level_name: {
+      level: {
         type: Sequelize.STRING,
         references: {
           model: "account_levels",
-          key: "name"
+          key: "id"
         },
         onDelete: "CASCADE",
         onUpdate: "CASCADE"
