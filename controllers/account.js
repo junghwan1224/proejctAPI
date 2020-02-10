@@ -75,14 +75,8 @@ exports.readByUser = async (req, res) => {
         }
       ]
     });
-  } catch (err) {
-    return res
-      .status(400)
-      .send({ message: "에러가 발생했습니다. 잠시 후 다시 시도해주세요." });
-  }
 
-  /* Return attributes based on the user request(parameters): */
-  try {
+    /* Return attributes based on the user request(parameters): */
     if (response) {
       const attributes = fields.toLowerCase().split(",");
       let data = {};
