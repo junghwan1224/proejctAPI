@@ -8,7 +8,7 @@ const models = require("../models");
 // By user
 
 // 유저의 모든 배송정보 조회
-exports.getAllDeliveryByUser = async (req, res) => {
+exports.readAllByUser = async (req, res) => {
     try {
         const { account_id } = req;
         const transaction = await models.sequelize.transaction();
@@ -94,7 +94,7 @@ exports.getAllDeliveryByUser = async (req, res) => {
 };
 
 // 특정 주문에 대한 배송정보 조회
-exports.getDeliveryByUser = async (req, res) => {
+exports.readByUser = async (req, res) => {
     try {
         const { order_id } = req.params;
         const delivery = await Delivery.findOne({ where: order_id });
@@ -108,7 +108,7 @@ exports.getDeliveryByUser = async (req, res) => {
 };
 
 // 배송 상태, 위치 동시 업데이트
-exports.updateDeliveryByUser = async (req, res) => {
+exports.updateByUser = async (req, res) => {
   try {
     const { order_id } = req.body;
     const data = {};
@@ -121,7 +121,7 @@ exports.updateDeliveryByUser = async (req, res) => {
       where: { order_id }
     });
 
-    res.status(200).send({ message: "업데이트가 완료되었습니다." });
+    res.status(200).send();
   }
   catch(err) {
     console.log(err);
@@ -133,7 +133,7 @@ exports.updateDeliveryByUser = async (req, res) => {
 // By admin
 
 // 모든 배송정보 리스트 조회
-exports.getAllDeliveryByAdmin = async (req, res) => {
+exports.readAllByAdmin = async (req, res) => {
     try {
         const transaction = await models.sequelize.transaction();
   
@@ -243,7 +243,7 @@ exports.getAllDeliveryByAdmin = async (req, res) => {
 };
 
 // 상세 배송정보 조회
-exports.getDeliveryDetailByAdmin = async (req, res) => {
+exports.readDetailByAdmin = async (req, res) => {
     try {
         const { order_id } = req.query;
         const transaction = await models.sequelize.transaction();
@@ -284,7 +284,7 @@ exports.getDeliveryDetailByAdmin = async (req, res) => {
 };
 
 // 특정 유저의 배송정보 조회
-exports.getDeliveryPerUserByAdmin = async (req, res) => {
+exports.readUserByAdmin = async (req, res) => {
   try {
     const { account_id } = req.query;
     const transaction = await models.sequelize.transaction();
