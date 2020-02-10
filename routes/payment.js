@@ -1579,20 +1579,26 @@ router.route("/issue-external-receipts")
     try {
         const {
             merchant_uid,
-            // identifier,
+            account_id
         } = req.body;
-        // const { account_id } = req;
 
-        // const user = await Account.findOne({
-        //     where: { id: account_id }
-        // });
-        // const { name, phone, email, crn } = user.dataValues;
+        const user = await Account.findOne({
+            where: { id: account_id }
+        });
+        const { name, phone, email, crn } = user.dataValues;
 
-        const order = await Order.findAll({
+        // 제품 리스트 조회
+        const orderedProduct = await Order.findAll({
             where: { merchant_uid }
-        }).map(o => o.dataValues);
+        }).map(o => o.dataValues.product_id);
 
-        const orderName = order[0].merchant_uid.slice(7);
+        // 제품들 oe number 조회
+        const products = await Product.findAll({
+            where: { [Op.in]: orderedProduct }
+        }).map(p => p.dataValues.oe_number);
+
+        // 주문명 1개 보다 많은 제품 구매시 ~~외 ~개 상품 문구 / 1개 구매 시 제품 oe number로 주문명 지정
+        const orderName = products.length > 1 ? `${products[0]}외 ${products.length-1} 개 상품` : `${products[0]}`;
 
         const amount = await Order.sum("amount", {
             where: { merchant_uid }
@@ -1610,16 +1616,16 @@ router.route("/issue-external-receipts")
         const { access_token } = getToken.data.response;
 
         const data = {
-            name: orderName,
-            amount,
-            identifier: "01024569959",
-            buyer_name: "park",
-            buyer_tel: "01024569959"
+            name: orderName, // 주문명
+            amount, // 계산 금액
+            identifier: crn, // 현금영수증 발행대상 식별정보. 국세청현금영수증카드, 휴대폰번호, 주민등록번호, 사업자등록번호
+            buyer_name: name, // 구매자 이름(강력권장)
+            buyer_tel: phone // 구매자 연락처
         };
 
-        // if(email) {
-        //     data.buyer_email = email;
-        // }
+        if(email) {
+            data.buyer_email = email; // 구매자 이메일
+        }
 
         const getReceipt = await axios({
             url: `https://api.iamport.kr/receipts/external/${merchant_uid}`,
@@ -1631,7 +1637,6 @@ router.route("/issue-external-receipts")
 
         if(code === 0) {
             return res.status(200).send({
-                status: "success",
                 message: "영수증 발급이 완료되었습니다.",
                 receipt_url: getReceipt.data.response.receipt_url
             });
