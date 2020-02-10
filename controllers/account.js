@@ -87,13 +87,16 @@ exports.updateByUser = async (req, res) => {
   POSSIBLE_ATTRIBUTES.map(
     attribute => (newData[attribute] = req.body[attribute])
   );
+
   try {
     await Account.update(newData, {
       where: {
         id: req.query.account_id
       }
     });
+    return res.status(200).send();
   } catch (err) {
+    console.log(err);
     return res
       .status(400)
       .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
@@ -102,10 +105,24 @@ exports.updateByUser = async (req, res) => {
 
 exports.deleteByAdmin = async (req, res) => {
   try {
+    if (!req.body.account_id) {
+      return res.status(400).send({
+        message: "No sufficient data."
+      });
+    }
+
+    const response = await Account.findOne({
+      where: { id: req.body.account_id }
+    });
+    if (!response) {
+      return res.status(400).send({ message: "User not found." });
+    }
+
     await Account.destroy({
-      where: { id: req.query.account_id },
+      where: { id: req.body.account_id },
       limit: 1
     });
+    return res.status(200).send();
   } catch (err) {
     return res
       .status(400)
