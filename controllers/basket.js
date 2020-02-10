@@ -113,7 +113,7 @@ exports.createOrUpdateBasketByUser = async (req, res) => {
             }
         }
 
-        res.status(200).send({ message: "success" });
+        res.status(200).send();
     }
     catch(err) {
         console.log(err);
