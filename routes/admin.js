@@ -3,6 +3,7 @@ module.exports = app => {
   const accountLevel = require("../controllers/accountLevel");
   const productAbstract = require("../controllers/productAbstract");
   const productAbstractList = require("../controllers/productAbstractList");
+  const product = require("../controllers/product");
 
   const ADMIN_ROUTE = "/admin";
   app
@@ -36,6 +37,13 @@ module.exports = app => {
       next();
     })
     .get(productAbstractList.readByAdmin);
+
+  app
+    .route(ADMIN_ROUTE + "/product")
+    .all((req, res, next) => {
+      next();
+    })
+    .post(product.createByAdmin);
 
   app.route(ADMIN_ROUTE + "/basket").all((req, res, next) => {
     next();

@@ -49,9 +49,9 @@ module.exports = {
         type: Sequelize.INTEGER.UNSIGNED,
         allowNull: false
       },
-      discount_rate: {
-        type: Sequelize.FLOAT,
-        defaultValue: 0.0
+      allow_discount: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: true
       },
       description: {
         type: Sequelize.STRING,
