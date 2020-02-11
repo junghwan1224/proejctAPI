@@ -5,11 +5,28 @@ from requests import ConnectionError
 
 def main():
     automator = Automator()
-    # response = automator.request('ADMIN', '/admin/account-level', 'post',
-    #                              id='GOLD',
-    #                              discount_rate=0.03
-    #                              )
-    response = automator.request('USER', '/account', 'POST')
+    # automator.request('ADMIN', '/admin/product-abstract', 'POST')
+    automator.request('ADMIN', '/admin/product', 'POST',
+                      abstract_id='e4ab7d9d-fbec-431c-b15e-bc0961b5cca1',
+                      category='CAR',
+                      brand="AUDI",
+                      model="A7",
+                      oe_number="A234FG124",
+                      start_year=2010,
+                      end_year=2019,
+                      price=134320,
+                      is_public=True)
+
+
+def initialize_DB():
+    automator = Automator()
+    automator.request('ADMIN', '/admin/account-level', 'POST',
+                      id='NORMAL', discount_rate=0)
+    automator.request('USER', '/account', 'POST',
+                      name="정구현",
+                      phone="01024733891",
+                      password='1234',
+                      type=11)
 
 
 class Automator:
@@ -40,6 +57,39 @@ class Automator:
                     'mendatory_params': {
                         'id': str,
                         'discount_rate': float
+                    },
+                    'selective_params': {}
+                },
+                {
+                    'route': '/admin/account-level',
+                    'method': 'GET',
+                    'mendatory_params': {},
+                    'selective_params': {}
+                },
+                {
+                    'route': '/admin/product-abstract',
+                    'method': 'POST',
+                    'mendatory_params': {
+                        'maker': str,
+                        'maker_number': str,
+                        'image': str,
+                        'stock': int,
+                        'type': str
+                    },
+                    'selective_params': {}
+                }, {
+                    'route': '/admin/product',
+                    'method': 'POST',
+                    'mendatory_params': {
+                        'abstract_id': str,
+                        'category': str,
+                        'brand': str,
+                        'model': str,
+                        'oe_number': str,
+                        'start_year': int,
+                        'end_year': int,
+                        'price': int,
+                        'engine': str
                     },
                     'selective_params': {}
                 }
@@ -85,13 +135,16 @@ class Automator:
                              ))
         # Filter out unsupported params:
         params = {}
+        deletable_keys = []
         for key in kwargs.keys():
             if key not in list(mendatory_params.keys())+list(selective_params.keys()):
                 print('    :: Ignoring unsupported key ' +
                       '`{KEY}`...'.format(
                           KEY=key, ROUTE=route, METHOD=method
                       ))
-                del kwargs[key]
+                deletable_keys.append(key)
+        for key in deletable_keys:
+            del kwargs[key]
 
         # Append keys to the `params` with specified data type:
         for key in kwargs.keys():
@@ -120,24 +173,28 @@ class Automator:
             if method.upper() == 'POST':
                 response = requests.post(url=self._server+endpoint,
                                          data=params)
-                print('    => STATUS {}'.format(response.status_code))
+                print('    => STATUS {}: {}'.format(
+                    response.status_code, response.text))
                 return response
             elif method.upper() == 'GET':
                 response = requests.get(url=self._server+endpoint,
                                         data=params)
-                print('    => STATUS {}'.format(response.status_code))
+                print('    => STATUS {}: {}'.format(
+                    response.status_code, response.text))
                 return response
 
             elif method.upper() == 'PUT':
                 response = requests.put(url=self._server+endpoint,
                                         data=params)
-                print('    :: STATUS {}'.format(response.status_code))
+                print('    => STATUS {}: {}'.format(
+                    response.status_code, response.text))
                 return response
 
             elif method.upper() == 'DELETE':
                 response = requests.delete(url=self._server+endpoint,
                                            data=params)
-                print('    :: STATUS {}'.format(response.status_code))
+                print('    => STATUS {}: {}'.format(
+                    response.status_code, response.text))
                 return response
             else:
                 print(
