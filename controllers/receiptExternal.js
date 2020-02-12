@@ -3,7 +3,7 @@ const Account = require("../models").account;
 
 const getToken = require("../public/js/getToken");
 
-exports.readByUser = async (req, res) => {
+exports.readByAdmin = async (req, res) => {
     try {
         const { merchant_uid } = req.query;
 
@@ -29,7 +29,7 @@ exports.readByUser = async (req, res) => {
     }
 };
 
-exports.createByUser = async (req, res) => {
+exports.createByAdmin = async (req, res) => {
     try {
         const {
             merchant_uid,
