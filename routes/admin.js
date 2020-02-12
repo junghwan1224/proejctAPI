@@ -43,7 +43,8 @@ module.exports = app => {
     .all((req, res, next) => {
       next();
     })
-    .post(product.createByAdmin);
+    .post(product.createByAdmin)
+    .put(product.updateByAdmin);
 
   app.route(ADMIN_ROUTE + "/basket").all((req, res, next) => {
     next();

@@ -65,8 +65,6 @@ exports.createByAdmin = async (req, res) => {
       });
     }
 
-    console.log("ISPUBLIC::::", req.body.is_public);
-
     /* Append data to DB: */
     response = await Product.create({
       abstract_id: req.body.abstract_id,
@@ -210,11 +208,95 @@ exports.readByUser = async (req, res) => {
     }
 
     // send
-    res.status(200).send(fabricated);
+    return res.status(200).send(fabricated);
   } catch (err) {
     console.log(err);
-    res
+    return res
       .status(400)
       .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
   }
+};
+
+exports.updateByAdmin = async (req, res) => {
+  const {
+    image,
+    maker,
+    maker_number,
+    stock,
+    type,
+    //
+    product_abstract,
+    product_id,
+    brand,
+    model,
+    oe_number,
+    start_year,
+    end_year,
+    engine,
+    price,
+    quality_cert,
+    is_public
+  } = req.body;
+
+  let response = {};
+  try {
+    response = await Product.findOne({
+      where: {
+        id: product_id
+      }
+    });
+
+    if (!response) {
+      return res
+        .status(400)
+        .send({ message: "유효하지 않은 product_id 값입니다." });
+    }
+  } catch (err) {
+    console.log(err);
+    return res
+      .status(400)
+      .send({ message: "에러가 발생했습니다. 잠시 후 다시 시도해주세요." });
+  }
+
+  const promise_product_abstract = ProductAbstract.update(
+    {
+      image: image,
+      maker: maker,
+      maker_number: maker_number,
+      stock: stock,
+      type: type
+    },
+    {
+      where: { id: response.abstract_id }
+    }
+  );
+
+  const promise_product = Product.update(
+    {
+      brand: brand,
+      model: model,
+      oe_number: oe_number,
+      start_year: start_year,
+      end_year: end_year,
+      engine: engine,
+      price: price,
+      quality_cert: quality_cert,
+      product_abstract: product_abstract,
+      is_public: is_public
+    },
+    {
+      where: { id: product_id }
+    }
+  );
+
+  Promise.all([promise_product, promise_product_abstract])
+    .then(() => {
+      return res.status(200).send();
+    })
+    .catch(err => {
+      console.log(err);
+      return res.status(400).send({
+        message: "에러가 발생했습니다. 잠시 후 다시 시도해주세요."
+      });
+    });
 };
