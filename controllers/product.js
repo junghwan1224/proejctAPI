@@ -50,7 +50,7 @@ exports.createByAdmin = async (req, res) => {
   req.body.description = req.body.description ? req.body.description : "";
   req.body.memo = req.body.memo ? req.body.memo : "";
   req.body.quality_cert = req.body.quality_cert ? req.body.quality_cert : "";
-  req.body.is_public = req.body.is_public ? req.body.is_public : true;
+  req.body.is_public = req.body.is_public ? req.body.is_public : 1;
 
   /* Verify whether requested product_abstract_id is valid: */
   try {
@@ -64,6 +64,8 @@ exports.createByAdmin = async (req, res) => {
         message: "Invalid abstract_id."
       });
     }
+
+    console.log("ISPUBLIC::::", req.body.is_public);
 
     /* Append data to DB: */
     response = await Product.create({
