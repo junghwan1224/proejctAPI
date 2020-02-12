@@ -1,22 +1,9 @@
+import colorama
 import requests
 import sys
 from requests import ConnectionError
 
-
-def main():
-    # initialize_DB()
-    pass
-
-
-def initialize_DB():
-    automator = Automator()
-    automator.request('ADMIN', '/admin/account-level', 'POST',
-                      id='NORMAL', discount_rate=0)
-    automator.request('USER', '/account', 'POST',
-                      name="정구현",
-                      phone="01024733891",
-                      password='1234',
-                      type=11)
+colorama.init()
 
 
 class Automator:
@@ -165,41 +152,51 @@ class Automator:
     def _send_request(self, endpoint, method, params):
         # Send request based on the given method:
         try:
-            if method.upper() == 'POST':
-                response = requests.post(url=self._server+endpoint,
-                                         data=params)
-                print('    => STATUS {}: {}'.format(
-                    response.status_code, response.text))
-                return response
-            elif method.upper() == 'GET':
-                response = requests.get(url=self._server+endpoint,
-                                        data=params)
-                print('    => STATUS {}: {}'.format(
-                    response.status_code, response.text))
-                return response
-
-            elif method.upper() == 'PUT':
-                response = requests.put(url=self._server+endpoint,
-                                        data=params)
-                print('    => STATUS {}: {}'.format(
-                    response.status_code, response.text))
-                return response
-
-            elif method.upper() == 'DELETE':
-                response = requests.delete(url=self._server+endpoint,
-                                           data=params)
-                print('    => STATUS {}: {}'.format(
-                    response.status_code, response.text))
-                return response
-            else:
+            # Halt if the method is inappropriate:
+            if method.upper() not in ['POST', 'GET', 'PUT', 'DELETE']:
                 print(
                     '[*] Error: Unsupported endpoint `{}`.'.format(endpoint.upper()))
                 sys.exit(0)
 
+            # Send request and receive response:
+            if method.upper() == 'POST':
+                response = requests.post(url=self._server+endpoint,
+                                         data=params)
+            elif method.upper() == 'GET':
+                response = requests.get(url=self._server+endpoint,
+                                        data=params)
+
+            elif method.upper() == 'PUT':
+                response = requests.put(url=self._server+endpoint,
+                                        data=params)
+
+            elif method.upper() == 'DELETE':
+                response = requests.delete(url=self._server+endpoint,
+                                           data=params)
+
+            # Print the status
+            color_code = {
+                '1': colorama.Style.BRIGHT+colorama.Fore.LIGHTBLACK_EX,
+                '2': colorama.Style.BRIGHT+colorama.Fore.GREEN,
+                '3': colorama.Style.BRIGHT+colorama.Fore.LIGHTBLACK_EX,
+                '4': colorama.Style.BRIGHT+colorama.Fore.RED,
+                '5': colorama.Style.BRIGHT+colorama.Fore.BLUE
+            }
+
+            response_text = response.text
+            try:
+                response_text = response.json()['message']
+            except:
+                pass
+
+            print('    => {COLORING} STATUS {CODE}{COLON}{RESET} {TEXT}'.format(
+                COLORING=color_code[str(response.status_code)[0]],
+                CODE=response.status_code,
+                COLON=':' if len(response_text) else '',
+                RESET=colorama.Fore.RESET+colorama.Style.RESET_ALL,
+                TEXT=response_text))
+            return response
+
         except ConnectionError:
             print('[*] CONNECTION ERROR :: Please check server status or route.')
             sys.exit(0)
-
-
-if __name__ == "__main__":
-    main()
