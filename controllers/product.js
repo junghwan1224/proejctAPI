@@ -21,6 +21,7 @@ const PRODUCT_ATTRIBUTES = [
   "oe_number",
   "start_year",
   "end_year",
+  "allow_discount",
   "engine",
   "description",
   "quality_cert",
@@ -229,6 +230,7 @@ exports.updateByAdmin = async (req, res) => {
     product_id,
     brand,
     model,
+    allow_discount,
     oe_number,
     start_year,
     end_year,
@@ -282,7 +284,8 @@ exports.updateByAdmin = async (req, res) => {
       price: price,
       quality_cert: quality_cert,
       product_abstract: product_abstract,
-      is_public: is_public
+      is_public: is_public,
+      allow_discount: allow_discount
     },
     {
       where: { id: product_id }
@@ -294,9 +297,39 @@ exports.updateByAdmin = async (req, res) => {
       return res.status(200).send();
     })
     .catch(err => {
-      console.log(err);
       return res.status(400).send({
         message: "에러가 발생했습니다. 잠시 후 다시 시도해주세요."
       });
     });
+};
+
+exports.deleteByAdmin = async (req, res) => {
+  /* Send 400 if account_id is not given: */
+  try {
+    if (!req.body.product_id) {
+      return res.status(400).send({
+        message: "필요한 정보를 모두 입력해주세요."
+      });
+    }
+    /* Verify whether the user exists: */
+    const response = await Product.findOne({
+      where: { id: req.body.account_id }
+    });
+    if (!response) {
+      return res
+        .status(400)
+        .send({ message: "유효하지 않은 product_id입니다." });
+    }
+
+    /* Delete account data from the DB: */
+    await Product.destroy({
+      where: { id: req.body.product_id },
+      limit: 1
+    });
+    return res.status(200).send();
+  } catch (err) {
+    return res
+      .status(400)
+      .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+  }
 };
