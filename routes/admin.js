@@ -1,4 +1,6 @@
 module.exports = app => {
+  const verifyToken = require("./verifyToken");
+
   const account = require("../controllers/account");
   const accountLevel = require("../controllers/accountLevel");
 
@@ -10,9 +12,7 @@ module.exports = app => {
   const ADMIN_ROUTE = "/admin";
   app
     .route(ADMIN_ROUTE + "/account")
-    .all((req, res, next) => {
-      next();
-    })
+    .all(verifyToken.authAdmin)
     .delete(account.deleteByAdmin);
 
   app
@@ -27,9 +27,7 @@ module.exports = app => {
 
   app
     .route(ADMIN_ROUTE + "/account-level")
-    .all((req, res, next) => {
-      next();
-    })
+    .all(verifyToken.authAdmin)
     .post(accountLevel.createByAdmin)
     .get(accountLevel.readByAdmin);
 
@@ -66,4 +64,28 @@ module.exports = app => {
   app.route(ADMIN_ROUTE + "/delivery").all((req, res, next) => {
     next();
   });
+
+  app
+    .route(`${ADMIN_ROUTE}/article`)
+    .all(verifyToken.authAdmin)
+    .get()
+    .post()
+    .put()
+    .delete();
+
+  app
+    .route(`${ADMIN_ROUTE}/credit-transaction`)
+    .all(verifyToken.authAdmin)
+    .get()
+    .post()
+    .put()
+    .delete();
+  
+  app
+    .route(`${ADMIN_ROUTE}/credit-transaction/list`)
+    .all(verifyToken.authAdmin)
+    .get()
+    .post()
+    .put()
+    .delete();
 };
