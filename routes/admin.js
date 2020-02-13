@@ -17,13 +17,14 @@ module.exports = app => {
 
   app
     .route(ADMIN_ROUTE + "/admin")
-    .all((req, res, next) => {
-      next();
-    })
-    .post(admin.createByAdmin)
+    .all(verifyToken.authAdmin)
     .get(admin.readByAdmin)
     .put(admin.updateByAdmin)
     .delete(admin.deleteByAdmin);
+  
+  app
+    .route(ADMIN_ROUTE + "/admin")
+    .post(admin.createByAdmin)
 
   app
     .route(ADMIN_ROUTE + "/account-level")
@@ -33,9 +34,7 @@ module.exports = app => {
 
   app
     .route(ADMIN_ROUTE + "/product-abstract")
-    .all((req, res, next) => {
-      next();
-    })
+    .all(verifyToken.authAdmin)
     .post(productAbstract.createByAdmin)
     .get(productAbstract.readByAdmin)
     .put(productAbstract.updateByAdmin)
@@ -43,9 +42,7 @@ module.exports = app => {
 
   app
     .route(ADMIN_ROUTE + "/product-abstract-list")
-    .all((req, res, next) => {
-      next();
-    })
+    .all(verifyToken.authAdmin)
     .get(productAbstractList.readByAdmin);
 
   app
@@ -57,13 +54,13 @@ module.exports = app => {
     .put(product.updateByAdmin)
     .delete(product.deleteByAdmin);
 
-  app.route(ADMIN_ROUTE + "/basket").all((req, res, next) => {
-    next();
-  });
+  app
+    .route(ADMIN_ROUTE + "/basket")
+    .all(verifyToken.authAdmin);
 
-  app.route(ADMIN_ROUTE + "/delivery").all((req, res, next) => {
-    next();
-  });
+  app
+    .route(ADMIN_ROUTE + "/delivery")
+    .all(verifyToken.authAdmin);
 
   app
     .route(`${ADMIN_ROUTE}/article`)

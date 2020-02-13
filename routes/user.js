@@ -12,33 +12,26 @@ module.exports = app => {
     .put(account.updateByUser);
 
   app
+    .route("/account")
     .post(account.createByUser)
 
   app
     .route("/product")
-    .all((req, res, next) => {
-      next();
-    })
+    .all(verifyToken.authUser)
     .get(product.readByUser);
 
   app
     .route("/product-list")
-    .all((req, res, next) => {
-      next();
-    })
+    .all(verifyToken.authUser)
     .get(productList.readByUser);
 
   app
     .route("/basket")
-    .all((req, res, next) => {
-    next();
-  });
+    .all(verifyToken.authUser);
 
   app
     .route("/delivery")
-    .all((req, res, next) => {
-    next();
-  });
+    .all(verifyToken.authUser);
 
   app
     .route("/favorite")
