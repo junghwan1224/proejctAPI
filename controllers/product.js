@@ -5,6 +5,7 @@ const ProductAbstract = require("../models").product_abstract;
 const Sequelize = require("sequelize");
 
 const Op = Sequelize.Op;
+
 const PRODUCT_ABSTRACT_ATTRIBUTES = [
   "image",
   "maker",
@@ -28,7 +29,7 @@ const PRODUCT_ATTRIBUTES = [
   "id"
 ];
 exports.createByAdmin = async (req, res) => {
-  /* If phone, pafssword, name, type are not included, return 400: */
+  /* If necessary fields are not given, return 400: */
   if (
     !(
       req.body.abstract_id &&
@@ -47,7 +48,7 @@ exports.createByAdmin = async (req, res) => {
     });
   }
 
-  /* Set default values: */
+  /* Set default values for selective fields: */
   req.body.description = req.body.description ? req.body.description : "";
   req.body.memo = req.body.memo ? req.body.memo : "";
   req.body.quality_cert = req.body.quality_cert ? req.body.quality_cert : "";
@@ -91,97 +92,18 @@ exports.createByAdmin = async (req, res) => {
 };
 
 exports.readByUser = async (req, res) => {
-  const method = req.query.method;
-
-  if (method.toUpperCase() === "MAKER") {
-    if (!(req.query.category && req.query.oe_number)) {
-      return res
-        .status(400)
-        .send({ message: "필요한 정보를 모두 입력해주세요." });
-    }
-    try {
-      const products = await Product.findAll({
-        where: {
-          category: req.query.category,
-          oe_number: req.query.oe_number
-        },
-        attributes: PRODUCT_ATTRIBUTES,
-        include: [
-          {
-            model: ProductAbstract,
-            required: true,
-            as: "product_abstract",
-            attributes: PRODUCT_ABSTRACT_ATTRIBUTES
-          }
-        ],
-        order: [
-          ["brand", "ASC"],
-          ["model", "ASC"]
-        ]
-      });
-
-      return res.status(200).send(products);
-    } catch (err) {
-      return res
-        .status(400)
-        .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
-    }
-  }
-  /* Search Method: */
-
-  let where = {};
-  if (method.toUpperCase() === "CAR") {
-    /* 차량별 검색 : 패러미터 category, year,brand,model에 대한 제품 리스트 반환 */
-    if (
-      !(
-        req.query.category &&
-        req.query.year &&
-        req.query.brand &&
-        req.query.model
-      )
-    ) {
-      return res
-        .status(400)
-        .send({ message: "필요한 정보를 모두 입력해주세요." });
-    }
-    where = {
-      category: req.query.category,
-      brand: req.query.brand,
-      model: req.query.model,
-      [Op.and]: [
-        { start_year: { [Op.lte]: req.query.year } },
-        { end_year: { [Op.gte]: req.query.year } }
-      ]
-    };
-  } else if (method.toUpperCase() === "TYPE") {
-    /* 부품 별 검색: 패러미터 type에 대한 제품 리스트 반환 */
-    if (!(req.query.category && req.query.type)) {
-      return res
-        .status(400)
-        .send({ message: "필요한 정보를 모두 입력해주세요." });
-    }
-    where = {
-      category: req.query.category,
-      "$product_abstract.type$": { [Op.like]: `%${req.query.type}%` }
-    };
-  } else if (method.toUpperCase() === "OEN") {
-    /* OEN으로 검색: 패러미터 쿼리에 상응하는 OEN을 가진 제품 리스트 반환 */
-    if (!(req.query.category && req.query.oe_number)) {
-      return res
-        .status(400)
-        .send({ message: "필요한 정보를 모두 입력해주세요." });
-    }
-    where = {
-      category: req.query.category,
-      oe_number: { [Op.like]: `%${req.query.oe_number}%` }
-    };
-  } else {
-    return res.status(400).send({ message: "method 값이 유효하지 않습니다." });
+  if (!req.query.product_id) {
+    return res
+      .status(400)
+      .send({ message: "필요한 정보를 모두 입력해주세요." });
   }
 
+  /* Fetch account data including level attributes:  */
   try {
-    const products = await Product.findAll({
-      where: where,
+    const response = await Product.findOne({
+      where: {
+        id: req.query.product_id
+      },
       attributes: PRODUCT_ATTRIBUTES,
       include: [
         {
@@ -190,31 +112,20 @@ exports.readByUser = async (req, res) => {
           as: "product_abstract",
           attributes: PRODUCT_ABSTRACT_ATTRIBUTES
         }
-      ],
-      order: [
-        ["brand", "ASC"],
-        ["model", "ASC"]
       ]
-    }).map(p => p.dataValues);
+    });
 
-    let fabricated = {};
-    for (const product of products) {
-      if (
-        fabricated[product.oe_number] &&
-        fabricated[product.oe_number].price < product.price
-      ) {
-        continue;
-      }
-      fabricated[product.oe_number] = product;
+    if (!response) {
+      return res
+        .status(400)
+        .send({ message: "유효하지 않은 product_id 입니다." });
     }
 
-    // send
-    return res.status(200).send(fabricated);
+    return res.status(200).send(response);
   } catch (err) {
-    console.log(err);
     return res
       .status(400)
-      .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+      .send({ message: "에러가 발생했습니다. 잠시 후 다시 시도해주세요." });
   }
 };
 
@@ -245,14 +156,7 @@ exports.updateByAdmin = async (req, res) => {
     product_abstract_data[attribute] = req.body[attribute];
   }
   const promise_product_abstract = ProductAbstract.update(
-    {
-      image: req.body.image,
-      maker: req.body.maker,
-      maker_number: req.body.maker_number,
-      stock: req.body.stock,
-      type: req.body.type,
-      allow_discount: req.body.allow_discount
-    },
+    product_abstract_data,
     {
       where: { id: response.abstract_id }
     }
@@ -263,23 +167,9 @@ exports.updateByAdmin = async (req, res) => {
   for (const attribute of PRODUCT_ATTRIBUTES) {
     product_data[attribute] = req.body[attribute];
   }
-  const promise_product = Product.update(
-    {
-      brand: req.body.brand,
-      model: model,
-      oe_number: oe_number,
-      start_year: start_year,
-      end_year: end_year,
-      engine: engine,
-      price: price,
-      quality_cert: quality_cert,
-      product_abstract: product_abstract,
-      is_public: is_public
-    },
-    {
-      where: { id: product_id }
-    }
-  );
+  const promise_product = Product.update(product_data, {
+    where: { id: req.body.product_id }
+  });
 
   /* Request a Promise */
   Promise.all([promise_product, promise_product_abstract])

@@ -1,6 +1,7 @@
 module.exports = app => {
   const account = require("../controllers/account");
   const product = require("../controllers/product");
+  const productList = require("../controllers/productList");
 
   app
     .route("/account")
@@ -17,6 +18,13 @@ module.exports = app => {
       next();
     })
     .get(product.readByUser);
+
+  app
+    .route("/product-list")
+    .all((req, res, next) => {
+      next();
+    })
+    .get(productList.readByUser);
 
   app.route("/basket").all((req, res, next) => {
     next();
