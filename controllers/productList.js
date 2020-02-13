@@ -39,7 +39,6 @@ exports.readByUser = async (req, res) => {
         .send({ message: "필요한 정보를 모두 입력해주세요." });
     }
     try {
-      2;
       const products = await Product.findAll({
         where: {
           category: req.query.category,
