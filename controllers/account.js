@@ -106,11 +106,18 @@ exports.updateByUser = async (req, res) => {
     attribute => (newData[attribute] = req.body[attribute])
   );
 
+  /* If no account_id was given, raise 400: */
+  if (!req.query.account_id) {
+    return res
+      .status(400)
+      .send({ message: "필요한 정보를 모두 입력해주세요." });
+  }
+
   /* Verify whether the user exists: */
   try {
     const response = await Account.findOne({
       where: {
-        iid: req.query.account_id
+        id: req.query.account_id
       }
     });
     if (!response) {
