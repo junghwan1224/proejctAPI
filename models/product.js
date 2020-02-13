@@ -13,7 +13,6 @@ module.exports = (sequelize, DataTypes) => {
       end_year: DataTypes.INTEGER.UNSIGNED, // e.g. 2019,
       engine: DataTypes.STRING, // e.g. 엔진타입, G2.0
       price: DataTypes.INTEGER,
-      allow_discount: DataTypes.BOOLEAN,
       memo: DataTypes.TEXT, // e.g. 제품에 대한 전산 상의 메모
       description: DataTypes.STRING, // 제품 설명 URL 이미지
       quality_cert: DataTypes.STRING, // 품질인증 e.g. KAPA (한국자동차부품협회),

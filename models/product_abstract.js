@@ -8,7 +8,8 @@ module.exports = (sequelize, DataTypes) => {
       maker: DataTypes.STRING, // 메이커, 제조공장, e.g. KOYO, NSK
       maker_number: DataTypes.STRING,
       stock: DataTypes.INTEGER, // 재고
-      type: DataTypes.STRING // e.g. 허브베어링
+      type: DataTypes.STRING, // e.g. 허브베어링
+      allow_discount: DataTypes.BOOLEAN
     },
     {
       hooks: {

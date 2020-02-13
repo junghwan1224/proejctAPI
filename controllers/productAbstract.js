@@ -18,6 +18,10 @@ exports.createByAdmin = async (req, res) => {
     });
   }
 
+  req.body.allow_discount = req.body.allow_discount
+    ? req.body.allow_discount
+    : true;
+
   /* Append data to DB: */
   try {
     const response = await ProductAbstract.create({
@@ -25,7 +29,8 @@ exports.createByAdmin = async (req, res) => {
       maker_number: req.body.maker_number,
       image: req.body.image,
       stock: req.body.stock,
-      type: req.body.type
+      type: req.body.type,
+      allow_discount: req.body.allow_discount
     });
     return res.status(201).send(response);
   } catch (err) {
@@ -71,7 +76,8 @@ exports.updateByAdmin = async (req, res) => {
     "maker",
     "maker_number",
     "stock",
-    "type"
+    "type",
+    "allow_discount"
   ];
   let newData = {};
   POSSIBLE_ATTRIBUTES.map(

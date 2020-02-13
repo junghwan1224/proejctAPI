@@ -11,7 +11,8 @@ const PRODUCT_ABSTRACT_ATTRIBUTES = [
   "maker_number",
   "stock",
   "type",
-  "id"
+  "id",
+  "allow_discount"
 ];
 
 const PRODUCT_ATTRIBUTES = [
@@ -21,7 +22,6 @@ const PRODUCT_ATTRIBUTES = [
   "oe_number",
   "start_year",
   "end_year",
-  "allow_discount",
   "engine",
   "description",
   "quality_cert",
@@ -219,32 +219,11 @@ exports.readByUser = async (req, res) => {
 };
 
 exports.updateByAdmin = async (req, res) => {
-  const {
-    image,
-    maker,
-    maker_number,
-    stock,
-    type,
-    //
-    product_abstract,
-    product_id,
-    brand,
-    model,
-    allow_discount,
-    oe_number,
-    start_year,
-    end_year,
-    engine,
-    price,
-    quality_cert,
-    is_public
-  } = req.body;
-
   let response = {};
   try {
     response = await Product.findOne({
       where: {
-        id: product_id
+        id: req.body.product_id
       }
     });
 
@@ -260,22 +239,33 @@ exports.updateByAdmin = async (req, res) => {
       .send({ message: "에러가 발생했습니다. 잠시 후 다시 시도해주세요." });
   }
 
+  /* Create product-abstract Promise: */
+  let product_abstract_data = {};
+  for (const attribute of PRODUCT_ABSTRACT_ATTRIBUTES) {
+    product_abstract_data[attribute] = req.body[attribute];
+  }
   const promise_product_abstract = ProductAbstract.update(
     {
-      image: image,
-      maker: maker,
-      maker_number: maker_number,
-      stock: stock,
-      type: type
+      image: req.body.image,
+      maker: req.body.maker,
+      maker_number: req.body.maker_number,
+      stock: req.body.stock,
+      type: req.body.type,
+      allow_discount: req.body.allow_discount
     },
     {
       where: { id: response.abstract_id }
     }
   );
 
+  /* Create product Promise: */
+  let product_data = {};
+  for (const attribute of PRODUCT_ATTRIBUTES) {
+    product_data[attribute] = req.body[attribute];
+  }
   const promise_product = Product.update(
     {
-      brand: brand,
+      brand: req.body.brand,
       model: model,
       oe_number: oe_number,
       start_year: start_year,
@@ -284,14 +274,14 @@ exports.updateByAdmin = async (req, res) => {
       price: price,
       quality_cert: quality_cert,
       product_abstract: product_abstract,
-      is_public: is_public,
-      allow_discount: allow_discount
+      is_public: is_public
     },
     {
       where: { id: product_id }
     }
   );
 
+  /* Request a Promise */
   Promise.all([promise_product, promise_product_abstract])
     .then(() => {
       return res.status(200).send();

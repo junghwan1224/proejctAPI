@@ -53,7 +53,9 @@ class Automator:
                         'stock': int,
                         'type': str
                     },
-                    'selective_params': {}
+                    'selective_params': {
+                        'allow_discount': int  # 0 or 1,  Bool
+                    }
                 }, {
                     'route': '/admin/product',
                     'method': 'POST',
