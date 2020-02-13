@@ -44,7 +44,8 @@ module.exports = app => {
       next();
     })
     .post(product.createByAdmin)
-    .put(product.updateByAdmin);
+    .put(product.updateByAdmin)
+    .delete(product.deleteByAdmin);
 
   app.route(ADMIN_ROUTE + "/basket").all((req, res, next) => {
     next();
