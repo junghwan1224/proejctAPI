@@ -166,7 +166,6 @@ exports.readByAdmin = async (req, res) => {
   if (method.toUpperCase() === "ALL") {
     try {
       const products = await Product.findAll({
-        attributes: PRODUCT_ATTRIBUTES,
         include: [
           {
             model: ProductAbstract,
