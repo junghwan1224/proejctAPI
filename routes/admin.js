@@ -21,10 +21,8 @@ module.exports = app => {
     .get(admin.readByAdmin)
     .put(admin.updateByAdmin)
     .delete(admin.deleteByAdmin);
-  
-  app
-    .route(ADMIN_ROUTE + "/admin")
-    .post(admin.createByAdmin)
+
+  app.route(ADMIN_ROUTE + "/admin").post(admin.createByAdmin);
 
   app
     .route(ADMIN_ROUTE + "/account-level")
@@ -46,19 +44,20 @@ module.exports = app => {
     .get(productAbstractList.readByAdmin);
 
   app
+    .route(ADMIN_ROUTE + "/product-list")
+    .all(verifyToken.authAdmin)
+    .get(productList.readByAdmin);
+
+  app
     .route(ADMIN_ROUTE + "/product")
     .all(verifyToken.authAdmin)
     .post(product.createByAdmin)
     .put(product.updateByAdmin)
     .delete(product.deleteByAdmin);
 
-  app
-    .route(ADMIN_ROUTE + "/basket")
-    .all(verifyToken.authAdmin);
+  app.route(ADMIN_ROUTE + "/basket").all(verifyToken.authAdmin);
 
-  app
-    .route(ADMIN_ROUTE + "/delivery")
-    .all(verifyToken.authAdmin);
+  app.route(ADMIN_ROUTE + "/delivery").all(verifyToken.authAdmin);
 
   app
     .route(`${ADMIN_ROUTE}/article`)
@@ -75,7 +74,7 @@ module.exports = app => {
     .post()
     .put()
     .delete();
-  
+
   app
     .route(`${ADMIN_ROUTE}/credit-transaction/list`)
     .all(verifyToken.authAdmin)
