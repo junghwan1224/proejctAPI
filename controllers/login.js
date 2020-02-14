@@ -1,8 +1,12 @@
 "user strict";
 
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+
 const Admin = require("../models").admin;
 const Account = require("../models").account;
-const AccountLevel = require("../models").account_level;
+
+const DEV_SECRET = process.env.DEV_SECRET;
 
 exports.loginByUser = async (req, res) => {
     try {
