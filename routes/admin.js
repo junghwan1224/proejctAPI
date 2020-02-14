@@ -8,6 +8,7 @@ module.exports = app => {
   const productAbstract = require("../controllers/productAbstract");
   const productAbstractList = require("../controllers/productAbstractList");
   const product = require("../controllers/product");
+  const productList = require("../controllers/productList");
 
   const ADMIN_ROUTE = "/admin";
   app
