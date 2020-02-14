@@ -42,7 +42,8 @@ exports.readByUser = async (req, res) => {
       const products = await Product.findAll({
         where: {
           category: req.query.category,
-          oe_number: req.query.oe_number
+          oe_number: req.query.oe_number,
+          is_public: true
         },
         attributes: PRODUCT_ATTRIBUTES,
         include: [
@@ -87,6 +88,7 @@ exports.readByUser = async (req, res) => {
       category: req.query.category,
       brand: req.query.brand,
       model: req.query.model,
+      is_public: true,
       [Op.and]: [
         { start_year: { [Op.lte]: req.query.year } },
         { end_year: { [Op.gte]: req.query.year } }
@@ -100,6 +102,7 @@ exports.readByUser = async (req, res) => {
         .send({ message: "필요한 정보를 모두 입력해주세요." });
     }
     where = {
+      is_public: true,
       category: req.query.category,
       "$product_abstract.type$": { [Op.like]: `%${req.query.type}%` }
     };
@@ -111,6 +114,7 @@ exports.readByUser = async (req, res) => {
         .send({ message: "필요한 정보를 모두 입력해주세요." });
     }
     where = {
+      is_public: true,
       category: req.query.category,
       oe_number: { [Op.like]: `%${req.query.oe_number}%` }
     };
