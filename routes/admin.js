@@ -11,6 +11,11 @@ module.exports = app => {
   const product = require("../controllers/product");
   const productList = require("../controllers/productList");
 
+  const payment = require("../controllers/payment");
+  const creditTransaction = require("../controllers/creditTransaction");
+  const creditTransactionList = require("../controllers/creditTransactionList");
+  const receiptExternal = require("../controllers/receiptExternal");
+
   const ADMIN_ROUTE = "/admin";
   app
     .route(ADMIN_ROUTE + "/account")
@@ -66,7 +71,7 @@ module.exports = app => {
   app.route(ADMIN_ROUTE + "/delivery").all(verifyToken.authAdmin);
 
   app
-    .route(`${ADMIN_ROUTE}/article`)
+    .route(ADMIN_ROUTE + "/article")
     .all(verifyToken.authAdmin)
     .get()
     .post()
@@ -74,18 +79,26 @@ module.exports = app => {
     .delete();
 
   app
-    .route(`${ADMIN_ROUTE}/credit-transaction`)
+    .route(ADMIN_ROUTE + "/payment/refund")
     .all(verifyToken.authAdmin)
-    .get()
-    .post()
-    .put()
-    .delete();
+    .post(payment.refundByAdmin);
 
   app
-    .route(`${ADMIN_ROUTE}/credit-transaction/list`)
+    .route(ADMIN_ROUTE + "/credit-transaction")
     .all(verifyToken.authAdmin)
-    .get()
-    .post()
-    .put()
-    .delete();
+    .get(creditTransaction.readByAdmin)
+    .post(creditTransaction.createByAdmin)
+    .put(creditTransaction.updateByAdmin)
+    .delete(creditTransaction.deleteByAdmin);
+  
+  app
+    .route(ADMIN_ROUTE + "/credit-transaction/list")
+    .all(verifyToken.authAdmin)
+    .get(creditTransactionList.readByAdmin);
+
+  app
+    .route(ADMIN_ROUTE + "/receipt-external")
+    .all(verifyToken.authAdmin)
+    .get(receiptExternal.readByAdmin)
+    .post(receiptExternal.createByAdmin)
 };

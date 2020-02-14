@@ -6,6 +6,10 @@ module.exports = app => {
   const product = require("../controllers/product");
   const productList = require("../controllers/productList");
 
+  const order = require("../controllers/order");
+  const payment = require("../controllers/payment");
+  const receipt = require("../controllers/receipt");
+
   app
     .route("/account")
     .all(verifyToken.authUser)
@@ -53,36 +57,38 @@ module.exports = app => {
     .post()
     .put()
     .delete();
+  
+  app
+    .route("/payment/webhook")
+    .all(verifyToken.authUser)
+    .post(payment.webHookByUser)
 
   app
-    .route("/payment")
+    .route("/payment/cancel")
     .all(verifyToken.authUser)
-    .get()
-    .post()
-    .put()
-    .delete();
+    .post(payment.cancelByUser)
+
+  app
+    .route("/payment/issue-billing")
+    .all(verifyToken.authUser)
+    .post(payment.createBillingKeyByUser)
+    .delete(payment.deleteBillingKeyByUser);
+  
+  app
+    .route("/payment/billing")
+    .all(verifyToken.authUser)
+    .post(payment.billingByUser);
 
   app
     .route("/order")
     .all(verifyToken.authUser)
-    .get()
-    .post()
-    .put()
-    .delete();
+    .get(order.readByUser)
+    .post(order.createByUser)
+    .put(order.updateByUser)
   
   app
     .route("/receipt")
     .all(verifyToken.authUser)
-    .get()
-    .post()
-    .put()
-    .delete();
-  
-  app
-    .route("/receipt-external")
-    .all(verifyToken.authUser)
-    .get()
-    .post()
-    .put()
-    .delete();
+    .get(receipt.readByUser)
+    .post(receipt.createByUser)
 };
