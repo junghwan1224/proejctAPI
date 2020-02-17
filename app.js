@@ -74,31 +74,31 @@ app.use(
 );
 
 // Router setup
-const verifyTokenRouter = require("./routes/verify");
-// const accountRouter = require("./routes/account");
-const articleRouter = require("./routes/article");
-const paymentRouter = require("./routes/payment");
-const basketRouter = require("./routes/basket");
-const favoriteRouter = require("./routes/favorite");
-// const productRouter = require("./routes/product");
-const deliveryRouter = require("./routes/delivery");
-const addressRouter = require("./routes/address");
-const rosterRouter = require("./routes/roster");
-const inquiryRouter = require("./routes/inquiry");
-const transactionRouter = require("./routes/transaction");
+// const verifyTokenRouter = require("./routes/verify");
+// // const accountRouter = require("./routes/account");
+// const articleRouter = require("./routes/article");
+// const paymentRouter = require("./routes/payment");
+// const basketRouter = require("./routes/basket");
+// const favoriteRouter = require("./routes/favorite");
+// // const productRouter = require("./routes/product");
+// const deliveryRouter = require("./routes/delivery");
+// const addressRouter = require("./routes/address");
+// const rosterRouter = require("./routes/roster");
+// const inquiryRouter = require("./routes/inquiry");
+// const transactionRouter = require("./routes/transaction");
 
-app.use("/api/verify-token", verifyTokenRouter);
-// app.use("/api/account", accountRouter);
-app.use("/api/article", articleRouter);
-app.use("/api/payment", paymentRouter);
-// app.use("/api/basket", basketRouter);
-app.use("/api/favorite", favoriteRouter);
-// app.use("/api/product", productRouter);
-app.use("/api/delivery", deliveryRouter);
-app.use("/api/address", addressRouter);
-app.use("/api/inquiry", inquiryRouter);
-app.use("/api/transaction", transactionRouter);
-app.use("/api/roster", rosterRouter);
+// app.use("/api/verify-token", verifyTokenRouter);
+// // app.use("/api/account", accountRouter);
+// app.use("/api/article", articleRouter);
+// app.use("/api/payment", paymentRouter);
+// // app.use("/api/basket", basketRouter);
+// app.use("/api/favorite", favoriteRouter);
+// // app.use("/api/product", productRouter);
+// app.use("/api/delivery", deliveryRouter);
+// app.use("/api/address", addressRouter);
+// app.use("/api/inquiry", inquiryRouter);
+// app.use("/api/transaction", transactionRouter);
+// app.use("/api/roster", rosterRouter);
 
 /******** START ********* */
 const userRouter = require("./routes/user");
