@@ -129,6 +129,42 @@ exports.readByUser = async (req, res) => {
   }
 };
 
+exports.readByAdmin = async (req, res) => {
+  if (!req.query.product_id) {
+    return res
+      .status(400)
+      .send({ message: "필요한 정보를 모두 입력해주세요." });
+  }
+
+  /* Fetch account data including level attributes:  */
+  try {
+    const response = await Product.findOne({
+      where: {
+        id: req.query.product_id
+      },
+      include: [
+        {
+          model: ProductAbstract,
+          required: true,
+          as: "product_abstract"
+        }
+      ]
+    });
+
+    if (!response) {
+      return res
+        .status(400)
+        .send({ message: "유효하지 않은 product_id 입니다." });
+    }
+
+    return res.status(200).send(response);
+  } catch (err) {
+    return res
+      .status(400)
+      .send({ message: "에러가 발생했습니다. 잠시 후 다시 시도해주세요." });
+  }
+};
+
 exports.updateByAdmin = async (req, res) => {
   let response = {};
   try {
