@@ -6,24 +6,14 @@ exports.readByUser = async (req, res) => {
     try {
       const { account_id } = req;
 
-      const transaction = await models.sequelize.transaction();
-
-      const user = await Account.findOne({
-        where: { id: account_id },
-        transaction
-      });
-
       const address = await Address.findAll({
-        where: { account_id: { [Op.in]: [user.dataValues.id] } },
-        transaction
+        where: { account_id },
       });
-
-      await transaction.commit();
 
       if (!address.length) {
-        return res.send({ message: "success", address: null });
+        return res.status(200).send({ message: "success", address: null });
       } else {
-        return res.send({ message: "success", address: address[0].dataValues });
+        return res.status(200).send({ message: "success", address: address[0].dataValues });
       }
     } catch (err) {
       res
@@ -40,8 +30,8 @@ exports.createByUser = async (req, res) => {
         const transaction = await models.sequelize.transaction();
 
         const address = await Address.findOne({
-        where: { account_id },
-        transaction
+            where: { account_id },
+            transaction
         });
 
         if (address) {
