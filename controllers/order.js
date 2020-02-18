@@ -224,7 +224,7 @@ exports.updateByUser = async (req, res) => {
         });
 
         // 아임포트 인증 토큰 발급
-        const token = getToken();
+        const token = await getToken();
 
         // imp_uid 값을 통해 아임포트 서버에서 가져온 결제 정보 조회
         const getPaymentData = await axios({

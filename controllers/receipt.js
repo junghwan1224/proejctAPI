@@ -8,7 +8,7 @@ exports.readByUser = async (req, res) => {
         // req.query?
         const { imp_uid } = req.body;
 
-        const token = getToken();
+        const token = await getToken();
 
         const getReceipt = await axios({
             url: `https://api.iamport.kr/receipts/${imp_uid}`,
@@ -44,7 +44,7 @@ exports.createByUser = async (req, res) => {
         });
         const { name, phone, email, crn } = user.dataValues;
 
-        const token = getToken();
+        const token = await getToken();
 
         const data = {
             imp_uid,

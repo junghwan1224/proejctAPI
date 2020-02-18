@@ -24,7 +24,7 @@ exports.webHookByUser = async (req, res) => {
         const transaction = await models.sequelize.transaction();
 
         // 아임포트 인증 토큰
-        const token = getToken();
+        const token = await getToken();
 
         // imp_uid 값을 통해 아임포트 서버에서 가져온 결제 정보 조회
         const getPaymentData = await axios({
@@ -170,7 +170,7 @@ exports.createBillingKeyByUser = async (req, res) => {
         const customer_uid = `HERMES_BILLING_KEY_${account_phone}_${card_num_4digit}`; // 카드(빌링키)와 1:1로 대응하는 값
 
         // 아임포트 인증 토큰 발급
-        const token = getToken();
+        const token = await getToken();
 
         // 빌링키 발급 요청
         const getBilling = await axios({
@@ -216,7 +216,7 @@ exports.deleteBillingKeyByUser = async (req, res) => {
     try{
         const { customer_uid } = req.body;
 
-        const token = getToken();
+        const token = await getToken();
 
         const deleteBilling = await axios({
             url: `https://api.iamport.kr/subscribe/customers/${customer_uid}`,
@@ -266,7 +266,7 @@ exports.billingByUser = async (req, res) => {
         });
 
         // 아임포트 인증 토큰
-        const token = getToken();
+        const token = await getToken();
 
         // 결제 정보 조회
         const orderData = await Order.findAll({
@@ -425,7 +425,7 @@ exports.cancelByUser = async (req, res) => {
         });
 
         // 아임포트 인증 토큰 발급
-        const token = getToken();
+        const token = await getToken();
 
         // imp_uid 값을 통해 결제 내역 조회
         const wouldBeRefundedOrder = await Order.findAll({
@@ -515,7 +515,7 @@ exports.refundByAdmin = async (req, res) => {
         });
 
         // 아임포트 인증 토큰 발급
-        const token = getToken();
+        const token = await getToken();
 
         // imp_uid 값을 통해 결제 내역 조회
         const wouldBeRefundedOrder = await Order.findAll({
