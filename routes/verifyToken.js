@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
-const Account = require("../models/account");
-const Admin = require("../models/admin");
+const Account = require("../models").account;
+const Admin = require("../models").admin;
 
 const DEV_SECRET = process.env.DEV_SECRET;
 
@@ -31,7 +31,7 @@ const DEV_SECRET = process.env.DEV_SECRET;
 //   }
 // };
 
-const verify = async (token, type) => {
+const verifyToken = async (token, type) => {
   // if user
   if(type === "user") {
     const accountId = jwt.verify(token, DEV_SECRET, (err, decoded) => {
@@ -40,11 +40,10 @@ const verify = async (token, type) => {
     });
   
     if(accountId) {
-      // find in account
       const account = await Account.findOne({
         where: { id: accountId }
       });
-  
+
       if(account) {
         return accountId;
       }
@@ -52,6 +51,7 @@ const verify = async (token, type) => {
         return null;
       }
     }
+
     else {
       return null;
     }
@@ -84,12 +84,12 @@ const verify = async (token, type) => {
 };
 
 // authenticate user
-const authUser = (req, res, next) => {
+const authUser = async (req, res, next) => {
   const { authorization } = req.headers;
-  const id = verify(authorization, "user");
+  const id = await verifyToken(authorization, "user");
 
   if(id) {
-    req.id = id;
+    req.account_id = id;
     next();
   }
   else {
@@ -98,12 +98,12 @@ const authUser = (req, res, next) => {
 };
 
 // authenticate admin
-const authAdmin = (req, res, next) => {
+const authAdmin = async (req, res, next) => {
   const { authorization } = req.headers;
-  const id = verifyAdmin(authorization, "admin");
+  const id = await verifyToken(authorization, "admin");
 
   if(id) {
-    req.id = id;
+    req.admin_id = id;
     next();
   }
   else {
