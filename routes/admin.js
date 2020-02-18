@@ -50,9 +50,10 @@ module.exports = app => {
     .get(productList.readByAdmin);
 
   app
-    .route(ADMIN_ROUTE + "/product")
+    .route(`${ADMIN_ROUTE}/product`)
     .all(verifyToken.authAdmin)
     .post(product.createByAdmin)
+    .get(product.readByAdmin)
     .put(product.updateByAdmin)
     .delete(product.deleteByAdmin);
 
