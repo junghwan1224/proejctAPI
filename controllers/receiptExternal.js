@@ -7,7 +7,7 @@ exports.readByAdmin = async (req, res) => {
     try {
         const { merchant_uid } = req.query;
 
-        const token = getToken();
+        const token = await getToken();
 
         const getReceipt = await axios({
             url: `https://api.iamport.kr/receipts/external/${merchant_uid}`,
@@ -58,7 +58,7 @@ exports.createByAdmin = async (req, res) => {
             where: { merchant_uid }
         });
 
-        const token = getToken();
+        const token = await getToken();
 
         const data = {
             name: orderName, // 주문명

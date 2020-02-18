@@ -24,7 +24,7 @@ exports.webHookByUser = async (req, res) => {
         const transaction = await models.sequelize.transaction();
 
         // 아임포트 인증 토큰
-        const token = getToken();
+        const token = await getToken();
 
         // imp_uid 값을 통해 아임포트 서버에서 가져온 결제 정보 조회
         const getPaymentData = await axios({
@@ -80,7 +80,7 @@ exports.webHookByUser = async (req, res) => {
                 case "paid":
                     // 결제 완료
                     // product DB 값 업데이트 ... 재고 업데이트
-                    const updatedProducts = processStock(orderedProductId, orderedQuantity, true, transaction);
+                    const updatedProducts = await processStock(orderedProductId, orderedQuantity, true, transaction);
 
                     await ProductAbstract.bulkCreate(updatedProducts, {
                         updateOnDuplicate: ["stock"],
@@ -111,7 +111,7 @@ exports.webHookByUser = async (req, res) => {
                         const productOEN = products.map( p => p.dataValues.oe_number);
                         const smsText = `${productOEN.length > 1 ? `${productOEN[0]}외 ${productOEN.length - 1}종류` : productOEN[0]} 상품의 결제가 완료되었습니다.`;
 
-                        sendSMS(smsText, user.dataValues.phone, timestamp);
+                        await sendSMS(smsText, user.dataValues.phone, timestamp);
                     }
 
                     res.status(201).send({ status: "success", message: "결제가 정상적으로 완료되었습니다." });
@@ -170,7 +170,7 @@ exports.createBillingKeyByUser = async (req, res) => {
         const customer_uid = `HERMES_BILLING_KEY_${account_phone}_${card_num_4digit}`; // 카드(빌링키)와 1:1로 대응하는 값
 
         // 아임포트 인증 토큰 발급
-        const token = getToken();
+        const token = await getToken();
 
         // 빌링키 발급 요청
         const getBilling = await axios({
@@ -216,7 +216,7 @@ exports.deleteBillingKeyByUser = async (req, res) => {
     try{
         const { customer_uid } = req.body;
 
-        const token = getToken();
+        const token = await getToken();
 
         const deleteBilling = await axios({
             url: `https://api.iamport.kr/subscribe/customers/${customer_uid}`,
@@ -266,7 +266,7 @@ exports.billingByUser = async (req, res) => {
         });
 
         // 아임포트 인증 토큰
-        const token = getToken();
+        const token = await getToken();
 
         // 결제 정보 조회
         const orderData = await Order.findAll({
@@ -313,7 +313,7 @@ exports.billingByUser = async (req, res) => {
                 // 카드 정상 승인
                 if(payWithBilling.status === "paid") {
                     // product DB 값 업데이트 ... 재고 업데이트
-                    const updatedProducts = processStock(orderedProductId, orderedQuantity, true, transaction);
+                    const updatedProducts = await processStock(orderedProductId, orderedQuantity, true, transaction);
                 
                     await ProductAbstract.bulkCreate(updatedProducts, {
                         updateOnDuplicate: ["stock"],
@@ -345,7 +345,7 @@ exports.billingByUser = async (req, res) => {
                         완료되었습니다.
                     `;
 
-                    sendSMS(smsText, user.dataValues.phone, timestamp);
+                    await sendSMS(smsText, user.dataValues.phone, timestamp);
                     
                     return res.status(201).send({ status: "success", message });
                 }
@@ -425,7 +425,7 @@ exports.cancelByUser = async (req, res) => {
         });
 
         // 아임포트 인증 토큰 발급
-        const token = getToken();
+        const token = await getToken();
 
         // imp_uid 값을 통해 결제 내역 조회
         const wouldBeRefundedOrder = await Order.findAll({
@@ -481,7 +481,7 @@ exports.cancelByUser = async (req, res) => {
             await transaction.commit();
 
             const timestamp = new Date().getTime().toString();
-            sendSMS(`결제가 취소되었습니다.`, user.dataValues.phone, timestamp);
+            await sendSMS(`결제가 취소되었습니다.`, user.dataValues.phone, timestamp);
 
             return res.status(200).send({
                 status: "success",
@@ -515,7 +515,7 @@ exports.refundByAdmin = async (req, res) => {
         });
 
         // 아임포트 인증 토큰 발급
-        const token = getToken();
+        const token = await getToken();
 
         // imp_uid 값을 통해 결제 내역 조회
         const wouldBeRefundedOrder = await Order.findAll({
@@ -591,7 +591,7 @@ exports.refundByAdmin = async (req, res) => {
             // 환불 성공인 경우
 
             // product DB 값 업데이트 ... 재고 업데이트
-            const updatedProducts = processStock(refundedProductId, refundedQuantity, false, transaction);
+            const updatedProducts = await processStock(refundedProductId, refundedQuantity, false, transaction);
         
             await ProductAbstract.bulkCreate(updatedProducts, {
                 updateOnDuplicate: ["stock"],
@@ -621,7 +621,7 @@ exports.refundByAdmin = async (req, res) => {
             const smsText = `${productOEN.length > 1 ? `${productOEN[0]}외 ${productOEN.length - 1}개` : productOEN[0]} 상품 주문이 취소되었습니다.`;
 
             const timestamp = new Date().getTime().toString();
-            sendSMS(smsText, user.dataValues.phone, timestamp);
+            await sendSMS(smsText, user.dataValues.phone, timestamp);
 
             return res.status(201).send({
                 status: "success",

@@ -95,7 +95,7 @@ exports.createByUser = async (req, res) => {
         const productsQuantityArr = quantity.split(",").map(q => parseInt(q));
         const productsAmountArr = amount.split(",").map(a => parseInt(a));
     
-        const processedProducts = processStock(productsIdArr, productsQuantityArr, true, transaction);
+        const processedProducts = await processStock(productsIdArr, productsQuantityArr, true, transaction);
     
         // 요청한 수량보다 재고가 적은 abstract의 id를 배열에 저장
         const scarceProductsArr = processedProducts.reduce(
@@ -224,7 +224,7 @@ exports.updateByUser = async (req, res) => {
         });
 
         // 아임포트 인증 토큰 발급
-        const token = getToken();
+        const token = await getToken();
 
         // imp_uid 값을 통해 아임포트 서버에서 가져온 결제 정보 조회
         const getPaymentData = await axios({
@@ -273,13 +273,13 @@ exports.updateByUser = async (req, res) => {
 
                     await transaction.commit();
 
-                    res.status(201).send({ api: "complete", status: "vbankIssued", message: "가상계좌 발급 성공" });
+                    res.status(200).send({ api: "complete", status: "vbankIssued", message: "가상계좌 발급 성공" });
                     break;
 
                 case "paid":
                     // 결제 완료
                     // product DB 값 업데이트 ... 재고 업데이트
-                    const updatedProducts = processStock(orderedProductId, orderedQuantity, true, transaction);
+                    const updatedProducts = await processStock(orderedProductId, orderedQuantity, true, transaction);
                 
                     await ProductAbstract.bulkCreate(updatedProducts, { 
                         updateOnDuplicate: ["stock"],
@@ -310,7 +310,7 @@ exports.updateByUser = async (req, res) => {
                     const productOEN = products.map( p => p.dataValues.oe_number);
                     const smsText = `${productOEN.length > 1 ? `${productOEN[0]}외 ${productOEN.length - 1}종류` : productOEN[0]} 상품의 결제가 완료되었습니다.`;
 
-                    sendSMS(smsText, user.dataValues.phone, timestamp);
+                    await sendSMS(smsText, user.dataValues.phone, timestamp);
 
                     res.status(200).send({ api: "complete", status: "success", message: "결제가 정상적으로 완료되었습니다." });
                     break;

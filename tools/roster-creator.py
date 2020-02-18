@@ -1,9 +1,9 @@
 import requests
 from datetime import datetime, timedelta
 
-# SERVER_BASE = 'http://localhost:3001'
-SERVER_BASE = 'http://13.124.25.4:3001'
-ROSTER_CREATE_ROUTE = '/api/roster/create'
+SERVER_BASE = 'http://localhost:3001'
+# SERVER_BASE = 'http://13.124.25.4:3001'
+ROSTER_CREATE_ROUTE = '/admin/roster'
 DAILY_SCHEDULES = [('10:30', '12:00'), ('12:30', '13:30'),
                    ('14:00', '15:30'), ('16:00', '17:30')]  # must be in 24HR
 START_DATE = datetime(2019, 12, 1)

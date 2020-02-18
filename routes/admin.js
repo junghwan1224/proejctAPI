@@ -16,6 +16,8 @@ module.exports = app => {
   const creditTransactionList = require("../controllers/creditTransactionList");
   const receiptExternal = require("../controllers/receiptExternal");
 
+  const roster = require("../controllers/roster");
+
   const ADMIN_ROUTE = "/admin";
   app
     .route(ADMIN_ROUTE + "/account")
@@ -101,5 +103,11 @@ module.exports = app => {
     .route(ADMIN_ROUTE + "/receipt-external")
     .all(verifyToken.authAdmin)
     .get(receiptExternal.readByAdmin)
-    .post(receiptExternal.createByAdmin)
+    .post(receiptExternal.createByAdmin);
+
+  app
+    .route(ADMIN_ROUTE + "/roster")
+    // .all(verifyToken.authAdmin)
+    .get(roster.readByAdmin)
+    .post(roster.createByAdmin);
 };

@@ -62,7 +62,7 @@ exports.createByAdmin = async (req, res) => {
         const productsQuantityArr = quantity.split(",").map(q => parseInt(q));
         const productsAmountArr = amount.split(",").map(a => parseInt(a));
     
-        const processedProducts = processStock(productsIdArr, productsQuantityArr, true, transaction);
+        const processedProducts = await processStock(productsIdArr, productsQuantityArr, true, transaction);
         
         // 요청한 수량보다 재고가 적은 abstract의 id를 배열에 저장
         const scarceProductsArr = processedProducts.reduce(
@@ -200,7 +200,7 @@ exports.updateByAdmin = async (req, res) => {
             const productsId = orders.map(o => o.dataValues.product_id);
             const productsQuantity = orders.map(o => o.dataValues.quantity);
 
-            const products = processStock(productsId, productsQuantity, false, transaction);
+            const products = await processStock(productsId, productsQuantity, false, transaction);
 
             await ProductAbstract.bulkCreate(products, { 
                 updateOnDuplicate: ["stock"],
