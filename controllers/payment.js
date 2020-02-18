@@ -80,7 +80,7 @@ exports.webHookByUser = async (req, res) => {
                 case "paid":
                     // 결제 완료
                     // product DB 값 업데이트 ... 재고 업데이트
-                    const updatedProducts = processStock(orderedProductId, orderedQuantity, true, transaction);
+                    const updatedProducts = await processStock(orderedProductId, orderedQuantity, true, transaction);
 
                     await ProductAbstract.bulkCreate(updatedProducts, {
                         updateOnDuplicate: ["stock"],
@@ -313,7 +313,7 @@ exports.billingByUser = async (req, res) => {
                 // 카드 정상 승인
                 if(payWithBilling.status === "paid") {
                     // product DB 값 업데이트 ... 재고 업데이트
-                    const updatedProducts = processStock(orderedProductId, orderedQuantity, true, transaction);
+                    const updatedProducts = await processStock(orderedProductId, orderedQuantity, true, transaction);
                 
                     await ProductAbstract.bulkCreate(updatedProducts, {
                         updateOnDuplicate: ["stock"],
@@ -591,7 +591,7 @@ exports.refundByAdmin = async (req, res) => {
             // 환불 성공인 경우
 
             // product DB 값 업데이트 ... 재고 업데이트
-            const updatedProducts = processStock(refundedProductId, refundedQuantity, false, transaction);
+            const updatedProducts = await processStock(refundedProductId, refundedQuantity, false, transaction);
         
             await ProductAbstract.bulkCreate(updatedProducts, {
                 updateOnDuplicate: ["stock"],
