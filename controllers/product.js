@@ -6,7 +6,7 @@ const Sequelize = require("sequelize");
 
 const Op = Sequelize.Op;
 
-const PRODUCT_ABSTRACT_ATTRIBUTES = [
+const USER_PRODUCT_ABSTRACT_ATTRIBUTES = [
   "image",
   "maker",
   "maker_number",
@@ -16,7 +16,7 @@ const PRODUCT_ABSTRACT_ATTRIBUTES = [
   "allow_discount"
 ];
 
-const PRODUCT_ATTRIBUTES = [
+const USER_PRODUCT_ATTRIBUTES = [
   "price",
   "brand",
   "model",
@@ -28,6 +28,32 @@ const PRODUCT_ATTRIBUTES = [
   "quality_cert",
   "id"
 ];
+
+const ADMIN_PRODUCT_ABSTRACT_ATTRIBUTES = [
+  "image",
+  "maker",
+  "maker_number",
+  "stock",
+  "type",
+  "id",
+  "allow_discount"
+];
+
+const ADMIN_PRODUCT_ATTRIBUTES = [
+  "price",
+  "brand",
+  "model",
+  "oe_number",
+  "category",
+  "start_year",
+  "end_year",
+  "engine",
+  "description",
+  "quality_cert",
+  "id",
+  "memo"
+];
+
 exports.createByAdmin = async (req, res) => {
   /* If necessary fields are not given, return 400: */
   if (
@@ -104,13 +130,13 @@ exports.readByUser = async (req, res) => {
       where: {
         id: req.query.product_id
       },
-      attributes: PRODUCT_ATTRIBUTES,
+      attributes: USER_PRODUCT_ATTRIBUTES,
       include: [
         {
           model: ProductAbstract,
           required: true,
           as: "product_abstract",
-          attributes: PRODUCT_ABSTRACT_ATTRIBUTES
+          attributes: USER_PRODUCT_ABSTRACT_ATTRIBUTES
         }
       ]
     });
@@ -188,7 +214,7 @@ exports.updateByAdmin = async (req, res) => {
 
   /* Create product-abstract Promise: */
   let product_abstract_data = {};
-  for (const attribute of PRODUCT_ABSTRACT_ATTRIBUTES) {
+  for (const attribute of ADMIN_PRODUCT_ABSTRACT_ATTRIBUTES) {
     product_abstract_data[attribute] = req.body[attribute];
   }
   const promise_product_abstract = ProductAbstract.update(
@@ -200,7 +226,7 @@ exports.updateByAdmin = async (req, res) => {
 
   /* Create product Promise: */
   let product_data = {};
-  for (const attribute of PRODUCT_ATTRIBUTES) {
+  for (const attribute of ADMIN_PRODUCT_ATTRIBUTES) {
     product_data[attribute] = req.body[attribute];
   }
   const promise_product = Product.update(product_data, {
