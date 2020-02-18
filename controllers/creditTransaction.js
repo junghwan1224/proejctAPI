@@ -62,10 +62,10 @@ exports.createByAdmin = async (req, res) => {
         const productsQuantityArr = quantity.split(",").map(q => parseInt(q));
         const productsAmountArr = amount.split(",").map(a => parseInt(a));
     
-        const products = processStock(productsIdArr, productsQuantityArr, true, transaction);
+        const processedProducts = processStock(productsIdArr, productsQuantityArr, true, transaction);
         
         // 요청한 수량보다 재고가 적은 abstract의 id를 배열에 저장
-        const scarceProductsArr = products.reduce(
+        const scarceProductsArr = processedProducts.reduce(
             (acc, product, idx) => {
                 if(product.stock < 0) {
                     acc.push(idx);
