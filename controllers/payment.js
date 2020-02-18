@@ -111,7 +111,7 @@ exports.webHookByUser = async (req, res) => {
                         const productOEN = products.map( p => p.dataValues.oe_number);
                         const smsText = `${productOEN.length > 1 ? `${productOEN[0]}외 ${productOEN.length - 1}종류` : productOEN[0]} 상품의 결제가 완료되었습니다.`;
 
-                        sendSMS(smsText, user.dataValues.phone, timestamp);
+                        await sendSMS(smsText, user.dataValues.phone, timestamp);
                     }
 
                     res.status(201).send({ status: "success", message: "결제가 정상적으로 완료되었습니다." });
@@ -345,7 +345,7 @@ exports.billingByUser = async (req, res) => {
                         완료되었습니다.
                     `;
 
-                    sendSMS(smsText, user.dataValues.phone, timestamp);
+                    await sendSMS(smsText, user.dataValues.phone, timestamp);
                     
                     return res.status(201).send({ status: "success", message });
                 }
@@ -481,7 +481,7 @@ exports.cancelByUser = async (req, res) => {
             await transaction.commit();
 
             const timestamp = new Date().getTime().toString();
-            sendSMS(`결제가 취소되었습니다.`, user.dataValues.phone, timestamp);
+            await sendSMS(`결제가 취소되었습니다.`, user.dataValues.phone, timestamp);
 
             return res.status(200).send({
                 status: "success",
@@ -621,7 +621,7 @@ exports.refundByAdmin = async (req, res) => {
             const smsText = `${productOEN.length > 1 ? `${productOEN[0]}외 ${productOEN.length - 1}개` : productOEN[0]} 상품 주문이 취소되었습니다.`;
 
             const timestamp = new Date().getTime().toString();
-            sendSMS(smsText, user.dataValues.phone, timestamp);
+            await sendSMS(smsText, user.dataValues.phone, timestamp);
 
             return res.status(201).send({
                 status: "success",

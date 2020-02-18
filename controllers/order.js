@@ -310,7 +310,7 @@ exports.updateByUser = async (req, res) => {
                     const productOEN = products.map( p => p.dataValues.oe_number);
                     const smsText = `${productOEN.length > 1 ? `${productOEN[0]}외 ${productOEN.length - 1}종류` : productOEN[0]} 상품의 결제가 완료되었습니다.`;
 
-                    sendSMS(smsText, user.dataValues.phone, timestamp);
+                    await sendSMS(smsText, user.dataValues.phone, timestamp);
 
                     res.status(200).send({ api: "complete", status: "success", message: "결제가 정상적으로 완료되었습니다." });
                     break;
