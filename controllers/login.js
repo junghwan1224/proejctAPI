@@ -23,7 +23,6 @@ exports.loginByUser = async (req, res) => {
         const account = await Account.findOne({
             where: {
                 phone,
-                is_user: true
             }
         });
 
