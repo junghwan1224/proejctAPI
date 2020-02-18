@@ -273,7 +273,7 @@ exports.updateByUser = async (req, res) => {
 
                     await transaction.commit();
 
-                    res.status(201).send({ api: "complete", status: "vbankIssued", message: "가상계좌 발급 성공" });
+                    res.status(200).send({ api: "complete", status: "vbankIssued", message: "가상계좌 발급 성공" });
                     break;
 
                 case "paid":
