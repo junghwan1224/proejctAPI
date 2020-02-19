@@ -246,16 +246,16 @@ exports.updateByAdmin = async (req, res) => {
 };
 
 exports.deleteByAdmin = async (req, res) => {
-  /* Send 400 if account_id is not given: */
+  /* Send 400 if product_id is not given: */
   try {
-    if (!req.body.product_id) {
+    if (!req.query.product_id) {
       return res.status(400).send({
         message: "필요한 정보를 모두 입력해주세요."
       });
     }
     /* Verify whether the user exists: */
     const response = await Product.findOne({
-      where: { id: req.body.account_id }
+      where: { id: req.query.product_id }
     });
     if (!response) {
       return res
@@ -265,7 +265,7 @@ exports.deleteByAdmin = async (req, res) => {
 
     /* Delete account data from the DB: */
     await Product.destroy({
-      where: { id: req.body.product_id },
+      where: { id: req.query.product_id },
       limit: 1
     });
     return res.status(200).send();
