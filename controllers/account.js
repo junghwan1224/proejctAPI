@@ -59,7 +59,7 @@ exports.readByUser = async (req, res) => {
     "level"
   ];
   const fields = req.query.fields || "";
-  const account_id = req.query.account_id;
+  const { account_id } = req;
 
   /* Fetch account data including level attributes:  */
   try {
@@ -106,18 +106,13 @@ exports.updateByUser = async (req, res) => {
     attribute => (newData[attribute] = req.body[attribute])
   );
 
-  /* If no account_id was given, raise 400: */
-  if (!req.query.account_id) {
-    return res
-      .status(400)
-      .send({ message: "필요한 정보를 모두 입력해주세요." });
-  }
+  const { account_id } = req;
 
   /* Verify whether the user exists: */
   try {
     const response = await Account.findOne({
       where: {
-        id: req.query.account_id
+        id: account_id
       }
     });
     if (!response) {
@@ -135,8 +130,9 @@ exports.updateByUser = async (req, res) => {
   try {
     await Account.update(newData, {
       where: {
-        id: req.query.account_id
-      }
+        id: account_id
+      },
+      individualHooks: true
     });
     return res.status(200).send();
   } catch (err) {
@@ -150,14 +146,16 @@ exports.updateByUser = async (req, res) => {
 exports.deleteByAdmin = async (req, res) => {
   /* Send 400 if account_id is not given: */
   try {
-    if (!req.body.account_id) {
+    const { account_id } = req.query;
+
+    if (!account_id) {
       return res.status(400).send({
         message: "필요한 정보를 모두 입력해주세요."
       });
     }
     /* Verify whether the user exists: */
     const response = await Account.findOne({
-      where: { id: req.body.account_id }
+      where: { id: account_id }
     });
     if (!response) {
       return res.status(400).send({ message: "User not found." });
@@ -165,7 +163,7 @@ exports.deleteByAdmin = async (req, res) => {
 
     /* Delete account data from the DB: */
     await Account.destroy({
-      where: { id: req.body.account_id },
+      where: { id: account_id },
       limit: 1
     });
     return res.status(200).send();
