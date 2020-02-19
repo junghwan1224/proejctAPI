@@ -2,6 +2,7 @@ module.exports = app => {
   const verifyToken = require("./verifyToken");
 
   const account = require("../controllers/account");
+  const address = require("../controllers/address");
   const login = require("../controllers/login");
   const product = require("../controllers/product");
   const productList = require("../controllers/productList");
@@ -23,6 +24,12 @@ module.exports = app => {
   app
     .route("/login")
     .post(login.loginByUser);
+  
+  app
+    .route("/address")
+    .all(verifyToken.authUser)
+    .get(address.readByUser)
+    .post(address.createByUser);
 
   app
     .route("/product")
