@@ -35,7 +35,7 @@ exports.createByUser = async (req, res) => {
       name: req.body.name,
       crn: req.body.crn,
       type: req.body.type,
-      email: req.body.email,
+      // email: req.body.email,
       level: "NORMAL"
     });
     return res.status(201).send();
