@@ -4,6 +4,8 @@ module.exports = app => {
   const account = require("../controllers/account");
   const address = require("../controllers/address");
   const login = require("../controllers/login");
+  const certify = require("../controllers/certify");
+
   const product = require("../controllers/product");
   const productList = require("../controllers/productList");
 
@@ -13,13 +15,13 @@ module.exports = app => {
 
   app
     .route("/account")
+    .post(account.createByUser)
+  
+  app
+    .route("/account")
     .all(verifyToken.authUser)
     .get(account.readByUser)
     .put(account.updateByUser);
-
-  app
-    .route("/account")
-    .post(account.createByUser)
 
   app
     .route("/login")
@@ -30,6 +32,14 @@ module.exports = app => {
     .all(verifyToken.authUser)
     .get(address.readByUser)
     .post(address.createByUser);
+
+  app
+    .route("/certify/issue-number")
+    .post(certify.issueNumber);
+  
+  app
+    .route("/certify/check")
+    .post(certify.check);
 
   app
     .route("/product")
