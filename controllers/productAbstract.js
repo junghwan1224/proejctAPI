@@ -8,7 +8,7 @@ exports.createByAdmin = async (req, res) => {
     !(
       req.body.maker &&
       req.body.maker_number &&
-      req.body.image &&
+      // req.body.image &&
       req.body.stock &&
       req.body.type
     )
