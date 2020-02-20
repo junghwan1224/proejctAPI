@@ -4,7 +4,7 @@ const Product = require("../models").product;
 const ProductAbstract = require("../models").product_abstract;
 const Sequelize = require("sequelize");
 
-const Op = Sequelize.Op;
+const { Op } = Sequelize;
 
 const PRODUCT_ABSTRACT_ATTRIBUTES = [
   "image",
@@ -33,7 +33,7 @@ exports.readByUser = async (req, res) => {
   const method = req.query.method || "";
 
   if (method.toUpperCase() === "MAKER") {
-    if (!(req.query.category && req.query.oe_number)) {
+    if (!(req.query.category && req.query.oe_number && req.query.year)) {
       return res
         .status(400)
         .send({ message: "필요한 정보를 모두 입력해주세요." });
@@ -43,6 +43,10 @@ exports.readByUser = async (req, res) => {
         where: {
           category: req.query.category,
           oe_number: req.query.oe_number,
+          [Op.and]: [
+            { start_year: { [Op.lte]: req.query.year } },
+            { end_year: { [Op.gte]: req.query.year } }
+          ],
           is_public: true
         },
         attributes: PRODUCT_ATTRIBUTES,
