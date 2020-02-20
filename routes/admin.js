@@ -24,9 +24,7 @@ module.exports = app => {
     .all(verifyToken.authAdmin)
     .delete(account.deleteByAdmin);
 
-  app
-    .route(ADMIN_ROUTE + "/login")
-    .post(login.loginByUser);
+  app.route(ADMIN_ROUTE + "/login").post(login.loginByAdmin);
 
   app
     .route(ADMIN_ROUTE + "/admin")
@@ -92,7 +90,7 @@ module.exports = app => {
     .post(creditTransaction.createByAdmin)
     .put(creditTransaction.updateByAdmin)
     .delete(creditTransaction.deleteByAdmin);
-  
+
   app
     .route(ADMIN_ROUTE + "/credit-transaction/list")
     .all(verifyToken.authAdmin)
