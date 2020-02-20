@@ -32,10 +32,9 @@ module.exports = app => {
     .route(ADMIN_ROUTE + "/admin")
     .all(verifyToken.authAdmin)
     .get(admin.readByAdmin)
+    .post(admin.createByAdmin)
     .put(admin.updateByAdmin)
     .delete(admin.deleteByAdmin);
-
-  app.route(ADMIN_ROUTE + "/admin").post(admin.createByAdmin);
 
   app
     .route(ADMIN_ROUTE + "/account-level")

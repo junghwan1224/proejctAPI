@@ -14,7 +14,7 @@ module.exports = app => {
   const receipt = require("../controllers/receipt");
 
   app
-    .route("/account")
+    .route("/account-create")
     .post(account.createByUser)
   
   app

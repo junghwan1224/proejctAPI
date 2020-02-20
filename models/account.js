@@ -28,6 +28,13 @@ module.exports = (sequelize, DataTypes) => {
             //add uuid for id
             account.id = uuid();
           }
+        },
+        beforeUpdate: (account, options) => {
+          if(options.fields.includes("password")) {
+            const { password } = account.dataValues;
+
+            account.password = bcrypt.hashSync(password, 10);
+          }
         }
       }
     }
