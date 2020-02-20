@@ -2,6 +2,7 @@ module.exports = app => {
   const verifyToken = require("./verifyToken");
 
   const account = require("../controllers/account");
+  const accountList = require("../controllers/accountList");
   const login = require("../controllers/login");
   const accountLevel = require("../controllers/accountLevel");
 
@@ -23,6 +24,11 @@ module.exports = app => {
     .route(ADMIN_ROUTE + "/account")
     .all(verifyToken.authAdmin)
     .delete(account.deleteByAdmin);
+
+  app
+    .route(ADMIN_ROUTE + "/account-list")
+    .all(verifyToken.authAdmin)
+    .get(accountList.readByAdmin);
 
   app
     .route(ADMIN_ROUTE + "/login")
