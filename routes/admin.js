@@ -11,6 +11,10 @@ module.exports = app => {
   const product = require("../controllers/product");
   const productList = require("../controllers/productList");
 
+  const delivery = require("../controllers/delivery");
+  const deliveryList = require("../controllers/deliveryList");
+  const deliveryPerUser = require("../controllers/deliveryPerUser");
+
   const payment = require("../controllers/payment");
   const creditTransaction = require("../controllers/creditTransaction");
   const creditTransactionList = require("../controllers/creditTransactionList");
@@ -70,7 +74,21 @@ module.exports = app => {
 
   app.route(ADMIN_ROUTE + "/basket").all(verifyToken.authAdmin);
 
-  app.route(ADMIN_ROUTE + "/delivery").all(verifyToken.authAdmin);
+  app
+    .route(ADMIN_ROUTE + "/delivery")
+    .all(verifyToken.authAdmin)
+    .get(delivery.readByAdmin)
+    .put(delivery.updateByAdmin);
+  
+  app
+    .route(ADMIN_ROUTE + "/delivery-list")
+    .all(verifyToken.authAdmin)
+    .get(deliveryList.readByAdmin);
+
+  app
+    .route(ADMIN_ROUTE + "/delivery-per-user")
+    .all(verifyToken.authAdmin)
+    .get(deliveryPerUser.readByAdmin);
 
   app
     .route(ADMIN_ROUTE + "/article")

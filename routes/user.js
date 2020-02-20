@@ -9,6 +9,9 @@ module.exports = app => {
   const product = require("../controllers/product");
   const productList = require("../controllers/productList");
 
+  const delivery = require("../controllers/delivery");
+  const deliveryList = require("../controllers/deliveryList");
+
   const order = require("../controllers/order");
   const payment = require("../controllers/payment");
   const receipt = require("../controllers/receipt");
@@ -57,7 +60,13 @@ module.exports = app => {
 
   app
     .route("/delivery")
-    .all(verifyToken.authUser);
+    .all(verifyToken.authUser)
+    .get(delivery.readByUser);
+
+  app
+    .route("/delivery-list")
+    .all(verifyToken.authUser)
+    .get(deliveryList.readByUser);
 
   app
     .route("/favorite")
