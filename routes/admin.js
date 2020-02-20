@@ -2,6 +2,7 @@ module.exports = app => {
   const verifyToken = require("./verifyToken");
 
   const account = require("../controllers/account");
+  const accountList = require("../controllers/accountList");
   const login = require("../controllers/login");
   const accountLevel = require("../controllers/accountLevel");
 
@@ -10,6 +11,10 @@ module.exports = app => {
   const productAbstractList = require("../controllers/productAbstractList");
   const product = require("../controllers/product");
   const productList = require("../controllers/productList");
+
+  const delivery = require("../controllers/delivery");
+  const deliveryList = require("../controllers/deliveryList");
+  const deliveryPerUser = require("../controllers/deliveryPerUser");
 
   const payment = require("../controllers/payment");
   const creditTransaction = require("../controllers/creditTransaction");
@@ -24,7 +29,14 @@ module.exports = app => {
     .all(verifyToken.authAdmin)
     .delete(account.deleteByAdmin);
 
-  app.route(ADMIN_ROUTE + "/login").post(login.loginByAdmin);
+  app
+    .route(ADMIN_ROUTE + "/account-list")
+    .all(verifyToken.authAdmin)
+    .get(accountList.readByAdmin);
+
+  app
+    .route(ADMIN_ROUTE + "/login")
+    .post(login.loginByUser);
 
   app
     .route(ADMIN_ROUTE + "/admin")
@@ -68,7 +80,21 @@ module.exports = app => {
 
   app.route(ADMIN_ROUTE + "/basket").all(verifyToken.authAdmin);
 
-  app.route(ADMIN_ROUTE + "/delivery").all(verifyToken.authAdmin);
+  app
+    .route(ADMIN_ROUTE + "/delivery")
+    .all(verifyToken.authAdmin)
+    .get(delivery.readByAdmin)
+    .put(delivery.updateByAdmin);
+  
+  app
+    .route(ADMIN_ROUTE + "/delivery-list")
+    .all(verifyToken.authAdmin)
+    .get(deliveryList.readByAdmin);
+
+  app
+    .route(ADMIN_ROUTE + "/delivery-per-user")
+    .all(verifyToken.authAdmin)
+    .get(deliveryPerUser.readByAdmin);
 
   app
     .route(ADMIN_ROUTE + "/article")
