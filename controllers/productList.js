@@ -4,7 +4,7 @@ const Product = require("../models").product;
 const ProductAbstract = require("../models").product_abstract;
 const Sequelize = require("sequelize");
 
-const Op = Sequelize.Op;
+const { Op } = Sequelize;
 
 const PRODUCT_ABSTRACT_ATTRIBUTES = [
   "image",
@@ -33,18 +33,32 @@ exports.readByUser = async (req, res) => {
   const method = req.query.method || "";
 
   if (method.toUpperCase() === "MAKER") {
+    // req.query.year 옵션은 없어도 되기에 필요한 기초 정보로 두지 않는다.
     if (!(req.query.category && req.query.oe_number)) {
       return res
         .status(400)
         .send({ message: "필요한 정보를 모두 입력해주세요." });
     }
+    const whereQuery = {
+      category: req.query.category,
+      oe_number: req.query.oe_number,
+      is_public: true
+    };
+
+    // 연도 옵션이 존재할 시 쿼리 조건에 추가
+    if(req.query.year) {
+      Object.assign(whereQuery, 
+        { start_year: { [Op.lte]: req.query.year } }
+      );
+
+      Object.assign(whereQuery, 
+        { end_year: { [Op.gte]: req.query.year } }
+      );
+    }
+
     try {
       const products = await Product.findAll({
-        where: {
-          category: req.query.category,
-          oe_number: req.query.oe_number,
-          is_public: true
-        },
+        where: whereQuery,
         attributes: PRODUCT_ATTRIBUTES,
         include: [
           {
@@ -59,9 +73,10 @@ exports.readByUser = async (req, res) => {
           ["model", "ASC"]
         ]
       });
-
+      
       return res.status(200).send(products);
     } catch (err) {
+      console.log(err);
       return res
         .status(400)
         .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
