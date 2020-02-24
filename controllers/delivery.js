@@ -8,7 +8,7 @@ const models = require("../models");
 
 // By user
 
-// 유저의 모든 배송정보 조회
+// 특정 주문 상세정보
 exports.readByUser = async (req, res) => {
     try {
       const { order_id } = req.query;
