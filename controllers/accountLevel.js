@@ -40,11 +40,16 @@ exports.createByAdmin = async (req, res) => {
   }
 };
 
-exports.readByAdmin = async (req, res) => {
+exports.readByUser = async (req, res) => {
   /* Read AccountLevel data: */
+  const level_id = req.query.level_id;
+
   try {
-    const response = await AccountLevel.findAll({
-      attributes: ["id", "discount_rate"]
+    const response = await AccountLevel.findOne({
+      where: {
+        id: level_id,
+        attributes: ["discount_rate"]
+      }
     });
     return res.status(200).send(response);
   } catch (err) {
