@@ -213,7 +213,13 @@ exports.createByUser = async (req, res) => {
 // complete
 exports.updateByUser = async (req, res) => {
     try{
-        const { imp_uid, merchant_uid } = req.body;
+        const {
+            imp_uid,
+            merchant_uid,
+            shipping_postcode,
+            shipping_primary,
+            shipping_detail
+        } = req.body;
         const transaction = await models.sequelize.transaction();
 
         const { account_id } = req;
@@ -297,6 +303,9 @@ exports.updateByUser = async (req, res) => {
                         },
                         merchant_uid,
                         account_id,
+                        shipping_postcode,
+                        shipping_primary,
+                        shipping_detail,
                         transaction
                     });
 
