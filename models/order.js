@@ -30,12 +30,23 @@ module.exports = (sequelize, DataTypes) => {
               transaction: options.transaction
             });
 
+            const {
+              account_id,
+              merchant_uid,
+              shipping_postcode,
+              shipping_primary,
+              shipping_detail
+            } = options;
+
             await sequelize.models.delivery.create({
-              account_id: options.account_id,
-              delivery_num: options.merchant_uid.slice(7),
-              order_id: options.merchant_uid,
+              account_id,
+              delivery_num: merchant_uid.slice(7),
+              order_id: merchant_uid,
               status: "결제완료, 배송 준비 중",
               location: "HZY 창고",
+              shipping_postcode,
+              shipping_primary,
+              shipping_detail,
               arrived_at: roster[0].dataValues.arrival
             }, {
               transaction: options.transaction
@@ -44,6 +55,12 @@ module.exports = (sequelize, DataTypes) => {
         },
         afterBulkCreate: async (instances, options) => {
           const { account_id, merchant_uid, status } = instances[0].dataValues;
+          const {
+            shipping_postcode,
+            shipping_primary,
+            shipping_detail
+          } = options;
+
           if(status === "credit not paid") {
             const roster = await sequelize.models.roster.findAll({
               where: {
@@ -60,6 +77,9 @@ module.exports = (sequelize, DataTypes) => {
               order_id: merchant_uid,
               status: "결제완료, 배송 준비 중",
               location: "HZY 창고",
+              shipping_postcode,
+              shipping_primary,
+              shipping_detail,
               arrived_at: roster[0].dataValues.arrival
             }, {
               transaction: options.transaction
