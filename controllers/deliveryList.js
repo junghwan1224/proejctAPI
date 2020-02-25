@@ -14,7 +14,7 @@ exports.readByUser = async (req, res) => {
   
         const delivery = await Delivery.findAll({
           where: { account_id },
-          attributes: ["order_id", "status", "location", "arrived_at"],
+          attributes: { exclude: ["createdAt", "updatedAt"] },
           transaction
         });
         const deliveryInfo = delivery.map(d => d.dataValues);
