@@ -1,6 +1,6 @@
 "use strict";
 
-const Basket = require("../models/basket");
+const Basket = require("../models").basket;
 const ProductAbstract = require("../models").product_abstract;
 const Product = require("../models").product;
 
@@ -8,37 +8,36 @@ const Product = require("../models").product;
 
 exports.readByUser = async (req, res) => {
     try {
-        const { account_id } = req.query;
+        const { account_id } = req;
 
         const raw_items = await Basket.findAll({
-        where: {
-            account_id: account_id
-        },
-        attributes: ["quantity"],
-        include: [
-            {
-            model: Product,
-            required: true,
-            attributes: [
-                "price",
-                "discount_rate",
-                "brand",
-                "model",
-                "oe_number",
-                "start_year",
-                "end_year",
-                "id",
-                "category"
-            ],
+            where: {
+                account_id
+            },
+            attributes: ["quantity"],
             include: [
                 {
-                model: ProductAbstract,
-                as: "product_abstract",
-                attributes: ["image", "maker", "maker_number", "stock", "type"]
+                    model: Product,
+                    required: true,
+                    attributes: [
+                        "price",
+                        "brand",
+                        "model",
+                        "oe_number",
+                        "start_year",
+                        "end_year",
+                        "id",
+                        "category"
+                    ],
+                    include: [
+                        {
+                            model: ProductAbstract,
+                            as: "product_abstract",
+                            attributes: ["image", "maker", "maker_number", "stock", "type"]
+                        }
+                    ]
                 }
             ]
-            }
-        ]
         });
 
         // Fabricate:
@@ -53,7 +52,6 @@ exports.readByUser = async (req, res) => {
             item["end_year"] = raw_item.product.end_year;
             item["engine"] = raw_item.product.engine;
             item["price"] = raw_item.product.price;
-            item["discount_rate"] = raw_item.product.discount_rate;
             item["image"] = raw_item.product.product_abstract.image;
             item["maker"] = raw_item.product.product_abstract.maker;
             item["maker_number"] = raw_item.product.product_abstract.maker_number;
@@ -71,7 +69,7 @@ exports.readByUser = async (req, res) => {
 
 exports.createOrUpdateByUser = async (req, res) => {
     try {
-        const { account_id } = req.body;
+        const { account_id } = req;
         const products = JSON.parse(req.body.products);
 
         for (const product of products) {
@@ -88,28 +86,28 @@ exports.createOrUpdateByUser = async (req, res) => {
                 // Delete if quantity is 0:
                 await Basket.destroy({
                     where: {
-                            account_id: account_id,
-                            product_id: product_id
-                        }
+                        account_id,
+                        product_id
+                    }
                 });
             } else if (!isProductExist) {
                 // Create producut
                 await Basket.create({
-                    account_id: account_id,
-                    product_id: product_id,
-                    quantity: quantity
+                    account_id,
+                    product_id,
+                    quantity
                 });
             } else {
                 // Update if quantity is not zero and product exists
                 const basket = await Basket.findOne({
                 where: {
-                    account_id: account_id,
-                    product_id: product_id
-                }
+                        account_id,
+                        product_id
+                    }
                 });
                 
                 await basket.update({
-                    quantity: quantity
+                    quantity
                 });
             }
         }
