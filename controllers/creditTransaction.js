@@ -159,7 +159,12 @@ exports.createByAdmin = async (req, res) => {
                 };
             }
         );
-        await Order.bulkCreate(newOrderArray, { transaction });
+        await Order.bulkCreate(newOrderArray, {
+            shipping_postcode: buyer_postcode,
+            shipping_primary: parsedAddr[0],
+            shipping_detail: parsedAddr[1],
+            transaction
+        });
     
         await transaction.commit();
     
