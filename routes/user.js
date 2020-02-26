@@ -9,6 +9,8 @@ module.exports = app => {
   const product = require("../controllers/product");
   const productList = require("../controllers/productList");
 
+  const basket = require("../controllers/basket");
+
   const delivery = require("../controllers/delivery");
   const deliveryList = require("../controllers/deliveryList");
 
@@ -56,7 +58,9 @@ module.exports = app => {
 
   app
     .route("/basket")
-    .all(verifyToken.authUser);
+    .all(verifyToken.authUser)
+    .get(basket.readByUser)
+    .post(basket.createOrUpdateByUser);
 
   app
     .route("/delivery")
