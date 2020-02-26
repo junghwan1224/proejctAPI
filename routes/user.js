@@ -18,6 +18,8 @@ module.exports = app => {
   const payment = require("../controllers/payment");
   const receipt = require("../controllers/receipt");
 
+  const inquiry = require("../controllers/inquiry");
+
   app
     .route("/account-create")
     .post(account.createByUser)
@@ -82,11 +84,7 @@ module.exports = app => {
 
   app
     .route("/inquiry")
-    .all(verifyToken.authUser)
-    .get()
-    .post()
-    .put()
-    .delete();
+    .post(inquiry.sendByUser);
   
   app
     .route("/payment/webhook")
