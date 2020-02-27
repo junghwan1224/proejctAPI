@@ -48,12 +48,12 @@ module.exports = app => {
 
   app
     .route("/product")
-    .all(verifyToken.authUser)
+    // .all(verifyToken.authUser)
     .get(product.readByUser);
 
   app
     .route("/product-list")
-    .all(verifyToken.authUser)
+    // .all(verifyToken.authUser)
     .get(productList.readByUser);
 
   app
