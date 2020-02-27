@@ -48,7 +48,7 @@ module.exports = app => {
     .route(ADMIN_ROUTE + "/account-level")
     .all(verifyToken.authAdmin)
     .post(accountLevel.createByAdmin)
-    .get(accountLevel.readByAdmin);
+    .get(accountLevel.readByUser);
 
   app
     .route(ADMIN_ROUTE + "/product-abstract")
