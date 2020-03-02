@@ -65,7 +65,8 @@ module.exports = app => {
     .route("/basket")
     .all(verifyToken.authUser)
     .get(basket.readByUser)
-    .post(basket.createOrUpdateByUser);
+    .post(basket.createOrUpdateByUser)
+    .delete(basket.deleteByUser);
 
   app
     .route("/delivery")
