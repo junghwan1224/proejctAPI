@@ -20,6 +20,9 @@ module.exports = app => {
 
   const inquiry = require("../controllers/inquiry");
 
+  // Non User Controller
+  const orderNonUser= require("../controllers/orderNonUser");
+
   app
     .route("/account-create")
     .post(account.createByUser)
@@ -88,12 +91,10 @@ module.exports = app => {
   
   app
     .route("/payment/webhook")
-    .all(verifyToken.authUser)
     .post(payment.webHookByUser)
 
   app
     .route("/payment/cancel")
-    .all(verifyToken.authUser)
     .post(payment.cancelByUser)
 
   app
@@ -119,4 +120,12 @@ module.exports = app => {
     .all(verifyToken.authUser)
     .get(receipt.readByUser)
     .post(receipt.createByUser)
+
+  /* Non User API */
+
+  app
+    .route("/order/non-user")
+    .get(orderNonUser.readByUser)
+    .post(orderNonUser.createByUser)
+    .put(orderNonUser.updateByUser);
 };

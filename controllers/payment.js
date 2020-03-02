@@ -414,15 +414,9 @@ exports.billingByUser = async (req, res) => {
 // cancel
 exports.cancelByUser = async (req, res) => {
     try {
-        const { merchant_uid, reason } = req.body;
-        const { account_id } = req;
+        const { phone, merchant_uid, reason } = req.body;
 
         const transaction = await models.sequelize.transaction();
-
-        const user = await Account.findOne({
-            where: { id: account_id },
-            transaction
-        });
 
         // 아임포트 인증 토큰 발급
         const token = await getToken();
@@ -431,7 +425,6 @@ exports.cancelByUser = async (req, res) => {
         const wouldBeRefundedOrder = await Order.findAll({
             where: {
                 merchant_uid,
-                account_id
             },
             transaction
         });
@@ -481,7 +474,7 @@ exports.cancelByUser = async (req, res) => {
             await transaction.commit();
 
             const timestamp = new Date().getTime().toString();
-            await sendSMS(`결제가 취소되었습니다.`, user.dataValues.phone, timestamp);
+            await sendSMS(`결제가 취소되었습니다.`, phone, timestamp);
 
             return res.status(200).send({
                 status: "success",
