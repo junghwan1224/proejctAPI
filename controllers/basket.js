@@ -119,3 +119,19 @@ exports.createOrUpdateByUser = async (req, res) => {
         res.status(400).send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
     }
 };
+
+exports.deleteByUser = async (req, res) => {
+    try {
+        const { account_id } = req;
+
+        await Basket.destroy({
+            where: { account_id }
+        });
+
+        return res.status(200).send();
+    }
+    catch(err) {
+        console.log(err);
+        return res.status(400).send();
+    }
+};
