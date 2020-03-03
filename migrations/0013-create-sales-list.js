@@ -11,7 +11,7 @@ module.exports = {
       parts_id: {
         type: Sequelize.UUID,
         references: {
-          model: "product_abstracts",
+          model: "products",
           key: "id"
         },
         onDelete: "SET NULL",
