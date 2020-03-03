@@ -8,17 +8,28 @@ module.exports = {
         defaultValue: () => uuid(),
         type: Sequelize.UUID
       },
-      abstract_id: {
-        type: Sequelize.UUID,
-        references: {
-          model: "product_abstracts",
-          key: "id"
-        },
-        onDelete: "CASCADE",
-        onUpdate: "CASCADE"
+      images: {
+        allowNull: true,
+        type: Sequelize.STRING
       },
-      category: {
-        type: Sequelize.STRING,
+      maker: {
+        allowNull: true,
+        type: Sequelize.STRING
+      },
+      maker_number: {
+        allowNull: true,
+        type: Sequelize.STRING
+      },
+      stock: {
+        type: Sequelize.INTEGER.UNSIGNED,
+        defaultValue: 0
+      },
+      allow_discount: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: true
+      },
+      price: {
+        type: Sequelize.INTEGER.UNSIGNED,
         allowNull: false
       },
       brand: {
@@ -45,21 +56,37 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true
       },
-      price: {
-        type: Sequelize.INTEGER.UNSIGNED,
-        allowNull: false
-      },
-      description: {
-        type: Sequelize.STRING,
-        allowNull: true
-      },
       quality_cert: {
         type: Sequelize.STRING,
         allowNull: true
       },
+      maker_origin: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
       memo: {
-        type: Sequelize.TEXT,
+        type: Sequelize.STRING,
         allowNull: true
+      },
+      description_images: {
+        type: Sequelize.STRING,
+        allowNull: true
+      },
+      is_public: {
+        allowNull: false,
+        type: Sequelize.BOOLEAN
+      },
+      type: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
+      attributes: {
+        type: Sequelize.STRING,
+        allowNull: true
+      },
+      classification: {
+        type: Sequelize.STRING,
+        allowNull: false
       },
       createdAt: {
         allowNull: false,
@@ -68,10 +95,6 @@ module.exports = {
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE
-      },
-      is_public: {
-        allowNull: false,
-        type: Sequelize.BOOLEAN
       }
     });
   },
