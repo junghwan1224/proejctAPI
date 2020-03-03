@@ -74,6 +74,10 @@ module.exports = app => {
     .get(delivery.readByUser);
 
   app
+    .route("/delivery-nonuser")
+    .get(delivery.readByNonUser);
+
+  app
     .route("/delivery-list")
     .all(verifyToken.authUser)
     .get(deliveryList.readByUser);
