@@ -1,50 +1,36 @@
 "use strict";
-
-const uuid = require("uuid");
-
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable("accounts", {
+    return queryInterface.createTable("product_abstracts", {
       id: {
         allowNull: false,
         primaryKey: true,
         defaultValue: () => uuid(),
         type: Sequelize.UUID
       },
-      phone: {
-        type: Sequelize.STRING,
-        allowNull: false
-      },
-      password: {
-        type: Sequelize.STRING,
-        allowNull: false
-      },
-      name: {
-        type: Sequelize.STRING,
-        allowNull: false
-      },
-      crn: {
-        type: Sequelize.STRING,
-        allowNull: false
-      },
-      mileage: {
-        type: Sequelize.INTEGER,
-        allowNull: true,
-        defaultValue: 0
-      },
-      email: {
+      image: {
         type: Sequelize.STRING,
         allowNull: true
       },
-      is_user: {
-        type: Sequelize.BOOLEAN,
-        allowNull: false,
-        defaultValue: true
-      },
-      category: {
+      maker: {
         type: Sequelize.STRING,
-        allowNull: false,
-        defaultValue: "CAR"
+        allowNull: false
+      },
+      maker_number: {
+        type: Sequelize.STRING,
+        allowNull: true
+      },
+      stock: {
+        type: Sequelize.INTEGER.UNSIGNED,
+        defaultValue: 0
+      },
+      type: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
+      allow_discount: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: true
       },
       createdAt: {
         allowNull: false,
@@ -57,6 +43,6 @@ module.exports = {
     });
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable("accounts");
+    return queryInterface.dropTable("product_abstracts");
   }
 };

@@ -31,7 +31,20 @@ module.exports = {
         allowNull: false
       },
       location: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false
+      },
+      shipping_postcode: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
+      shipping_primary: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
+      shipping_detail: {
+        type: Sequelize.STRING,
+        allowNull: true
       },
       arrived_at: {
         type: Sequelize.DATE

@@ -1,30 +1,29 @@
 "use strict";
+
+const uuid = require("uuid");
+
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable("product_abstracts", {
+    return queryInterface.createTable("admins", {
       id: {
         allowNull: false,
         primaryKey: true,
         defaultValue: () => uuid(),
         type: Sequelize.UUID
       },
-      image: {
-        type: Sequelize.STRING,
-        allowNull: true
-      },
-      maker: {
+      email: {
         type: Sequelize.STRING,
         allowNull: false
       },
-      maker_number: {
+      password: {
         type: Sequelize.STRING,
-        allowNull: true
+        allowNull: false
       },
-      stock: {
-        type: Sequelize.INTEGER.UNSIGNED,
-        defaultValue: 0
+      name: {
+        type: Sequelize.STRING,
+        allowNull: false
       },
-      type: {
+      code: {
         type: Sequelize.STRING,
         allowNull: false
       },
@@ -39,6 +38,6 @@ module.exports = {
     });
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable("product_abstracts");
+    return queryInterface.dropTable("admins");
   }
 };
