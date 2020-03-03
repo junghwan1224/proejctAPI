@@ -34,6 +34,14 @@ module.exports = app => {
     .put(account.updateByUser);
 
   app
+    .route("/account/non-user")
+    .get(account.readByNonUser);
+
+  app
+    .route("/account/reset-pwd")
+    .put(account.updateByNonUser);
+
+  app
     .route("/login")
     .post(login.loginByUser);
   
