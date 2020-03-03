@@ -21,7 +21,7 @@ module.exports = (sequelize, DataTypes) => {
       onUpdate: "cascade"
     });
 
-    sales_list.belongsTo(models.product_abstract, {
+    sales_list.belongsTo(models.product, {
       foreignKey: "parts_id",
       onDelete: "set null",
       onUpdate: "cascade"

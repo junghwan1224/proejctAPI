@@ -6,66 +6,21 @@ const Sequelize = require("sequelize");
 
 const Op = Sequelize.Op;
 
-const USER_PRODUCT_ABSTRACT_ATTRIBUTES = [
-  "image",
-  "maker",
-  "maker_number",
-  "stock",
-  "type",
-  "id",
-  "allow_discount"
-];
-
-const USER_PRODUCT_ATTRIBUTES = [
-  "price",
-  "brand",
-  "model",
-  "oe_number",
-  "start_year",
-  "end_year",
-  "engine",
-  "description",
-  "quality_cert",
-  "id"
-];
-
-const ADMIN_PRODUCT_ABSTRACT_ATTRIBUTES = [
-  "image",
-  "maker",
-  "maker_number",
-  "stock",
-  "type",
-  "id",
-  "allow_discount"
-];
-
-const ADMIN_PRODUCT_ATTRIBUTES = [
-  "price",
-  "brand",
-  "model",
-  "oe_number",
-  "category",
-  "start_year",
-  "end_year",
-  "engine",
-  "description",
-  "quality_cert",
-  "id",
-  "memo"
-];
-
 exports.createByAdmin = async (req, res) => {
   /* If necessary fields are not given, return 400: */
   if (
     !(
-      req.body.abstract_id &&
-      req.body.category &&
-      req.body.brand &&
-      req.body.model &&
-      req.body.oe_number &&
-      req.body.start_year &&
-      req.body.end_year &&
-      req.body.engine &&
+      req.body.maker &
+      req.body.maker_number &
+      req.body.maker_origin &
+      req.body.type &
+      req.body.classification &
+      req.body.brand &
+      req.body.model &
+      req.body.oe_number &
+      req.body.start_year &
+      req.body.end_year &
+      req.body.stock &
       req.body.price
     )
   ) {
@@ -75,42 +30,21 @@ exports.createByAdmin = async (req, res) => {
   }
 
   /* Set default values for selective fields: */
-  req.body.description = req.body.description ? req.body.description : "";
-  req.body.memo = req.body.memo ? req.body.memo : "";
-  req.body.quality_cert = req.body.quality_cert ? req.body.quality_cert : "";
-  req.body.is_public = req.body.is_public ? req.body.is_public : 1;
+  req.body.images ? req.body.images : "";
+  req.body.description_images ? req.body.description_images : "";
+  req.body.attributes ? req.body.attributes : "";
+  req.body.is_public ? req.body.is_public : 1;
+  req.body.memo ? req.body.memo : "";
+  req.body.quality_cert ? req.body.quality_cert : "";
+  req.body.engine ? req.body.engine : "";
+  req.body.allow_discount ? req.body.allow_discount : 1;
 
-  /* Verify whether requested product_abstract_id is valid: */
+  /* Append data to DB: */
   try {
-    let response = await ProductAbstract.findOne({
-      where: {
-        id: req.body.abstract_id
-      }
-    });
-    if (!response) {
-      return res.status(400).send({
-        message: "Invalid abstract_id."
-      });
-    }
-
-    /* Append data to DB: */
-    response = await Product.create({
-      abstract_id: req.body.abstract_id,
-      category: req.body.category,
-      brand: req.body.brand,
-      model: req.body.model,
-      oe_number: req.body.oe_number,
-      start_year: req.body.start_year,
-      end_year: req.body.end_year,
-      engine: req.body.engine,
-      price: req.body.price,
-      memo: req.body.memo,
-      description: req.body.description,
-      quality_cert: req.body.quality_cert,
-      is_public: req.body.is_public
-    });
+    response = await Product.create({ ...req.body });
     return res.status(201).send(response);
   } catch (err) {
+    console.log(err);
     return res
       .status(400)
       .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
@@ -128,17 +62,11 @@ exports.readByUser = async (req, res) => {
   try {
     const response = await Product.findOne({
       where: {
-        id: req.query.product_id
+        id: req.query.product_id,
+        is_public: true
       },
       attributes: USER_PRODUCT_ATTRIBUTES,
-      include: [
-        {
-          model: ProductAbstract,
-          required: true,
-          as: "product_abstract",
-          attributes: USER_PRODUCT_ABSTRACT_ATTRIBUTES
-        }
-      ]
+      attributes: { exclude: ["createdAt", "updatedAt", "is_public", "stock"] }
     });
 
     if (!response) {
@@ -146,9 +74,9 @@ exports.readByUser = async (req, res) => {
         .status(400)
         .send({ message: "유효하지 않은 product_id 입니다." });
     }
-
     return res.status(200).send(response);
   } catch (err) {
+    console.log(err);
     return res
       .status(400)
       .send({ message: "에러가 발생했습니다. 잠시 후 다시 시도해주세요." });
@@ -167,14 +95,7 @@ exports.readByAdmin = async (req, res) => {
     const response = await Product.findOne({
       where: {
         id: req.query.product_id
-      },
-      include: [
-        {
-          model: ProductAbstract,
-          required: true,
-          as: "product_abstract"
-        }
-      ]
+      }
     });
 
     if (!response) {
@@ -185,6 +106,7 @@ exports.readByAdmin = async (req, res) => {
 
     return res.status(200).send(response);
   } catch (err) {
+    console.log(err);
     return res
       .status(400)
       .send({ message: "에러가 발생했습니다. 잠시 후 다시 시도해주세요." });
@@ -211,41 +133,6 @@ exports.updateByAdmin = async (req, res) => {
       .status(400)
       .send({ message: "에러가 발생했습니다. 잠시 후 다시 시도해주세요." });
   }
-
-  /* Create product-abstract Promise: */
-  let product_abstract_data = {};
-  for (const attribute of ADMIN_PRODUCT_ABSTRACT_ATTRIBUTES) {
-    product_abstract_data[attribute] = req.body[attribute];
-  }
-  const promise_product_abstract = ProductAbstract.update(
-    product_abstract_data,
-    {
-      where: { id: response.abstract_id }
-    }
-  );
-
-  /* Create product Promise: */
-  let product_data = {};
-  for (const attribute of ADMIN_PRODUCT_ATTRIBUTES) {
-    product_data[attribute] = req.body[attribute];
-  }
-  const promise_product = Product.update(product_data, {
-    where: { id: req.body.product_id }
-  });
-
-  /* Request a Promise */
-  Promise.all([promise_product, promise_product_abstract])
-    .then(() => {
-      return res.status(200).send();
-    })
-    .catch(err => {
-      return res.status(400).send({
-        message: "에러가 발생했습니다. 잠시 후 다시 시도해주세요."
-      });
-    });
-};
-
-exports.deleteByAdmin = async (req, res) => {
   /* Send 400 if product_id is not given: */
   try {
     if (!req.query.product_id) {
@@ -263,7 +150,45 @@ exports.deleteByAdmin = async (req, res) => {
         .send({ message: "유효하지 않은 product_id입니다." });
     }
 
+    /* Prevent Forgery: */
+    delete req.body["updatedAt"];
+    delete req.body["createdAt"];
+
     /* Delete account data from the DB: */
+    await Product.update(
+      { ...req.body },
+      {
+        where: { id: req.query.product_id },
+        limit: 1
+      }
+    );
+    return res.status(200).send();
+  } catch (err) {
+    return res
+      .status(400)
+      .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+  }
+};
+
+exports.deleteByAdmin = async (req, res) => {
+  /* Send 400 if product_id is not given: */
+  try {
+    if (!req.query.product_id) {
+      return res.status(400).send({
+        message: "필요한 정보를 모두 입력해주세요."
+      });
+    }
+    /* Verify whether the product exists: */
+    const response = await Product.findOne({
+      where: { id: req.query.product_id }
+    });
+    if (!response) {
+      return res
+        .status(400)
+        .send({ message: "유효하지 않은 product_id입니다." });
+    }
+
+    /* Delete account product from the DB: */
     await Product.destroy({
       where: { id: req.query.product_id },
       limit: 1

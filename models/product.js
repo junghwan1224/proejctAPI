@@ -41,13 +41,6 @@ module.exports = (sequelize, DataTypes) => {
     // product.hasOne(models.order);
     // product.hasOne(models.basket);
     // product.hasOne(models.favorite);
-
-    product.belongsTo(models.product_abstract, {
-      as: "product_abstract",
-      foreignKey: "abstract_id",
-      onDelete: "cascade",
-      onUpdate: "cascade"
-    });
   };
   return product;
 };

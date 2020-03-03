@@ -1,33 +1,9 @@
 "use strict";
 
 const Product = require("../models").product;
-const ProductAbstract = require("../models").product_abstract;
 const Sequelize = require("sequelize");
 
 const { Op } = Sequelize;
-
-const PRODUCT_ABSTRACT_ATTRIBUTES = [
-  "image",
-  "maker",
-  "maker_number",
-  "stock",
-  "type",
-  "id",
-  "allow_discount"
-];
-
-const PRODUCT_ATTRIBUTES = [
-  "price",
-  "brand",
-  "model",
-  "oe_number",
-  "start_year",
-  "end_year",
-  "engine",
-  "description",
-  "quality_cert",
-  "id"
-];
 
 exports.readByUser = async (req, res) => {
   const method = req.query.method || "";
@@ -46,34 +22,20 @@ exports.readByUser = async (req, res) => {
     };
 
     // 연도 옵션이 존재할 시 쿼리 조건에 추가
-    if(req.query.year) {
-      Object.assign(whereQuery, 
-        { start_year: { [Op.lte]: req.query.year } }
-      );
-
-      Object.assign(whereQuery, 
-        { end_year: { [Op.gte]: req.query.year } }
-      );
+    if (req.query.year) {
+      Object.assign(whereQuery, { start_year: { [Op.lte]: req.query.year } });
+      Object.assign(whereQuery, { end_year: { [Op.gte]: req.query.year } });
     }
 
     try {
       const products = await Product.findAll({
         where: whereQuery,
-        attributes: PRODUCT_ATTRIBUTES,
-        include: [
-          {
-            model: ProductAbstract,
-            required: true,
-            as: "product_abstract",
-            attributes: PRODUCT_ABSTRACT_ATTRIBUTES
-          }
-        ],
         order: [
           ["brand", "ASC"],
           ["model", "ASC"]
         ]
       });
-      
+
       return res.status(200).send(products);
     } catch (err) {
       console.log(err);
@@ -119,7 +81,7 @@ exports.readByUser = async (req, res) => {
     where = {
       is_public: true,
       category: req.query.category,
-      "$product_abstract.type$": { [Op.like]: `%${req.query.type}%` }
+      type: { [Op.like]: `%${req.query.type}%` }
     };
   } else if (method.toUpperCase() === "OEN") {
     /* OEN으로 검색: 패러미터 쿼리에 상응하는 OEN을 가진 제품 리스트 반환 */
@@ -140,15 +102,6 @@ exports.readByUser = async (req, res) => {
   try {
     const products = await Product.findAll({
       where: where,
-      attributes: PRODUCT_ATTRIBUTES,
-      include: [
-        {
-          model: ProductAbstract,
-          required: true,
-          as: "product_abstract",
-          attributes: PRODUCT_ABSTRACT_ATTRIBUTES
-        }
-      ],
       order: [
         ["brand", "ASC"],
         ["model", "ASC"]
@@ -181,14 +134,6 @@ exports.readByAdmin = async (req, res) => {
   if (method.toUpperCase() === "ALL") {
     try {
       const products = await Product.findAll({
-        include: [
-          {
-            model: ProductAbstract,
-            required: true,
-            as: "product_abstract",
-            attributes: PRODUCT_ABSTRACT_ATTRIBUTES
-          }
-        ],
         order: [
           ["brand", "ASC"],
           ["model", "ASC"]
@@ -216,15 +161,6 @@ exports.readByAdmin = async (req, res) => {
           oe_number: req.query.oe_number,
           is_public: true
         },
-        attributes: PRODUCT_ATTRIBUTES,
-        include: [
-          {
-            model: ProductAbstract,
-            required: true,
-            as: "product_abstract",
-            attributes: PRODUCT_ABSTRACT_ATTRIBUTES
-          }
-        ],
         order: [
           ["brand", "ASC"],
           ["model", "ASC"]
@@ -275,7 +211,7 @@ exports.readByAdmin = async (req, res) => {
     where = {
       is_public: true,
       category: req.query.category,
-      "$product_abstract.type$": { [Op.like]: `%${req.query.type}%` }
+      type: { [Op.like]: `%${req.query.type}%` }
     };
   } else if (method.toUpperCase() === "OEN") {
     /* OEN으로 검색: 패러미터 쿼리에 상응하는 OEN을 가진 제품 리스트 반환 */
@@ -296,15 +232,6 @@ exports.readByAdmin = async (req, res) => {
   try {
     const products = await Product.findAll({
       where: where,
-      attributes: PRODUCT_ATTRIBUTES,
-      include: [
-        {
-          model: ProductAbstract,
-          required: true,
-          as: "product_abstract",
-          attributes: PRODUCT_ABSTRACT_ATTRIBUTES
-        }
-      ],
       order: [
         ["brand", "ASC"],
         ["model", "ASC"]

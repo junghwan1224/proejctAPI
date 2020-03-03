@@ -7,7 +7,6 @@ const Account = require("../models").account;
 const Delivery = require("../models").delivery;
 const Order = require("../models").order;
 const Product = require("../models").product;
-const ProductAbstract = require("../models").product_abstract;
 const models = require("../models");
 
 // 배송 조회
@@ -47,15 +46,7 @@ router.get(
           include: [
             {
               model: Product,
-              required: true,
-              include: [
-                {
-                  model: ProductAbstract,
-                  required: true,
-                  as: "product_abstract",
-                  attributes: ["image", "maker", "maker_number", "type"]
-                }
-              ]
+              required: true
             }
           ],
           transaction
@@ -188,15 +179,7 @@ router.get(
           include: [
             {
               model: Product,
-              required: true,
-              include: [
-                {
-                  model: ProductAbstract,
-                  required: true,
-                  as: "product_abstract",
-                  attributes: ["image", "maker", "maker_number", "type"]
-                }
-              ]
+              required: true
             },
             {
               model: Account,
@@ -277,15 +260,7 @@ router.get(
         include: [
           {
             model: Product,
-            required: true,
-            include: [
-              {
-                model: ProductAbstract,
-                required: true,
-                as: "product_abstract",
-                attributes: ["image", "maker", "maker_number", "type"]
-              }
-            ]
+            required: true
           }
         ],
         transaction
@@ -331,15 +306,7 @@ router.get(
           include: [
             {
               model: Product,
-              required: true,
-              include: [
-                {
-                  model: ProductAbstract,
-                  required: true,
-                  as: "product_abstract",
-                  attributes: ["image", "maker", "maker_number", "type"]
-                }
-              ]
+              required: true
             }
           ],
           transaction
