@@ -46,11 +46,11 @@ module.exports = {
       },
       start_year: {
         type: Sequelize.INTEGER.UNSIGNED,
-        allowNull: true
+        allowNull: false
       },
       end_year: {
         type: Sequelize.INTEGER.UNSIGNED,
-        allowNull: true
+        allowNull: false
       },
       engine: {
         type: Sequelize.STRING,
@@ -74,7 +74,8 @@ module.exports = {
       },
       is_public: {
         allowNull: false,
-        type: Sequelize.BOOLEAN
+        type: Sequelize.BOOLEAN,
+        defaultValue: true
       },
       type: {
         type: Sequelize.STRING,
