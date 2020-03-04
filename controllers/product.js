@@ -69,7 +69,6 @@ exports.readByUser = async (req, res) => {
         id: req.query.product_id,
         is_public: true
       },
-      attributes: USER_PRODUCT_ATTRIBUTES,
       attributes: { exclude: ["createdAt", "updatedAt", "is_public", "stock"] }
     });
 
