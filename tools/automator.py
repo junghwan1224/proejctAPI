@@ -15,13 +15,13 @@ class Automator:
                 {
                     'route': '/account',
                     'method': 'POST',
-                    'mendatory_params': {
+                    'mandatory': {
                         'phone': str,
                         'password': str,
                         'name': str,
                         'type': int
                     },
-                    'selective_params': {
+                    'optional': {
                         'crn': str,
                         'email': str
                     }
@@ -31,50 +31,44 @@ class Automator:
                 {
                     'route': '/admin/account-level',
                     'method': 'POST',
-                    'mendatory_params': {
+                    'mandatory': {
                         'id': str,
                         'discount_rate': float
                     },
-                    'selective_params': {}
+                    'optional': {}
                 },
                 {
                     'route': '/admin/account-level',
                     'method': 'GET',
-                    'mendatory_params': {},
-                    'selective_params': {}
+                    'mandatory': {},
+                    'optional': {}
                 },
                 {
-                    'route': '/admin/product-abstract',
-                    'method': 'POST',
-                    'mendatory_params': {
-                        'maker': str,
-                        'maker_number': str,
-                        'image': str,
-                        'stock': int,
-                        'type': str
-                    },
-                    'selective_params': {
-                        'allow_discount': int  # 0 or 1,  Bool
-                    }
-                }, {
                     'route': '/admin/product',
                     'method': 'POST',
-                    'mendatory_params': {
-                        'abstract_id': str,
-                        'category': str,
+                    'mandatory': {
+                        'maker': str,
+                        'maker_number': str,
+                        'maker_origin': str,
+                        'type': str,
+                        'classification': str,
                         'brand': str,
                         'model': str,
                         'oe_number': str,
                         'start_year': int,
                         'end_year': int,
-                        'price': int,
-                        'engine': str
+                        'stock': int,
+                        'price': int
                     },
-                    'selective_params': {
-                        'quality_cert': str,
+                    'optional': {
+                        'images': str,
+                        'description_images': str,
+                        'attributes': str,
+                        'is_public': int,  # 0 or 1
                         'memo': str,
-                        'description': str,
-                        'is_public': int  # 0 or 1 // DO NOT USE BOOL
+                        'quality_cert': str,
+                        'engine': str,
+                        'allow_discount': int  # 0 or 1
                     }
                 }
             ]
@@ -105,13 +99,13 @@ class Automator:
         # Verify parameters:
         params = self._param_selector(
             permission_type, route, method,
-            API['mendatory_params'], API['selective_params'], **kwargs)
+            API['mandatory'], API['optional'], **kwargs)
 
         # Execute the API:
         return self._send_request(API['route'], API['method'], params)
 
-    def _param_selector(self, permission_type, route, method, mendatory_params,
-                        selective_params, **kwargs):
+    def _param_selector(self, permission_type, route, method, mandatory,
+                        optional, **kwargs):
         message = "[*] Requesting a [{METHOD}] call to [{ROUTE}] " + \
                   "with the permission `{PERMISSION}`"
         print(message.format(METHOD=method.upper(), ROUTE=route,
@@ -121,7 +115,7 @@ class Automator:
         params = {}
         deletable_keys = []
         for key in kwargs.keys():
-            if key not in list(mendatory_params.keys())+list(selective_params.keys()):
+            if key not in list(mandatory.keys())+list(optional.keys()):
                 print('    :: Ignoring unsupported key ' +
                       '`{KEY}`...'.format(
                           KEY=key, ROUTE=route, METHOD=method
@@ -132,21 +126,21 @@ class Automator:
 
         # Append keys to the `params` with specified data type:
         for key in kwargs.keys():
-            if key in mendatory_params.keys():
-                params[key] = mendatory_params[key](kwargs[key])
-            elif key in selective_params.keys():
-                params[key] = selective_params[key](kwargs[key])
+            if key in mandatory.keys():
+                params[key] = mandatory[key](kwargs[key])
+            elif key in optional.keys():
+                params[key] = optional[key](kwargs[key])
 
         # If mendatory params are not given, ask for the value:
-        for key in mendatory_params.keys():
+        for key in mandatory.keys():
             if key not in params.keys():
                 x = input('    :: Key ' +
                           '<{KEY} :{TYPE}> :  '.format(
                               KEY=key,
-                              TYPE=mendatory_params[key].__name__,
+                              TYPE=mandatory[key].__name__,
                               ROUTE=route,
                               METHOD=method))
-                params[key] = mendatory_params[key](x)
+                params[key] = mandatory[key](x)
 
         # Return params:
         return params
