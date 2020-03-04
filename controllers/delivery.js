@@ -1,10 +1,14 @@
 "use strict";
 
+const axios = require("axios");
+
 const Delivery = require("../models").delivery;
 const Order = require("../models").order;
 const Product = require("../models").product;
 const ProductAbstract = require("../models").product_abstract;
 const models = require("../models");
+
+const getToken = require("../public/js/getToken");
 
 // By user
 
@@ -14,34 +18,34 @@ exports.readByUser = async (req, res) => {
       const { order_id } = req.query;
       const transaction = await models.sequelize.transaction();
   
-        const delivery = await Delivery.findOne({
-          where: { order_id },
-          transaction
-        });
-  
-        const orderInfo = await Order.findAll({
-          where: { merchant_uid: order_id },
-          include: [
-            {
-              model: Product,
-              required: true,
-              include: [
-                {
-                  model: ProductAbstract,
-                  required: true,
-                  as: "product_abstract",
-                  attributes: ["image", "maker", "maker_number", "type"]
-                }
-              ]
-            }
-          ],
-          transaction
-        });
-        const orders = orderInfo.map(o => o.dataValues);
-  
-        await transaction.commit();
+      const delivery = await Delivery.findOne({
+        where: { order_id },
+        transaction
+      });
 
-        res.status(201).send({ delivery, orders });
+      const orderInfo = await Order.findAll({
+        where: { merchant_uid: order_id },
+        include: [
+          {
+            model: Product,
+            required: true,
+            include: [
+              {
+                model: ProductAbstract,
+                required: true,
+                as: "product_abstract",
+                attributes: ["image", "maker", "maker_number", "type"]
+              }
+            ]
+          }
+        ],
+        transaction
+      });
+      const orders = orderInfo.map(o => o.dataValues);
+
+      await transaction.commit();
+
+      res.status(201).send({ delivery, orders });
     } catch (err) {
       console.log(err);
       res
@@ -50,6 +54,52 @@ exports.readByUser = async (req, res) => {
     }
 };
 
+exports.readByNonUser = async (req, res) => {
+  try {
+    const { orderNum } = req.query;
+    const merchant_uid = `MONTAR_${orderNum}`;
+    // 결제 시각, 결제 금액, 주문 번호, 도착 예정, 현금 영수증
+
+    const delivery = await Delivery.findOne({
+      where: { order_id: merchant_uid },
+    });
+
+    const orderInfo = await Order.findAll({
+      where: { merchant_uid },
+      include: [
+        {
+          model: Product,
+          required: true,
+          include: [
+            {
+              model: ProductAbstract,
+              required: true,
+              as: "product_abstract",
+              attributes: ["image", "maker", "maker_number", "type"]
+            }
+          ]
+        }
+      ],
+    });
+    const orders = orderInfo.map(o => o.dataValues);
+
+    const token = await getToken();
+
+    const getPayment = await axios({
+      url: `https://api.iamport.kr/payments/${orders[0].imp_uid}`,
+      method: "get",
+      headers: { "Authorization": token }
+    });
+
+    return res.status(200).send({ delivery, orders, payment: getPayment.data.response });
+  }
+  catch(err) {
+    console.log(err);
+    res
+      .status(400)
+      .send();
+  }
+};
 
 // By Admin
 
