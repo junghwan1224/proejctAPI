@@ -118,56 +118,33 @@ exports.readByAdmin = async (req, res) => {
 };
 
 exports.updateByAdmin = async (req, res) => {
-  let response = {};
-  try {
-    response = await Product.findOne({
-      where: {
-        id: req.body.product_id
-      }
-    });
+  /** Raise 400 if no product_id was given: */
+  if (!req.body.product_id)
+    return res
+      .status(400)
+      .send({ message: "필요한 정보를 모두 입력해주세요." });
 
-    if (!response) {
+  try {
+    if (!Product.findOne({ where: { id: req.body.product_id } }))
       return res
         .status(400)
         .send({ message: "유효하지 않은 product_id 값입니다." });
-    }
-  } catch (err) {
-    console.log(err);
-    return res
-      .status(400)
-      .send({ message: "에러가 발생했습니다. 잠시 후 다시 시도해주세요." });
-  }
-  /* Send 400 if product_id is not given: */
-  try {
-    if (!req.query.product_id) {
-      return res.status(400).send({
-        message: "필요한 정보를 모두 입력해주세요."
-      });
-    }
-    /* Verify whether the user exists: */
-    const response = await Product.findOne({
-      where: { id: req.query.product_id }
-    });
-    if (!response) {
-      return res
-        .status(400)
-        .send({ message: "유효하지 않은 product_id입니다." });
-    }
 
-    /* Prevent Forgery: */
+    /* Prevent from forgery: */
+    delete req.body["id"];
     delete req.body["updatedAt"];
     delete req.body["createdAt"];
 
-    /* Delete account data from the DB: */
     await Product.update(
       { ...req.body },
       {
-        where: { id: req.query.product_id },
+        where: { id: req.body.product_id },
         limit: 1
       }
     );
     return res.status(200).send();
   } catch (err) {
+    console.log(err);
     return res
       .status(400)
       .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
