@@ -16,7 +16,7 @@ def main():
         response = automator.request('ADMIN', '/admin/product', 'POST',
                                      maker=raw_product['maker'],
                                      maker_number=md5(str(randrange(1234, 1324354253)).encode(
-                                         'utf-8')).hexdigest()[:randrange(8, 12)],
+                                         'utf-8')).hexdigest()[:randrange(8, 12)].upper(),
                                      maker_origin=raw_product['maker_origin'],
                                      type=raw_product['type'],
                                      classification=raw_product['classification'],
