@@ -10,7 +10,7 @@ module.exports = {
       },
       images: {
         allowNull: true,
-        type: Sequelize.STRING
+        type: Sequelize.TEXT
       },
       maker: {
         allowNull: true,

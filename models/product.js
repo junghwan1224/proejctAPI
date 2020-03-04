@@ -4,7 +4,7 @@ module.exports = (sequelize, DataTypes) => {
   const product = sequelize.define(
     "product",
     {
-      images: DataTypes.STRING, // concat: "||"
+      images: DataTypes.TEXT, // concat: ","
       maker: DataTypes.STRING, // 메이커, 제조공장, e.g. KOYO, NSK
       maker_number: DataTypes.STRING,
       stock: DataTypes.INTEGER, // 재고
