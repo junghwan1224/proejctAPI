@@ -10,17 +10,17 @@ exports.createByAdmin = async (req, res) => {
   /* If necessary fields are not given, return 400: */
   if (
     !(
-      req.body.maker &
-      req.body.maker_number &
-      req.body.maker_origin &
-      req.body.type &
-      req.body.classification &
-      req.body.brand &
-      req.body.model &
-      req.body.oe_number &
-      req.body.start_year &
-      req.body.end_year &
-      req.body.stock &
+      req.body.maker &&
+      req.body.maker_number &&
+      req.body.maker_origin &&
+      req.body.type &&
+      req.body.classification &&
+      req.body.brand &&
+      req.body.model &&
+      req.body.oe_number &&
+      req.body.start_year &&
+      req.body.end_year &&
+      req.body.stock &&
       req.body.price
     )
   ) {
@@ -30,18 +30,22 @@ exports.createByAdmin = async (req, res) => {
   }
 
   /* Set default values for selective fields: */
-  req.body.images ? req.body.images : "";
-  req.body.description_images ? req.body.description_images : "";
-  req.body.attributes ? req.body.attributes : "";
-  req.body.is_public ? req.body.is_public : 1;
-  req.body.memo ? req.body.memo : "";
-  req.body.quality_cert ? req.body.quality_cert : "";
-  req.body.engine ? req.body.engine : "";
-  req.body.allow_discount ? req.body.allow_discount : 1;
+  req.body.images = req.body.images ? req.body.images : "";
+  req.body.description_images = req.body.description_images
+    ? req.body.description_images
+    : "";
+  req.body.attributes = req.body.attributes ? req.body.attributes : "";
+  req.body.is_public = req.body.is_public ? req.body.is_public : 1;
+  req.body.memo = req.body.memo ? req.body.memo : "";
+  req.body.quality_cert = req.body.quality_cert ? req.body.quality_cert : "";
+  req.body.engine = req.body.engine ? req.body.engine : "";
+  req.body.allow_discount = req.body.allow_discount
+    ? req.body.allow_discount
+    : 1;
 
   /* Append data to DB: */
   try {
-    response = await Product.create({ ...req.body });
+    const response = await Product.create({ ...req.body });
     return res.status(201).send(response);
   } catch (err) {
     console.log(err);
