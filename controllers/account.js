@@ -1,5 +1,7 @@
 "use strict";
 
+const bcrypt = require("bcryptjs");
+
 const Account = require("../models").account;
 const AccountLevel = require("../models").account_level;
 
@@ -98,6 +100,30 @@ exports.readByUser = async (req, res) => {
   }
 };
 
+// check exist account
+exports.readByNonUser = async (req, res) => {
+  try {
+    const { phone } = req.query;
+
+    let isValid = false;
+    const account = await Account.findOne({
+      where: { phone }
+    });
+
+    if(account) {
+      isValid = true;
+    }
+
+    return res.status(200).send({ isValid })
+  }
+  catch(err) {
+    console.log(err);
+    return res
+      .status(400)
+      .send();
+  }
+};
+
 exports.updateByUser = async (req, res) => {
   /* Allow pre-defined attributes only:  */
   const POSSIBLE_ATTRIBUTES = ["email", "crn", "name", "type", "password"];
@@ -140,6 +166,26 @@ exports.updateByUser = async (req, res) => {
     return res
       .status(400)
       .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+  }
+};
+
+// reset password api
+exports.updateByNonUser = async (req, res) => {
+  try {
+    const { phone, new_password } = req.body;
+    const bcryptPwd = bcrypt.hashSync(new_password, 10);
+
+    await Account.update({ password: bcryptPwd }, {
+      where: { phone }
+    });
+
+    return res.status(200).send();
+  }
+  catch(err) {
+    console.log(err);
+    return res
+      .status(400)
+      .send();
   }
 };
 
