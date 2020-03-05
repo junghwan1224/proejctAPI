@@ -30,11 +30,11 @@ module.exports = (sequelize, DataTypes) => {
           }
         },
         beforeUpdate: (account, options) => {
-          if(options.fields.includes("password")) {
-            const { password } = account.dataValues;
+          // if(options.fields.includes("password")) {
+          //   const { password } = account.dataValues;
 
-            account.password = bcrypt.hashSync(password, 10);
-          }
+          //   account.password = bcrypt.hashSync(password, 10);
+          // }
         }
       }
     }

@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
       merchant_uid: DataTypes.STRING,
       imp_uid: DataTypes.STRING,
       account_id: DataTypes.UUID,
-      product_id: DataTypes.INTEGER,
+      product_id: DataTypes.UUID,
       name: DataTypes.STRING,
       amount: DataTypes.INTEGER,
       quantity: DataTypes.INTEGER.UNSIGNED,

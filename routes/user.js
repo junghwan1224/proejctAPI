@@ -31,8 +31,18 @@ module.exports = app => {
     .get(account.readByUser)
     .put(account.updateByUser);
 
-  app.route("/login").post(login.loginByUser);
+  app
+    .route("/account/non-user")
+    .get(account.readByNonUser);
 
+  app
+    .route("/account/reset-pwd")
+    .put(account.updateByNonUser);
+
+  app
+    .route("/login")
+    .post(login.loginByUser);
+  
   app
     .route("/address")
     .all(verifyToken.authUser)
@@ -64,6 +74,10 @@ module.exports = app => {
     .route("/delivery")
     .all(verifyToken.authUser)
     .get(delivery.readByUser);
+
+  app
+    .route("/delivery-nonuser")
+    .get(delivery.readByNonUser);
 
   app
     .route("/delivery-list")
