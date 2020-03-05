@@ -13,44 +13,36 @@ const getToken = require("../public/js/getToken");
 
 // 특정 주문 상세정보
 exports.readByUser = async (req, res) => {
-    try {
-      const { order_id } = req.query;
-      const transaction = await models.sequelize.transaction();
-  
-      const delivery = await Delivery.findOne({
-        where: { order_id },
-        transaction
-      });
+  try {
+    const { order_id } = req.query;
+    const transaction = await models.sequelize.transaction();
 
-      const orderInfo = await Order.findAll({
-        where: { merchant_uid: order_id },
-        include: [
-          {
-            model: Product,
-            required: true,
-            include: [
-              {
-                model: ProductAbstract,
-                required: true,
-                as: "product_abstract",
-                attributes: ["image", "maker", "maker_number", "type"]
-              }
-            ]
-          }
-        ],
-        transaction
-      });
-      const orders = orderInfo.map(o => o.dataValues);
+    const delivery = await Delivery.findOne({
+      where: { order_id },
+      transaction
+    });
 
-      await transaction.commit();
+    const orderInfo = await Order.findAll({
+      where: { merchant_uid: order_id },
+      include: [
+        {
+          model: Product,
+          required: true
+        }
+      ],
+      transaction
+    });
+    const orders = orderInfo.map(o => o.dataValues);
 
-      res.status(201).send({ delivery, orders });
-    } catch (err) {
-      console.log(err);
-      res
-        .status(400)
-        .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
-    }
+    await transaction.commit();
+
+    res.status(201).send({ delivery, orders });
+  } catch (err) {
+    console.log(err);
+    res
+      .status(400)
+      .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+  }
 };
 
 exports.readByNonUser = async (req, res) => {
@@ -60,7 +52,7 @@ exports.readByNonUser = async (req, res) => {
     // 결제 시각, 결제 금액, 주문 번호, 도착 예정, 현금 영수증
 
     const delivery = await Delivery.findOne({
-      where: { order_id: merchant_uid },
+      where: { order_id: merchant_uid }
     });
 
     const orderInfo = await Order.findAll({
@@ -68,17 +60,9 @@ exports.readByNonUser = async (req, res) => {
       include: [
         {
           model: Product,
-          required: true,
-          include: [
-            {
-              model: ProductAbstract,
-              required: true,
-              as: "product_abstract",
-              attributes: ["image", "maker", "maker_number", "type"]
-            }
-          ]
+          required: true
         }
-      ],
+      ]
     });
     const orders = orderInfo.map(o => o.dataValues);
 
@@ -87,16 +71,15 @@ exports.readByNonUser = async (req, res) => {
     const getPayment = await axios({
       url: `https://api.iamport.kr/payments/${orders[0].imp_uid}`,
       method: "get",
-      headers: { "Authorization": token }
+      headers: { Authorization: token }
     });
 
-    return res.status(200).send({ delivery, orders, payment: getPayment.data.response });
-  }
-  catch(err) {
+    return res
+      .status(200)
+      .send({ delivery, orders, payment: getPayment.data.response });
+  } catch (err) {
     console.log(err);
-    res
-      .status(400)
-      .send();
+    res.status(400).send();
   }
 };
 
