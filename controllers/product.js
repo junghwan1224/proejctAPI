@@ -13,13 +13,9 @@ exports.createByAdmin = async (req, res) => {
       req.body.maker &&
       req.body.maker_number &&
       req.body.maker_origin &&
+      req.body.models &&
       req.body.type &&
-      req.body.classification &&
-      req.body.brand &&
-      req.body.model &&
       req.body.oe_number &&
-      req.body.start_year &&
-      req.body.end_year &&
       req.body.stock &&
       req.body.price
     )
@@ -27,6 +23,19 @@ exports.createByAdmin = async (req, res) => {
     return res.status(400).send({
       message: "필요한 정보를 모두 입력해주세요."
     });
+  }
+
+  /* Validate models: */
+  try {
+    const rows = req.body.models.split("\n");
+    for (const row of rows) {
+      /* brand$$model$$start_year$$end_year$$engine */
+      const item = row.split("$$");
+      parseInt(item[2]) + parseInt(item[3]); // INT TEST
+    }
+  } catch (err) {
+    console.log(err);
+    return res.status(400).send({ message: "잘못된 형식의 models입니다." });
   }
 
   /* Set default values for selective fields: */
@@ -37,8 +46,8 @@ exports.createByAdmin = async (req, res) => {
   req.body.attributes = req.body.attributes ? req.body.attributes : "";
   req.body.is_public = req.body.is_public ? req.body.is_public : 1;
   req.body.memo = req.body.memo ? req.body.memo : "";
+  req.body.tags = req.body.tags ? req.body.tags : "";
   req.body.quality_cert = req.body.quality_cert ? req.body.quality_cert : "";
-  req.body.engine = req.body.engine ? req.body.engine : "";
   req.body.allow_discount = req.body.allow_discount
     ? req.body.allow_discount
     : 1;

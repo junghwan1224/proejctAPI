@@ -9,7 +9,7 @@ exports.readByUser = async (req, res) => {
   const method = req.query.method || "";
   const methodMap = {
     OEN: ["oe_number"],
-    CAR: ["category", "year", "brand", "model"],
+    CAR: ["brand", "model"],
     TYPE: ["type"]
   };
 
@@ -35,20 +35,17 @@ exports.readByUser = async (req, res) => {
   } else if (method.toUpperCase() == "PART") {
     searchField.type = { [Op.like]: `%${req.query.type}%` };
   } else if (method.toUpperCase() == "CAR") {
-    searchField.brand = req.query.brand;
-    searchField.model = req.query.model;
-    searchField[[Op.and]] = [
-      { start_year: { [Op.lte]: req.query.year } },
-      { end_year: { [Op.gte]: req.query.year } }
-    ];
+    searchField.models = {
+      [Op.like]: `%${[
+        req.query.brand.toUpperCase(),
+        req.query.model.toUpperCase()
+      ].join("$$")}%`
+    };
   }
   try {
     const products = await Product.findAll({
       where: searchField,
-      order: [
-        ["brand", "ASC"],
-        ["model", "ASC"]
-      ]
+      order: [["models", "ASC"]]
     });
     //.map(p => p.dataValues);
     return res.status(200).send(products);
