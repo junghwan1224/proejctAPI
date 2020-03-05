@@ -97,8 +97,6 @@ const authUser = async (req, res, next) => {
 
 // authenticate admin
 const authAdmin = async (req, res, next) => {
-  next();
-  return;
   const { authorization } = req.headers;
   const id = await verifyToken(authorization, "admin");
 
