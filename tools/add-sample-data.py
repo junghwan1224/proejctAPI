@@ -27,11 +27,21 @@ def main():
                                      end_year=raw_product['end_year'],
                                      stock=randrange(0, 1200),
                                      price=raw_product['price'],
-                                     images=get_sample_images(raw_product['type']))
+                                     images=get_sample_images(
+                                         raw_product['type']),
+                                     attributes=get_sample_attributes(raw_product['type']))
         tackle(response, inspect.getframeinfo(inspect.currentframe()).lineno)
 
     print('----------------------------------------------------------')
     print('[*] Operation complete.')
+
+
+def get_sample_attributes(attribute_type):
+    MAP = {'허브베어링': ['하체부품'],
+           '암베어링': ['하체부품', ],
+           '엔진오일': ['소모품'],
+           '브레이크패드': ['소모품', '하체부품']}
+    return ",".join(MAP[attribute_type])
 
 
 def get_sample_images(image_type):
