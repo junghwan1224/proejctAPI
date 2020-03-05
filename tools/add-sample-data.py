@@ -19,29 +19,28 @@ def main():
                                          'utf-8')).hexdigest()[:randrange(8, 12)].upper(),
                                      maker_origin=raw_product['maker_origin'],
                                      type=raw_product['type'],
-                                     classification=raw_product['classification'],
-                                     brand=raw_product['brand'],
-                                     model=raw_product['model'],
+                                     models=raw_product['models'],
                                      oe_number=raw_product['oe_number'],
-                                     start_year=raw_product['start_year'],
-                                     end_year=raw_product['end_year'],
                                      stock=randrange(0, 1200),
                                      price=raw_product['price'],
                                      images=get_sample_images(
                                          raw_product['type']),
-                                     attributes=get_sample_attributes(raw_product['type']))
+                                     attributes=get_sample_attributes(
+                                         raw_product['type'], raw_product['classification']),
+                                     tags=raw_product['tags'])
         tackle(response, inspect.getframeinfo(inspect.currentframe()).lineno)
 
     print('----------------------------------------------------------')
     print('[*] Operation complete.')
 
 
-def get_sample_attributes(attribute_type):
+def get_sample_attributes(attribute_type, classification):
     MAP = {'허브베어링': ['하체부품'],
            '암베어링': ['하체부품', ],
            '엔진오일': ['소모품'],
            '브레이크패드': ['소모품', '하체부품']}
-    return ",".join(MAP[attribute_type])
+    classification_map = {'CAR': '승용차', 'COM': '상용차'}
+    return ",".join(MAP[attribute_type]+[classification_map[classification]])
 
 
 def get_sample_images(image_type):
@@ -103,13 +102,12 @@ def get_product_list(csv_path):
         data = fp.read()
 
     for row in data.strip().split('\n')[1:]:
-        classification, brand, model, year, oe_number, price, dtype, maker, maker_origin = [
+        classification, models, oe_number, price, dtype, maker, maker_origin, tags = [
             x.strip() for x in row.split(',')]
 
         # Data should be in uppercase:
         classification = classification.upper()
-        brand = brand.upper()
-        model = model.upper()
+        models = models.upper()
         oe_number = oe_number.upper()
         maker = maker.upper()
 
@@ -117,27 +115,16 @@ def get_product_list(csv_path):
         price = int(int(price)/10)*10 + \
             10 if int(price[-1]) >= 5 else int(int(price)/10)*10
 
-        # Fabricate start year and end year:
-        start_year = int(
-            '20'+year[:2]) if int(year[0]) < 3 else int('19'+year[:2])
-        end_year = year[3:]
-        if int(end_year[0]) < 3:
-            end_year = int('20'+end_year)
-        else:
-            end_year = int('19'+end_year)
-
         # Append data to the list with <dict> format:
         item = {}
         item['classification'] = classification
-        item['brand'] = brand
-        item['model'] = model
+        item['models'] = models
         item['oe_number'] = oe_number
         item['price'] = price
-        item['start_year'] = start_year
-        item['end_year'] = end_year
         item['type'] = dtype
         item['maker'] = maker
         item['maker_origin'] = maker_origin
+        item['tags'] = tags
         product_list.append(item)
 
     return product_list

@@ -51,23 +51,19 @@ class Automator:
                         'maker_number': str,
                         'maker_origin': str,
                         'type': str,
-                        'classification': str,
-                        'brand': str,
-                        'model': str,
                         'oe_number': str,
-                        'start_year': int,
-                        'end_year': int,
+                        'models': str,
                         'stock': int,
                         'price': int
                     },
                     'optional': {
                         'images': str,
                         'description_images': str,
+                        'tags': str,
                         'attributes': str,
                         'is_public': int,  # 0 or 1
                         'memo': str,
                         'quality_cert': str,
-                        'engine': str,
                         'allow_discount': int  # 0 or 1
                     }
                 }
