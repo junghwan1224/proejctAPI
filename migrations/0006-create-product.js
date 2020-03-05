@@ -32,29 +32,13 @@ module.exports = {
         type: Sequelize.INTEGER.UNSIGNED,
         allowNull: false
       },
-      brand: {
-        type: Sequelize.STRING,
-        allowNull: false
-      },
-      model: {
-        type: Sequelize.STRING,
+      models: {
+        type: Sequelize.TEXT,
         allowNull: false
       },
       oe_number: {
         type: Sequelize.STRING,
         allowNull: false
-      },
-      start_year: {
-        type: Sequelize.INTEGER.UNSIGNED,
-        allowNull: false
-      },
-      end_year: {
-        type: Sequelize.INTEGER.UNSIGNED,
-        allowNull: false
-      },
-      engine: {
-        type: Sequelize.STRING,
-        allowNull: true
       },
       quality_cert: {
         type: Sequelize.STRING,
@@ -85,9 +69,9 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true
       },
-      classification: {
+      tags: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: true
       },
       optional: {
         type: Sequelize.TEXT,
