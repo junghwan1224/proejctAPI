@@ -21,12 +21,10 @@ module.exports = app => {
   const inquiry = require("../controllers/inquiry");
 
   // Non User Controller
-  const orderNonUser= require("../controllers/orderNonUser");
+  const orderNonUser = require("../controllers/orderNonUser");
 
-  app
-    .route("/account-create")
-    .post(account.createByUser)
-  
+  app.route("/account-create").post(account.createByUser);
+
   app
     .route("/account")
     .all(verifyToken.authUser)
@@ -51,13 +49,9 @@ module.exports = app => {
     .get(address.readByUser)
     .post(address.createByUser);
 
-  app
-    .route("/certify/issue-number")
-    .post(certify.issueNumber);
-  
-  app
-    .route("/certify/check")
-    .post(certify.check);
+  app.route("/certify/issue-number").post(certify.issueNumber);
+
+  app.route("/certify/check").post(certify.check);
 
   app
     .route("/product")
@@ -98,24 +92,18 @@ module.exports = app => {
     .put()
     .delete();
 
-  app
-    .route("/inquiry")
-    .post(inquiry.sendByUser);
-  
-  app
-    .route("/payment/webhook")
-    .post(payment.webHookByUser)
+  app.route("/inquiry").post(inquiry.sendByUser);
 
-  app
-    .route("/payment/cancel")
-    .post(payment.cancelByUser)
+  app.route("/payment/webhook").post(payment.webHookByUser);
+
+  app.route("/payment/cancel").post(payment.cancelByUser);
 
   app
     .route("/payment/issue-billing")
     .all(verifyToken.authUser)
     .post(payment.createBillingKeyByUser)
     .delete(payment.deleteBillingKeyByUser);
-  
+
   app
     .route("/payment/billing")
     .all(verifyToken.authUser)
@@ -126,13 +114,13 @@ module.exports = app => {
     .all(verifyToken.authUser)
     .get(order.readByUser)
     .post(order.createByUser)
-    .put(order.updateByUser)
-  
+    .put(order.updateByUser);
+
   app
     .route("/receipt")
     .all(verifyToken.authUser)
     .get(receipt.readByUser)
-    .post(receipt.createByUser)
+    .post(receipt.createByUser);
 
   /* Non User API */
 

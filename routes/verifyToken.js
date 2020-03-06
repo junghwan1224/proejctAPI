@@ -33,26 +33,25 @@ const DEV_SECRET = process.env.DEV_SECRET;
 
 const verifyToken = async (token, type) => {
   // if user
-  if(type === "user") {
+  if (type === "user") {
     const accountId = jwt.verify(token, DEV_SECRET, (err, decoded) => {
-      if(err) { return null; }
+      if (err) {
+        return null;
+      }
       return decoded.id;
     });
-  
-    if(accountId) {
+
+    if (accountId) {
       const account = await Account.findOne({
         where: { id: accountId }
       });
 
-      if(account) {
+      if (account) {
         return accountId;
-      }
-      else {
+      } else {
         return null;
       }
-    }
-
-    else {
+    } else {
       return null;
     }
   }
@@ -60,24 +59,24 @@ const verifyToken = async (token, type) => {
   // if admin
   else {
     const adminId = jwt.verify(token, DEV_SECRET, (err, decoded) => {
-      if(err) { return null; }
+      if (err) {
+        return null;
+      }
       return decoded.id;
     });
-  
-    if(adminId) {
+
+    if (adminId) {
       // find in admin
       const admin = await Admin.findOne({
         where: { id: adminId }
       });
-  
-      if(admin) {
+
+      if (admin) {
         return adminId;
-      }
-      else {
+      } else {
         return null;
       }
-    }
-    else {
+    } else {
       return null;
     }
   }
@@ -88,11 +87,10 @@ const authUser = async (req, res, next) => {
   const { authorization } = req.headers;
   const id = await verifyToken(authorization, "user");
 
-  if(id) {
+  if (id) {
     req.account_id = id;
     next();
-  }
-  else {
+  } else {
     return res.status(403).send();
   }
 };
@@ -102,11 +100,10 @@ const authAdmin = async (req, res, next) => {
   const { authorization } = req.headers;
   const id = await verifyToken(authorization, "admin");
 
-  if(id) {
+  if (id) {
     req.admin_id = id;
     next();
-  }
-  else {
+  } else {
     return res.status(403).send();
   }
 };

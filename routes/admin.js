@@ -7,8 +7,6 @@ module.exports = app => {
   const accountLevel = require("../controllers/accountLevel");
 
   const admin = require("../controllers/admin");
-  const productAbstract = require("../controllers/productAbstract");
-  const productAbstractList = require("../controllers/productAbstractList");
   const product = require("../controllers/product");
   const productList = require("../controllers/productList");
 
@@ -50,23 +48,8 @@ module.exports = app => {
     .post(accountLevel.createByAdmin)
     .get(accountLevel.readByUser);
 
-  app
-    .route(ADMIN_ROUTE + "/product-abstract")
-    .all(verifyToken.authAdmin)
-    .post(productAbstract.createByAdmin)
-    .get(productAbstract.readByAdmin)
-    .put(productAbstract.updateByAdmin)
-    .delete(productAbstract.deleteByAdmin);
-
-  app
-    .route(ADMIN_ROUTE + "/product-abstract-list")
-    .all(verifyToken.authAdmin)
-    .get(productAbstractList.readByAdmin);
-
-  app
-    .route(ADMIN_ROUTE + "/product-list")
-    .all(verifyToken.authAdmin)
-    .get(productList.readByAdmin);
+  app.route(ADMIN_ROUTE + "/product-list").all(verifyToken.authAdmin);
+  // .get(productList.readByAdmin);
 
   app
     .route(`${ADMIN_ROUTE}/product`)

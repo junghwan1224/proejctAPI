@@ -8,56 +8,72 @@ module.exports = {
         defaultValue: () => uuid(),
         type: Sequelize.UUID
       },
-      abstract_id: {
-        type: Sequelize.UUID,
-        references: {
-          model: "product_abstracts",
-          key: "id"
-        },
-        onDelete: "CASCADE",
-        onUpdate: "CASCADE"
+      images: {
+        allowNull: true,
+        type: Sequelize.TEXT
       },
-      category: {
-        type: Sequelize.STRING,
+      maker: {
+        allowNull: true,
+        type: Sequelize.STRING
+      },
+      maker_number: {
+        allowNull: true,
+        type: Sequelize.STRING
+      },
+      stock: {
+        type: Sequelize.INTEGER.UNSIGNED,
+        defaultValue: 0
+      },
+      allow_discount: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: true
+      },
+      price: {
+        type: Sequelize.INTEGER.UNSIGNED,
         allowNull: false
       },
-      brand: {
-        type: Sequelize.STRING,
-        allowNull: false
-      },
-      model: {
-        type: Sequelize.STRING,
+      models: {
+        type: Sequelize.TEXT,
         allowNull: false
       },
       oe_number: {
         type: Sequelize.STRING,
         allowNull: false
       },
-      start_year: {
-        type: Sequelize.INTEGER.UNSIGNED,
-        allowNull: true
-      },
-      end_year: {
-        type: Sequelize.INTEGER.UNSIGNED,
-        allowNull: true
-      },
-      engine: {
-        type: Sequelize.STRING,
-        allowNull: true
-      },
-      price: {
-        type: Sequelize.INTEGER.UNSIGNED,
-        allowNull: false
-      },
-      description: {
-        type: Sequelize.STRING,
-        allowNull: true
-      },
       quality_cert: {
         type: Sequelize.STRING,
         allowNull: true
       },
+      maker_origin: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
       memo: {
+        type: Sequelize.STRING,
+        allowNull: true
+      },
+      description_images: {
+        type: Sequelize.STRING,
+        allowNull: true
+      },
+      is_public: {
+        allowNull: false,
+        type: Sequelize.BOOLEAN,
+        defaultValue: true
+      },
+      type: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
+      attributes: {
+        type: Sequelize.STRING,
+        allowNull: true
+      },
+      tags: {
+        type: Sequelize.STRING,
+        allowNull: true
+      },
+      optional: {
         type: Sequelize.TEXT,
         allowNull: true
       },
@@ -68,10 +84,6 @@ module.exports = {
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE
-      },
-      is_public: {
-        allowNull: false,
-        type: Sequelize.BOOLEAN
       }
     });
   },
