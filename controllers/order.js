@@ -102,10 +102,10 @@ exports.createByUser = async (req, res) => {
       transaction
     );
 
-    // 요청한 수량보다 재고가 적은 abstract의 id를 배열에 저장
-    const scarceProductsArr = processedProducts.reduce((acc, product, idx) => {
+    // 요청한 수량보다 재고가 적은 product의 id를 배열에 저장
+    const scarceProductsArr = processedProducts.reduce((acc, product) => {
       if (product.stock < 0) {
-        acc.push(idx);
+        acc.push(product.id);
         return acc;
       } else {
         return acc;
@@ -114,10 +114,10 @@ exports.createByUser = async (req, res) => {
 
     // 재고가 부족한 제품이 있는 경우
     if (scarceProductsArr.length > 0) {
-      // abstract_id 값으로 상품 조회
+      // product id 값으로 상품 조회
       const scarceProducts = await Product.findAll({
         where: {
-          abstract_id: { [Op.in]: scarceProductsArr }
+          id: { [Op.in]: scarceProductsArr }
         },
         transaction
       });
