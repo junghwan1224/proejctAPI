@@ -32,10 +32,6 @@ module.exports = app => {
     .put(account.updateByUser);
 
   app
-    .route("/account/non-user")
-    .get(account.readByNonUser);
-
-  app
     .route("/account/reset-pwd")
     .put(account.updateByNonUser);
 
@@ -74,10 +70,6 @@ module.exports = app => {
     .route("/delivery")
     .all(verifyToken.authUser)
     .get(delivery.readByUser);
-
-  app
-    .route("/delivery-nonuser")
-    .get(delivery.readByNonUser);
 
   app
     .route("/delivery-list")
@@ -125,8 +117,16 @@ module.exports = app => {
   /* Non User API */
 
   app
+    .route("/account/non-user")
+    .get(account.readByNonUser);
+
+  app
     .route("/order/non-user")
     .get(orderNonUser.readByUser)
     .post(orderNonUser.createByUser)
     .put(orderNonUser.updateByUser);
+
+  app
+    .route("/delivery/non-user")
+    .get(delivery.readByNonUser);
 };
