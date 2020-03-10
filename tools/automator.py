@@ -18,8 +18,7 @@ class Automator:
                     'mandatory': {
                         'phone': str,
                         'password': str,
-                        'name': str,
-                        'type': int
+                        'name': str
                     },
                     'optional': {
                         'crn': str,

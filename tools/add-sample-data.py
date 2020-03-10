@@ -1,7 +1,7 @@
 from inspect import getframeinfo, currentframe
 from automator import Automator  # noqa
 import uuid
-from random import randrange
+from random import randrange, getrandbits
 from hashlib import md5
 import sys
 
@@ -9,21 +9,34 @@ import sys
 def main():
     automator = Automator()
 
-    # Create Default level `NORMAL`:
-    validate(getframeinfo(currentframe()).lineno,
-             automator.request('ADMIN', '/admin/account-level',
-                               'POST', id='NORMAL', discount_rate=0))
+    # Create Default level `ANONYMOUS`:
+    # validate(getframeinfo(currentframe()).lineno,
+    #          automator.request('ADMIN', '/admin/account-level',
+    #                            'POST', id='ANONYMOUS', discount_rate=-0.03))
 
-    # Create Default users:
-    validate(getframeinfo(currentframe()).lineno,
-             automator.request('USER', '/account-create', 'POST',
-                                       name='박정환', password='1234', type=11,
-                                       phone='01024569959'))
-    validate(getframeinfo(currentframe()).lineno,
-             automator.request('USER', '/account-create', 'POST',
-                                       name='정구현', password='1234', type=11,
-                                       phone='01024733891'
-                               ))
+    # # Create ANONYMOUS (비회원) account data:
+    # random_password = "%x" % getrandbits(512)
+    # validate(getframeinfo(currentframe()).lineno,
+    #          automator.request('USER', '/account-create', 'POST',
+    #                                    name='ANONYMOUS',
+    #                                    password=random_password,
+    #                                    phone='ANONYMOUS'))
+
+    # # Create Default level 'NORMAL':
+    # validate(getframeinfo(currentframe()).lineno,
+    #          automator.request('ADMIN', '/admin/account-level',
+    #                            'POST', id='NORMAL', discount_rate=0))
+
+    # # Create Default users:
+    # validate(getframeinfo(currentframe()).lineno,
+    #          automator.request('USER', '/account-create', 'POST',
+    #                                    name='박정환', password='1234',
+    #                                    phone='01024569959'))
+    # validate(getframeinfo(currentframe()).lineno,
+    #          automator.request('USER', '/account-create', 'POST',
+    #                                    name='정구현', password='1234',
+    #                                    phone='01024733891'
+    #                            ))
 
     # Fetch sample product data from CSV, and add data:
     for raw_product in get_product_list('./sample_product.csv'):
