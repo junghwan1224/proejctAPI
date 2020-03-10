@@ -66,17 +66,23 @@ exports.readByNonUser = async (req, res) => {
     });
     const orders = orderInfo.map(o => o.dataValues);
 
-    const token = await getToken();
+    if(orders.length) {
+      const token = await getToken();
 
-    const getPayment = await axios({
-      url: `https://api.iamport.kr/payments/${orders[0].imp_uid}`,
-      method: "get",
-      headers: { Authorization: token }
-    });
+      const getPayment = await axios({
+        url: `https://api.iamport.kr/payments/${orders[0].imp_uid}`,
+        method: "get",
+        headers: { Authorization: token }
+      });
 
-    return res
-      .status(200)
-      .send({ delivery, orders, payment: getPayment.data.response });
+      return res
+        .status(200)
+        .send({ delivery, orders, payment: getPayment.data.response });
+    }
+    else {
+      return res.status(200).send({ warning: "주문번호와 일치하는 주문내역이 없습니다. 입력하신 주문번호를 다시 확인해주세요." });
+    }
+    
   } catch (err) {
     console.log(err);
     res.status(400).send();
