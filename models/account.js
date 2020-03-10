@@ -12,8 +12,7 @@ module.exports = (sequelize, DataTypes) => {
       name: DataTypes.STRING,
       crn: DataTypes.STRING,
       mileage: DataTypes.INTEGER,
-      email: DataTypes.STRING,
-      type: DataTypes.INTEGER
+      email: DataTypes.STRING
     },
     {
       hooks: {
@@ -32,7 +31,6 @@ module.exports = (sequelize, DataTypes) => {
         beforeUpdate: (account, options) => {
           // if(options.fields.includes("password")) {
           //   const { password } = account.dataValues;
-
           //   account.password = bcrypt.hashSync(password, 10);
           // }
         }
