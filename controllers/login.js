@@ -26,7 +26,7 @@ exports.loginByUser = async (req, res) => {
     });
 
     if (account) {
-      const { id, name, type } = account.dataValues;
+      const { id, name, level } = account.dataValues;
       if (bcrypt.compareSync(password, account.dataValues.password)) {
         // create JWT and send data.
         let token = jwt.sign({ id }, DEV_SECRET, {
@@ -36,9 +36,9 @@ exports.loginByUser = async (req, res) => {
         res.cookie("user", token);
         return res.status(200).send({
           id,
-          name: name,
+          name,
           phone,
-          type,
+          level,
           token
         });
       } else {
@@ -50,6 +50,7 @@ exports.loginByUser = async (req, res) => {
       return res.status(400).send({ message: "가입되지 않은 전화번호입니다." });
     }
   } catch (err) {
+    console.log(err);
     return res.status(400).send({
       message: "에러가 발생했습니다. 잠시 후 다시 시도해주세요."
     });
