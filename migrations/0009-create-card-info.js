@@ -22,6 +22,14 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false
       },
+      card_name: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
+      card_number: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
