@@ -47,9 +47,9 @@ exports.readByUser = async (req, res) => {
     };
   }
 
-  /* Check if user is logged in, and fetch discount_rate: */
-  let discount_rate = undefined;
-  let total_discount_rate = parseFloat(process.env.DEFAULT_DISCOUNT);
+  /* Check if user is logged in, and fetch USER_DISCOUNT: */
+  let USER_DISCOUNT = undefined;
+  const DEFAULT_DISCOUNT = parseFloat(process.env.DEFAULT_DISCOUNT);
   const { authorization } = req.headers;
   const accountId = jwt.verify(authorization, DEV_SECRET, (err, decoded) => {
     if (err) {
@@ -71,8 +71,7 @@ exports.readByUser = async (req, res) => {
         }
       ]
     });
-    discount_rate = parseFloat(account.level_detail.discount_rate);
-    total_discount_rate += discount_rate;
+    USER_DISCOUNT = parseFloat(account.level_detail.discount_rate);
   }
 
   /* Fetch products and apply discount_rate: */
@@ -83,25 +82,27 @@ exports.readByUser = async (req, res) => {
     });
 
     for (const idx of Array(products.length).keys()) {
-      /** Calculate according to the discount rate: */
-      if (discount_rate === undefined)
-        products[idx].price *= 1 + parseFloat(process.env.DEFAULT_DISCOUNT);
-      else {
-        /** Update price: */
+      /** Calculate according to the USER_DISCOUNT: */
+      if (USER_DISCOUNT === undefined)
         products[idx].price =
-          Math.round((products[idx].price * (1 - discount_rate)) / 10) * 10;
-
+          Math.round((products[idx].price * (1 + DEFAULT_DISCOUNT)) / 10) * 10;
+      else {
         /* Add originalPrice: */
         products[idx].setDataValue(
           "originalPrice",
-          Math.round((products[idx].price * (1 + total_discount_rate)) / 10) *
-            10
+          Math.round((products[idx].price * (1 + DEFAULT_DISCOUNT)) / 10) * 10
         );
+
+        /** Update price: */
+        products[idx].price =
+          Math.round((products[idx].price * (1 - USER_DISCOUNT)) / 10) * 10;
 
         /* Add discount_rate: */
         products[idx].setDataValue(
           "discount_rate",
-          (products[idx].discount_rate = Math.round(total_discount_rate * 100))
+          (products[idx].discount_rate = Math.round(
+            (DEFAULT_DISCOUNT + USER_DISCOUNT) * 100
+          ))
         );
       }
     }
