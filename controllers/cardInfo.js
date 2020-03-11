@@ -7,14 +7,15 @@ exports.readByUser = async (req, res) => {
         const { account_id } = req;
 
         const cardInfo = await CardInfo.findOne({
-            where: { account_id }
+            where: { account_id },
+            attributes: ["customer_uid", "card_name", "card_number"]
         });
 
         if(cardInfo) {
-            return res.status(200).send({ data: cardInfo });
+            return res.status(200).send({ response: cardInfo });
         }
         else {
-            return res.status(200).send({ data: null });
+            return res.status(200).send({ response: null });
         }
     }
     catch(err) {
