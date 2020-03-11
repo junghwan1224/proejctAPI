@@ -224,7 +224,7 @@ exports.createBillingKeyByUser = async (req, res) => {
 // (delete) billing: 빌링키 삭제
 exports.deleteBillingKeyByUser = async (req, res) => {
   try {
-    const { customer_uid } = req.body;
+    const { customer_uid } = req.headers;
 
     const token = await getToken();
 
