@@ -35,7 +35,11 @@ exports.createByUser = async (req, res) => {
             card_number
         });
 
-        return res.status(201).send();
+        return res.status(201).send({
+            customer_uid,
+            card_name,
+            card_number
+        });
     }
     catch(err) {
         return res.status(400).send();
