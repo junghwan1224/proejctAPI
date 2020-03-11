@@ -1,7 +1,11 @@
 "use strict";
 
 const Product = require("../models").product;
+const Account = require("../models").account;
+const AccountLevel = require("../models").account_level;
 const Sequelize = require("sequelize");
+const jwt = require("jsonwebtoken");
+const DEV_SECRET = process.env.DEV_SECRET;
 
 const { Op } = Sequelize;
 
@@ -42,12 +46,65 @@ exports.readByUser = async (req, res) => {
       ].join("$$")}%`
     };
   }
+
+  /* Check if user is logged in, and fetch discount_rate: */
+  let discount_rate = undefined;
+  let total_discount_rate = parseFloat(process.env.DEFAULT_DISCOUNT);
+  const { authorization } = req.headers;
+  const accountId = jwt.verify(authorization, DEV_SECRET, (err, decoded) => {
+    if (err) {
+      return null;
+    }
+    return decoded.id;
+  });
+  if (accountId) {
+    const account = await Account.findOne({
+      where: {
+        id: accountId
+      },
+      include: [
+        {
+          model: AccountLevel,
+          required: true,
+          as: "level_detail",
+          attributes: ["discount_rate"]
+        }
+      ]
+    });
+    discount_rate = parseFloat(account.level_detail.discount_rate);
+    total_discount_rate += discount_rate;
+  }
+
+  /* Fetch products and apply discount_rate: */
   try {
     const products = await Product.findAll({
       where: searchField,
       order: [["models", "ASC"]]
     });
-    //.map(p => p.dataValues);
+
+    for (const idx of Array(products.length).keys()) {
+      /** Calculate according to the discount rate: */
+      if (discount_rate === undefined)
+        products[idx].price *= 1 + parseFloat(process.env.DEFAULT_DISCOUNT);
+      else {
+        /** Update price: */
+        products[idx].price =
+          Math.round((products[idx].price * (1 - discount_rate)) / 10) * 10;
+
+        /* Add originalPrice: */
+        products[idx].setDataValue(
+          "originalPrice",
+          Math.round((products[idx].price * (1 + total_discount_rate)) / 10) *
+            10
+        );
+
+        /* Add discount_rate: */
+        products[idx].setDataValue(
+          "discount_rate",
+          (products[idx].discount_rate = Math.round(total_discount_rate * 100))
+        );
+      }
+    }
     return res.status(200).send(products);
   } catch (err) {
     console.log(err);
