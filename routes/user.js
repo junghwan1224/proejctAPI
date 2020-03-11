@@ -93,13 +93,11 @@ module.exports = app => {
 
   app
     .route("/payment/issue-billing")
-    .all(verifyToken.authUser)
     .post(payment.createBillingKeyByUser)
     .delete(payment.deleteBillingKeyByUser);
 
   app
     .route("/payment/billing")
-    .all(verifyToken.authUser)
     .post(payment.billingByUser);
 
   app
