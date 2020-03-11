@@ -1,10 +1,6 @@
 "use strict";
 
-const axios = require("axios");
-
 const CardInfo = require("../models").card_info;
-
-const getToken = require("../public/js/getToken");
 
 exports.readByUser = async (req, res) => {
     try {
@@ -15,20 +11,7 @@ exports.readByUser = async (req, res) => {
         });
 
         if(cardInfo) {
-            const { customer_uid } = cardInfo.dataValues;
-
-            const token = await getToken();
-
-            const getBilling = await axios({
-                url: `https://api.iamport.kr/subscribe/customers/${customer_uid}`,
-                method: 'GET',
-                headers: {Authorization: token}
-            });
-
-            const { code, response } = getBilling.data;
-            if(code === 0) {
-                return res.status(200).send({ data: response });
-            }
+            return res.status(200).send({ data: cardInfo });
         }
         else {
             return res.status(200).send({ data: null });
@@ -42,11 +25,13 @@ exports.readByUser = async (req, res) => {
 exports.createByUser = async (req, res) => {
     try {
         const { account_id } = req;
-        const { customer_uid } = req.body;
+        const { customer_uid, card_name, card_number } = req.body;
 
         await CardInfo.create({
             account_id,
-            customer_uid
+            customer_uid,
+            card_name,
+            card_number
         });
 
         return res.status(201).send();

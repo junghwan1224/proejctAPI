@@ -199,12 +199,16 @@ exports.createBillingKeyByUser = async (req, res) => {
       }
     });
 
-    const { code } = getBilling.data;
+    const { code, response } = getBilling.data;
     // response.card_name = 국민 KB 카드
 
     if (code === 0) {
       // 빌링키 발급 성공
-      return res.status(201).send({ customer_uid });
+      return res.status(201).send({
+        customer_uid,
+        card_name: response.card_name,
+        card_number: response.card_number
+      });
     }
     else {
       return res.status(400).send();
