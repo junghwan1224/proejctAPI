@@ -1,8 +1,11 @@
 "use strict";
 
 const Product = require("../models").product;
-const ProductAbstract = require("../models").product_abstract;
+const Account = require("../models").account;
+const AccountLevel = require("../models").account_level;
 const Sequelize = require("sequelize");
+const jwt = require("jsonwebtoken");
+const DEV_SECRET = process.env.DEV_SECRET;
 
 const Op = Sequelize.Op;
 
@@ -71,6 +74,33 @@ exports.readByUser = async (req, res) => {
       .send({ message: "필요한 정보를 모두 입력해주세요." });
   }
 
+  /* Check if user is logged in, and fetch USER_DISCOUNT: */
+  let USER_DISCOUNT = undefined;
+  const DEFAULT_DISCOUNT = parseFloat(process.env.DEFAULT_DISCOUNT);
+  const { authorization } = req.headers;
+  const accountId = jwt.verify(authorization, DEV_SECRET, (err, decoded) => {
+    if (err) {
+      return null;
+    }
+    return decoded.id;
+  });
+  if (accountId) {
+    const account = await Account.findOne({
+      where: {
+        id: accountId
+      },
+      include: [
+        {
+          model: AccountLevel,
+          required: true,
+          as: "level_detail",
+          attributes: ["discount_rate"]
+        }
+      ]
+    });
+    USER_DISCOUNT = parseFloat(account.level_detail.discount_rate);
+  }
+
   /* Fetch account data including level attributes:  */
   try {
     const response = await Product.findOne({
@@ -86,6 +116,30 @@ exports.readByUser = async (req, res) => {
         .status(400)
         .send({ message: "유효하지 않은 product_id 입니다." });
     }
+
+    if (USER_DISCOUNT === undefined)
+      response.price =
+        Math.round((response.price * (1 + DEFAULT_DISCOUNT)) / 10) * 10;
+    else {
+      /* Add originalPrice: */
+      response.setDataValue(
+        "originalPrice",
+        Math.round((response.price * (1 + DEFAULT_DISCOUNT)) / 10) * 10
+      );
+
+      /** Update price: */
+      response.price =
+        Math.round((response.price * (1 - USER_DISCOUNT)) / 10) * 10;
+
+      /* Add discount_rate: */
+      response.setDataValue(
+        "discount_rate",
+        (response.discount_rate = Math.round(
+          (DEFAULT_DISCOUNT + USER_DISCOUNT) * 100
+        ))
+      );
+    }
+
     return res.status(200).send(response);
   } catch (err) {
     console.log(err);
