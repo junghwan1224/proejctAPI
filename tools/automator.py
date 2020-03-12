@@ -13,13 +13,12 @@ class Automator:
         self._API_map = {
             'USER': [
                 {
-                    'route': '/account',
+                    'route': '/account-create',
                     'method': 'POST',
                     'mandatory': {
                         'phone': str,
                         'password': str,
-                        'name': str,
-                        'type': int
+                        'name': str
                     },
                     'optional': {
                         'crn': str,

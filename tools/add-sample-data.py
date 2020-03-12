@@ -1,7 +1,7 @@
-import inspect
+from inspect import getframeinfo, currentframe
 from automator import Automator  # noqa
 import uuid
-from random import randrange
+from random import randrange, getrandbits
 from hashlib import md5
 import sys
 
@@ -9,28 +9,39 @@ import sys
 def main():
     automator = Automator()
 
-    # Fetch sample product data (format: [<dict>, <dict>, ...]):
-    product_list = get_product_list('./sample_product.csv')
+    # # Create Default level 'NORMAL':
+    validate(getframeinfo(currentframe()).lineno,
+             automator.request('ADMIN', '/admin/account-level',
+                               'POST', id='NORMAL', discount_rate=0))
 
-    for raw_product in product_list:
-        response = automator.request('ADMIN', '/admin/product', 'POST',
-                                     maker=raw_product['maker'],
-                                     maker_number=md5(str(randrange(1234, 1324354253)).encode(
-                                         'utf-8')).hexdigest()[:randrange(8, 12)].upper(),
-                                     maker_origin=raw_product['maker_origin'],
-                                     type=raw_product['type'],
-                                     models=raw_product['models'],
-                                     oe_number=raw_product['oe_number'],
-                                     stock=randrange(0, 1200),
-                                     price=raw_product['price'],
-                                     images=get_sample_images(
-                                         raw_product['type']),
-                                     attributes=get_sample_attributes(
-                                         raw_product['type'], raw_product['classification']),
-                                     tags=raw_product['tags'],
-                                     description_images=get_sample_description_images()
-                                     )
-        tackle(response, inspect.getframeinfo(inspect.currentframe()).lineno)
+    # # Create ANONYMOUS (비회원) account data:
+    random_password = "%x" % getrandbits(512)
+    validate(getframeinfo(currentframe()).lineno,
+             automator.request('USER', '/account-create', 'POST',
+                                       name='ANONYMOUS',
+                                       password=random_password,
+                                       phone='ANONYMOUS'))
+
+    # Fetch sample product data from CSV, and add data:
+    for raw_product in get_product_list('./sample_product.csv'):
+        validate(getframeinfo(currentframe()).lineno,
+                 automator.request('ADMIN', '/admin/product', 'POST',
+                                   maker=raw_product['maker'],
+                                   maker_number=md5(str(randrange(1234, 1324354253)).encode(
+                                       'utf-8')).hexdigest()[:randrange(8, 12)].upper(),
+                                   maker_origin=raw_product['maker_origin'],
+                                   type=raw_product['type'],
+                                   models=raw_product['models'],
+                                   oe_number=raw_product['oe_number'],
+                                   stock=randrange(0, 1200),
+                                   price=raw_product['price'],
+                                   images=get_sample_images(
+                                       raw_product['type']),
+                                   attributes=get_sample_attributes(
+                                       raw_product['type'], raw_product['classification']),
+                                   tags=raw_product['tags'],
+                                   description_images=get_sample_description_images()
+                                   ))
 
     print('----------------------------------------------------------')
     print('[*] Operation complete.')
@@ -165,8 +176,7 @@ def get_product_list(csv_path):
     return product_list
 
 
-def tackle(response, lineno):
-
+def validate(lineno, response):
     if str(response.status_code).startswith('4') or \
             str(response.status_code).startswith('5'):
         print('----------------------------------------------------------')

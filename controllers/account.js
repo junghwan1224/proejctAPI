@@ -6,10 +6,8 @@ const Account = require("../models").account;
 const AccountLevel = require("../models").account_level;
 
 exports.createByUser = async (req, res) => {
-  /* If phone, password, name, type are not included, return 400: */
-  if (
-    !(req.body.phone && req.body.password && req.body.name && req.body.type)
-  ) {
+  /* If phone, password, name are not included, return 400: */
+  if (!(req.body.phone && req.body.password && req.body.name)) {
     return res.status(400).send({
       message: "필요한 정보를 모두 입력해주세요."
     });
@@ -36,12 +34,12 @@ exports.createByUser = async (req, res) => {
       password: req.body.password,
       name: req.body.name,
       crn: req.body.crn,
-      type: req.body.type,
-      // email: req.body.email,
+      email: req.body.email,
       level: "NORMAL"
     });
     return res.status(201).send();
   } catch (error) {
+    console.log(error);
     return res
       .status(400)
       .send({ message: "에러가 발생했습니다. 잠시 후 다시 시도해주세요." });
@@ -49,17 +47,6 @@ exports.createByUser = async (req, res) => {
 };
 
 exports.readByUser = async (req, res) => {
-  /* Allow pre-defined attributes only:  */
-  const ALLOWED_ATTRIBUTES = [
-    "id",
-    "phone",
-    "name",
-    "email",
-    "crn",
-    "type",
-    "mileage",
-    "level"
-  ];
   const fields = req.query.fields || "";
   const { account_id } = req;
 
@@ -67,7 +54,9 @@ exports.readByUser = async (req, res) => {
   try {
     const response = await Account.findOne({
       where: { id: account_id },
-      attributes: ALLOWED_ATTRIBUTES,
+      attributes: {
+        exclude: ["password"]
+      },
       include: [
         {
           model: AccountLevel,
@@ -110,17 +99,14 @@ exports.readByNonUser = async (req, res) => {
       where: { phone }
     });
 
-    if(account) {
+    if (account) {
       isValid = true;
     }
 
-    return res.status(200).send({ isValid })
-  }
-  catch(err) {
+    return res.status(200).send({ isValid });
+  } catch (err) {
     console.log(err);
-    return res
-      .status(400)
-      .send();
+    return res.status(400).send();
   }
 };
 
@@ -175,17 +161,17 @@ exports.updateByNonUser = async (req, res) => {
     const { phone, new_password } = req.body;
     const bcryptPwd = bcrypt.hashSync(new_password, 10);
 
-    await Account.update({ password: bcryptPwd }, {
-      where: { phone }
-    });
+    await Account.update(
+      { password: bcryptPwd },
+      {
+        where: { phone }
+      }
+    );
 
     return res.status(200).send();
-  }
-  catch(err) {
+  } catch (err) {
     console.log(err);
-    return res
-      .status(400)
-      .send();
+    return res.status(400).send();
   }
 };
 
