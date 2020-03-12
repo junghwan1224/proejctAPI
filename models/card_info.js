@@ -4,7 +4,9 @@ module.exports = (sequelize, DataTypes) => {
     "card_info",
     {
       account_id: DataTypes.UUID,
-      customer_uid: DataTypes.STRING
+      customer_uid: DataTypes.STRING,
+      card_name: DataTypes.STRING,
+      card_number: DataTypes.STRING
     },
     {}
   );

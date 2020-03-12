@@ -17,6 +17,7 @@ module.exports = app => {
   const order = require("../controllers/order");
   const payment = require("../controllers/payment");
   const receipt = require("../controllers/receipt");
+  const cardInfo = require("../controllers/cardInfo");
 
   const inquiry = require("../controllers/inquiry");
 
@@ -92,13 +93,11 @@ module.exports = app => {
 
   app
     .route("/payment/issue-billing")
-    .all(verifyToken.authUser)
     .post(payment.createBillingKeyByUser)
     .delete(payment.deleteBillingKeyByUser);
 
   app
     .route("/payment/billing")
-    .all(verifyToken.authUser)
     .post(payment.billingByUser);
 
   app
@@ -113,6 +112,13 @@ module.exports = app => {
     .all(verifyToken.authUser)
     .get(receipt.readByUser)
     .post(receipt.createByUser);
+
+  app
+    .route("/card-info")
+    .all(verifyToken.authUser)
+    .get(cardInfo.readByUser)
+    .post(cardInfo.createByUser)
+    .delete(cardInfo.deleteByUser);
 
   /* Non User API */
 

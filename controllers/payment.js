@@ -164,7 +164,7 @@ exports.webHookByUser = async (req, res) => {
     console.log(err);
     res
       .status(400)
-      .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+      .send();
   }
 };
 
@@ -175,21 +175,13 @@ exports.createBillingKeyByUser = async (req, res) => {
     const {
       card_number, // 카드 번호
       expiry, // 카드 유효기간
-      birth, // 생년월일
+      birthOrCRN, // 생년월일 혹은 사업자등록번호
       pwd_2digit // 카드 비밀번호 앞 두자리,
     } = req.body;
-    const transaction = await models.sequelize.transaction();
 
-    const { account_id } = req;
-
-    const user = await Account.findOne({
-      where: { id: account_id },
-      transaction
-    });
-
-    const account_phone = user.dataValues.phone;
+    const uniqueValue = new Date().getTime().toString().slice(5);
     const card_num_4digit = card_number.slice(0, 4);
-    const customer_uid = `HERMES_BILLING_KEY_${account_phone}_${card_num_4digit}`; // 카드(빌링키)와 1:1로 대응하는 값
+    const customer_uid = `MONTAR_BILLING_KEY_${uniqueValue}${card_num_4digit}`; // 카드(빌링키)와 1:1로 대응하는 값
 
     // 아임포트 인증 토큰 발급
     const token = await getToken();
@@ -202,45 +194,37 @@ exports.createBillingKeyByUser = async (req, res) => {
       data: {
         card_number, // 카드 번호
         expiry, // 카드 유효기간
-        birth, // 생년월일
+        birth: birthOrCRN, // 생년월일
         pwd_2digit // 카드 비밀번호 앞 두자리
       }
     });
 
-    const { code } = getBilling.data;
+    const { code, response } = getBilling.data;
     // response.card_name = 국민 KB 카드
 
     if (code === 0) {
       // 빌링키 발급 성공
-      // 빌링키를 사용할 때 필요한 customer_uid 값을 유저의 계정과 1:1(혹은 1:N)관계를 맺는 DB에 저장
-      await CardInfo.create(
-        {
-          account_id,
-          customer_uid
-        },
-        {
-          transaction
-        }
-      );
-
-      await transaction.commit();
-
       return res.status(201).send({
-        customer_uid
+        customer_uid,
+        card_name: response.card_name,
+        card_number: response.card_number
       });
+    }
+    else {
+      return res.status(400).send();
     }
   } catch (err) {
     console.log(err);
     res
       .status(400)
-      .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+      .send();
   }
 };
 
 // (delete) billing: 빌링키 삭제
 exports.deleteBillingKeyByUser = async (req, res) => {
   try {
-    const { customer_uid } = req.body;
+    const { customer_uid } = req.headers;
 
     const token = await getToken();
 
@@ -253,17 +237,13 @@ exports.deleteBillingKeyByUser = async (req, res) => {
     const { code, message } = deleteBilling.data;
 
     if (code === 0) {
-      await CardInfo.destroy({
-        where: { customer_uid }
-      });
-
       return res.status(200).send({ message });
     }
   } catch (err) {
     console.log(err);
     res
       .status(400)
-      .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+      .send();
   }
 };
 
@@ -448,7 +428,7 @@ exports.billingByUser = async (req, res) => {
     console.log(err);
     res
       .status(400)
-      .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+      .send();
   }
 };
 
@@ -526,7 +506,7 @@ exports.cancelByUser = async (req, res) => {
     }
   } catch (err) {
     console.log(err);
-    res.status(400).send({ message: "에러가 발생했습니다. 다시 시도해주세요" });
+    res.status(400).send();
   }
 };
 
@@ -688,6 +668,6 @@ exports.refundByAdmin = async (req, res) => {
     console.log(err);
     return res
       .status(403)
-      .send({ message: "에러가 발생했습니다. 다시 시도해주세요" });
+      .send();
   }
 };
