@@ -78,7 +78,7 @@ exports.webHookByUser = async (req, res) => {
           await transaction.commit();
 
           res
-            .status(201)
+            .status(200)
             .send({ status: "vbankIssued", message: "가상계좌 발급 성공" });
           break;
 
@@ -131,7 +131,7 @@ exports.webHookByUser = async (req, res) => {
           }
 
           res
-            .status(201)
+            .status(200)
             .send({
               status: "success",
               message: "결제가 정상적으로 완료되었습니다."
@@ -366,7 +366,7 @@ exports.billingByUser = async (req, res) => {
 
           await sendSMS(smsText, user.dataValues.phone, timestamp);
 
-          return res.status(201).send({ status: "success", message });
+          return res.status(200).send({ status: "success", message });
         }
 
         // 카드 승인 실패 (카드 한도 초과, 거래 정지 카드, 잔액 부족 등의 사유로 실패)
@@ -374,7 +374,7 @@ exports.billingByUser = async (req, res) => {
           // payWithBilling.status === "failed"
           // await transaction.commit();
 
-          return res.status(201).send({
+          return res.status(200).send({
             status: "failed",
             message:
               "카드 승인에 실패했습니다. 귀하의 카드가 한도 초과, 거래 정지, 잔액 부족 등에 해당되는지 확인 바랍니다."
@@ -581,7 +581,7 @@ exports.refundByAdmin = async (req, res) => {
       await transaction.commit();
 
       return res
-        .status(201)
+        .status(200)
         .send({
           status: "amount over",
           message: "이미 전액환불된 주문입니다."
@@ -653,7 +653,7 @@ exports.refundByAdmin = async (req, res) => {
       const timestamp = new Date().getTime().toString();
       await sendSMS(smsText, user.dataValues.phone, timestamp);
 
-      return res.status(201).send({
+      return res.status(200).send({
         status: "success",
         message: "환불이 정상적으로 처리되었습니다.",
         receipt_url: cancelPayment.data.response.receipt_url
