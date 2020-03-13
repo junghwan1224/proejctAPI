@@ -27,7 +27,7 @@ exports.readByUser = async (req, res) => {
       transaction
     });
 
-    const price = await Order.sum("amount", {
+    const amount = await Order.sum("amount", {
       where: {
         merchant_uid: order_id
       },
@@ -45,7 +45,7 @@ exports.readByUser = async (req, res) => {
 
     res.status(200).send({
       order: order.dataValues,
-      price: price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+      amount,
       delivery: delivery.dataValues
     });
   } catch (err) {
