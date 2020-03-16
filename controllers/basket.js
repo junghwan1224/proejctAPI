@@ -12,22 +12,23 @@ const calculateDiscount = require("./common").calculateDiscount;
 
 exports.readByUser = async (req, res) => {
   try {
-    const { account_id } = req;
+    // const { account_id } = req;
+
     // const account_id = "d36d1a36-1f7c-4382-8a16-b325ca279a9c"; // for test only.
 
     /* Check if user is logged in, and fetch USER_DISCOUNT: */
     let USER_DISCOUNT = undefined;
     const { authorization } = req.headers;
-    const accountId = jwt.verify(authorization, DEV_SECRET, (err, decoded) => {
+    const account_id = jwt.verify(authorization, DEV_SECRET, (err, decoded) => {
       if (err) {
         return null;
       }
       return decoded.id;
     });
-    if (accountId) {
+    if (account_id) {
       const account = await Account.findOne({
         where: {
-          id: accountId
+          id: account_id
         },
         include: [
           {
