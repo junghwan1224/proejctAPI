@@ -78,7 +78,7 @@ exports.webHookByUser = async (req, res) => {
           await transaction.commit();
 
           res
-            .status(201)
+            .status(200)
             .send({ status: "vbankIssued", message: "가상계좌 발급 성공" });
           break;
 
@@ -131,7 +131,7 @@ exports.webHookByUser = async (req, res) => {
           }
 
           res
-            .status(201)
+            .status(200)
             .send({
               status: "success",
               message: "결제가 정상적으로 완료되었습니다."
@@ -251,25 +251,24 @@ exports.deleteBillingKeyByUser = async (req, res) => {
 exports.billingByUser = async (req, res) => {
   try {
     const {
-      customer_uid,
+      // customer_uid,
+      card_number,
+      expiry,
+      birth,
+      pwd_2digit,
+
       merchant_uid,
-      // product_id,
       name,
       amount,
-      buyer_email,
       buyer_name,
       buyer_tel,
-      buyer_addr,
-      buyer_postcode
+      buyer_postcode,
+      buyer_addr_primary,
+      buyer_addr_detail
     } = req.body;
     const transaction = await models.sequelize.transaction();
 
-    const { account_id } = req;
-
-    const user = await Account.findOne({
-      where: { id: account_id },
-      transaction
-    });
+    const account_id = req.account_id ? req.account_id : "12345";
 
     // 아임포트 인증 토큰
     const token = await getToken();
@@ -297,29 +296,31 @@ exports.billingByUser = async (req, res) => {
 
       // 결제 요청
       const payWithBilling = await axios({
-        url: `https://api.iamport.kr/subscribe/payments/again`,
+        url: `https://api.iamport.kr/subscribe/payments/onetime`,
         method: "post",
         headers: { Authorization: token },
         data: {
-          customer_uid,
+          card_number,
+          expiry,
+          birth,
+          pwd_2digit,
           merchant_uid,
           name,
           amount,
-          buyer_email,
           buyer_name,
           buyer_tel,
-          buyer_addr,
+          buyer_addr: `${buyer_addr_primary} ${buyer_addr_detail}`,
           buyer_postcode
         }
       });
 
-      const { code, message } = payWithBilling.data;
+      const { code, message, response } = payWithBilling.data;
 
       if (code === 0) {
         // 결제 성공
 
         // 카드 정상 승인
-        if (payWithBilling.status === "paid") {
+        if (response.status === "paid") {
           // product DB 값 업데이트 ... 재고 업데이트
           const updatedProducts = await processStock(
             orderedProductId,
@@ -336,13 +337,18 @@ exports.billingByUser = async (req, res) => {
           // order DB 값 업데이트 ... imp_uid 값 추가, status 값 업데이트
           await Order.update(
             {
-              imp_uid,
+              imp_uid: response.imp_uid,
               status: "paid"
             },
             {
               where: {
                 id: { [Op.in]: orderedId }
               },
+              merchant_uid,
+              account_id,
+              shipping_postcode: buyer_postcode,
+              shipping_primary: buyer_addr_primary,
+              shipping_detail: buyer_addr_detail,
               transaction
             }
           );
@@ -355,26 +361,23 @@ exports.billingByUser = async (req, res) => {
             where: { id: { [Op.in]: orderedProductId } }
           });
           const productOEN = products.map(p => p.dataValues.oe_number);
-          const smsText = `
-                        ${
-                          productOEN.length > 1
-                            ? `${productOEN[0]}외 ${productOEN.length - 1}개`
-                            : productOEN[0]
-                        } 상품의 결제가
-                        완료되었습니다.
-                    `;
+          // const smsText = `${productOEN.length > 1 ? `${productOEN[0]}외 ${productOEN.length - 1}개` : productOEN[0] } 상품의 결제가 완료되었습니다.`;
+          const smsText = `주문번호[${merchant_uid.slice(7)}]\n${
+            productOEN.length > 1
+              ? `${productOEN[0]}외 ${productOEN.length - 1}종류`
+              : productOEN[0]
+          } 상품의 결제가 완료되었습니다.`;
 
-          await sendSMS(smsText, user.dataValues.phone, timestamp);
+          await sendSMS(smsText, buyer_tel, timestamp);
 
-          return res.status(201).send({ status: "success", message });
+          return res.status(200).send({ status: "success", message, response });
         }
 
         // 카드 승인 실패 (카드 한도 초과, 거래 정지 카드, 잔액 부족 등의 사유로 실패)
         else {
-          // payWithBilling.status === "failed"
-          // await transaction.commit();
+          await transaction.commit();
 
-          return res.status(201).send({
+          return res.status(200).send({
             status: "failed",
             message:
               "카드 승인에 실패했습니다. 귀하의 카드가 한도 초과, 거래 정지, 잔액 부족 등에 해당되는지 확인 바랍니다."
@@ -386,7 +389,6 @@ exports.billingByUser = async (req, res) => {
         // order DB 값 업데이트 ... imp_uid 값 추가, status 값 업데이트
         await Order.update(
           {
-            imp_uid,
             status: "failed"
           },
           {
@@ -407,7 +409,7 @@ exports.billingByUser = async (req, res) => {
       // order DB 값 업데이트 ... imp_uid 값 추가, status 값 업데이트
       await Order.update(
         {
-          imp_uid,
+          imp_uid: response.imp_uid,
           status: "forgery"
         },
         {
@@ -581,7 +583,7 @@ exports.refundByAdmin = async (req, res) => {
       await transaction.commit();
 
       return res
-        .status(201)
+        .status(200)
         .send({
           status: "amount over",
           message: "이미 전액환불된 주문입니다."
@@ -653,7 +655,7 @@ exports.refundByAdmin = async (req, res) => {
       const timestamp = new Date().getTime().toString();
       await sendSMS(smsText, user.dataValues.phone, timestamp);
 
-      return res.status(201).send({
+      return res.status(200).send({
         status: "success",
         message: "환불이 정상적으로 처리되었습니다.",
         receipt_url: cancelPayment.data.response.receipt_url
