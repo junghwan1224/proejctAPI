@@ -8,6 +8,7 @@ const jwt = require("jsonwebtoken");
 const DEV_SECRET = process.env.DEV_SECRET;
 
 const Op = Sequelize.Op;
+const calculateDiscount = require("./common").calculateDiscount;
 
 exports.createByAdmin = async (req, res) => {
   /* If necessary fields are not given, return 400: */
@@ -76,7 +77,6 @@ exports.readByUser = async (req, res) => {
 
   /* Check if user is logged in, and fetch USER_DISCOUNT: */
   let USER_DISCOUNT = undefined;
-  const DEFAULT_DISCOUNT = parseFloat(process.env.DEFAULT_DISCOUNT);
   const { authorization } = req.headers;
   const accountId = jwt.verify(authorization, DEV_SECRET, (err, decoded) => {
     if (err) {
@@ -117,28 +117,15 @@ exports.readByUser = async (req, res) => {
         .send({ message: "유효하지 않은 product_id 입니다." });
     }
 
-    if (USER_DISCOUNT === undefined)
-      response.price =
-        Math.round((response.price * (1 + DEFAULT_DISCOUNT)) / 10) * 10;
-    else {
-      /* Add originalPrice: */
-      response.setDataValue(
-        "originalPrice",
-        Math.round((response.price * (1 + DEFAULT_DISCOUNT)) / 10) * 10
-      );
-
-      /** Update price: */
-      response.price =
-        Math.round((response.price * (1 - USER_DISCOUNT)) / 10) * 10;
-
-      /* Add discount_rate: */
-      response.setDataValue(
-        "discount_rate",
-        (response.discount_rate = Math.round(
-          (DEFAULT_DISCOUNT + USER_DISCOUNT) * 100
-        ))
-      );
-    }
+    const product = response.dataValues;
+    const calculated = calculateDiscount(
+      USER_DISCOUNT,
+      product.price,
+      product.allow_discount
+    );
+    product.price = calculated.price;
+    product.originalPrice = calculated.originalPrice;
+    product.discountRate = calculated.discountRate;
 
     return res.status(200).send(response);
   } catch (err) {
