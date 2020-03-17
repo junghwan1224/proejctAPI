@@ -12,19 +12,10 @@ const calculateDiscount = require("./common").calculateDiscount;
 
 exports.readByUser = async (req, res) => {
   try {
-    // const { account_id } = req;
-
-    // const account_id = "d36d1a36-1f7c-4382-8a16-b325ca279a9c"; // for test only.
-
     /* Check if user is logged in, and fetch USER_DISCOUNT: */
     let USER_DISCOUNT = undefined;
-    const { authorization } = req.headers;
-    const account_id = jwt.verify(authorization, DEV_SECRET, (err, decoded) => {
-      if (err) {
-        return null;
-      }
-      return decoded.id;
-    });
+    const account_id = req.account_id;
+
     if (account_id) {
       const account = await Account.findOne({
         where: {
@@ -109,15 +100,9 @@ exports.readByUser = async (req, res) => {
 
 exports.createOrUpdateByUser = async (req, res) => {
   try {
-    const { authorization } = req.headers;
-    const account_id = jwt.verify(authorization, DEV_SECRET, (err, decoded) => {
-      if (err) {
-        return null;
-      }
-      return decoded.id;
-    });
+    const account_id = req.account_id;
     if (!account_id) {
-      return res.status(400).send({ message: "invalid ID" });
+      return res.status(400).send({ message: "유효하지 않은 ID입니다." });
     }
 
     /** Fetch Products */
