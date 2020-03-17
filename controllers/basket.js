@@ -109,9 +109,20 @@ exports.readByUser = async (req, res) => {
 
 exports.createOrUpdateByUser = async (req, res) => {
   try {
-    const { account_id } = req;
-    const products = JSON.parse(req.body.products);
+    const { authorization } = req.headers;
+    const account_id = jwt.verify(authorization, DEV_SECRET, (err, decoded) => {
+      if (err) {
+        return null;
+      }
+      return decoded.id;
+    });
+    if (!account_id) {
+      return res.status(400).send({ message: "invalid ID" });
+    }
 
+    /** Fetch Products */
+
+    const products = JSON.parse(req.body.products);
     for (const product of products) {
       const product_id = product.product_id;
       const quantity = product.quantity;
