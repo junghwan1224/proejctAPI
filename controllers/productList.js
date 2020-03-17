@@ -8,6 +8,7 @@ const jwt = require("jsonwebtoken");
 const DEV_SECRET = process.env.DEV_SECRET;
 
 const { Op } = Sequelize;
+const calculateDiscount = require("./common").calculateDiscount;
 
 exports.readByUser = async (req, res) => {
   const method = req.query.method || "";
@@ -76,35 +77,25 @@ exports.readByUser = async (req, res) => {
 
   /* Fetch products and apply discount_rate: */
   try {
-    const products = await Product.findAll({
+    const response = await Product.findAll({
       where: searchField,
-      order: [["models", "ASC"]]
+      order: [["models", "ASC"]],
+      attributes: { exclude: ["createdAt", "updatedAt", "is_public", "stock"] }
     });
 
-    for (const idx of Array(products.length).keys()) {
-      /** Calculate according to the USER_DISCOUNT: */
-      if (USER_DISCOUNT === undefined)
-        products[idx].price =
-          Math.round((products[idx].price * (1 + DEFAULT_DISCOUNT)) / 10) * 10;
-      else {
-        /* Add originalPrice: */
-        products[idx].setDataValue(
-          "originalPrice",
-          Math.round((products[idx].price * (1 + DEFAULT_DISCOUNT)) / 10) * 10
-        );
+    let products = [];
+    for (const idx of Array(response.length).keys()) {
+      let product = response[idx].dataValues;
+      const calculated = calculateDiscount(
+        USER_DISCOUNT,
+        product.price,
+        product.allow_discount
+      );
+      product.price = calculated.price;
+      product.originalPrice = calculated.originalPrice;
+      product.discountRate = calculated.discountRate;
 
-        /** Update price: */
-        products[idx].price =
-          Math.round((products[idx].price * (1 - USER_DISCOUNT)) / 10) * 10;
-
-        /* Add discount_rate: */
-        products[idx].setDataValue(
-          "discount_rate",
-          (products[idx].discount_rate = Math.round(
-            (DEFAULT_DISCOUNT + USER_DISCOUNT) * 100
-          ))
-        );
-      }
+      products.push(product);
     }
     return res.status(200).send(products);
   } catch (err) {
