@@ -49,7 +49,7 @@ exports.readByUser = async (req, res) => {
       ]
     });
 
-    let carts = [];
+    let carts = {};
     for (const idx of Array(response.length).keys()) {
       const cart = response[idx].product.dataValues;
       cart.quantity = response[idx].quantity;
@@ -61,7 +61,7 @@ exports.readByUser = async (req, res) => {
       cart.price = calculated.price;
       cart.originalPrice = calculated.originalPrice;
       cart.discountRate = calculated.discountRate;
-      carts.push(cart);
+      carts[cart.id] = cart;
 
       // /** Calculate according to the USER_DISCOUNT: */
       // if (USER_DISCOUNT === undefined)
@@ -107,10 +107,9 @@ exports.createOrUpdateByUser = async (req, res) => {
 
     /** Fetch Products */
 
-    const products = JSON.parse(req.body.products);
-    for (const product of products) {
-      const product_id = product.product_id;
-      const quantity = product.quantity;
+    const products = req.body.products;
+    for (const product_id of Object.keys(products)) {
+      const quantity = products[product_id];
 
       const isProductExist = await Basket.count({
         where: {
