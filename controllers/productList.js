@@ -15,7 +15,8 @@ exports.readByUser = async (req, res) => {
   const methodMap = {
     OEN: ["oe_number"],
     CAR: ["brand", "model"],
-    TYPE: ["type"]
+    TYPE: ["type"],
+    ID: ["concatenatedID"]
   };
 
   /** Raise 400 for invalid method key: */
@@ -35,17 +36,23 @@ exports.readByUser = async (req, res) => {
 
   /** Set searchField: */
   let searchField = { is_public: true };
-  if (method.toUpperCase() == "OEN") {
+  if (method.toUpperCase() === "OEN") {
     searchField.oe_number = { [Op.like]: `%${req.query.oe_number}%` };
-  } else if (method.toUpperCase() == "PART") {
+  } else if (method.toUpperCase() === "PART") {
     searchField.type = { [Op.like]: `%${req.query.type}%` };
-  } else if (method.toUpperCase() == "CAR") {
+  } else if (method.toUpperCase() === "CAR") {
     searchField.models = {
       [Op.like]: `%${[
         req.query.brand.toUpperCase(),
         req.query.model.toUpperCase()
       ].join("$$")}%`
     };
+  } else if (method.toUpperCase() === "ID") {
+    searchField.where = Sequelize.where(
+      Sequelize.fn("LOCATE", Sequelize.col("id"), req.query.concatenatedID),
+      Sequelize.Op.ne,
+      0
+    );
   }
 
   /* Check if user is logged in, and fetch USER_DISCOUNT: */
