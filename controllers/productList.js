@@ -58,17 +58,11 @@ exports.readByUser = async (req, res) => {
   /* Check if user is logged in, and fetch USER_DISCOUNT: */
   let USER_DISCOUNT = undefined;
   const DEFAULT_DISCOUNT = parseFloat(process.env.DEFAULT_DISCOUNT);
-  const { authorization } = req.headers;
-  const accountId = jwt.verify(authorization, DEV_SECRET, (err, decoded) => {
-    if (err) {
-      return null;
-    }
-    return decoded.id;
-  });
-  if (accountId) {
+  const account_id = req.account_id;
+  if (account_id) {
     const account = await Account.findOne({
       where: {
-        id: accountId
+        id: account_id
       },
       include: [
         {
