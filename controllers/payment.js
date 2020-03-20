@@ -379,15 +379,7 @@ exports.billingByUser = async (req, res) => {
 
           // 결제 완료 문자 전송
           const timestamp = new Date().getTime().toString();
-          const products = await Product.findAll({
-            where: { id: { [Op.in]: orderedProductId } }
-          });
-          const productOEN = products.map(p => p.dataValues.oe_number);
-          const smsText = `주문번호[${merchant_uid.slice(7)}]\n${
-            productOEN.length > 1
-              ? `${productOEN[0]}외 ${productOEN.length - 1}종류`
-              : productOEN[0]
-          } 상품의 결제가 완료되었습니다.`;
+          const smsText = `주문번호[${merchant_uid.slice(7)}]\n${name} 상품의 결제가 완료되었습니다.`;
 
           await sendSMS(smsText, buyer_tel, timestamp);
 
