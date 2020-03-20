@@ -108,4 +108,4 @@ const authAdmin = async (req, res, next) => {
   }
 };
 
-module.exports = { authUser, authAdmin };
+module.exports = { authUser, authAdmin, verifyToken };

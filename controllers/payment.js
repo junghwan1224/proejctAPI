@@ -13,6 +13,7 @@ const models = require("../models");
 const processStock = require("../public/js/processStock");
 const getToken = require("../public/js/getToken");
 const sendSMS = require("../public/js/sendSMS");
+const { verifyToken } = require("../routes/verifyToken");
 
 /* 일반 결제 */
 
@@ -251,7 +252,8 @@ exports.deleteBillingKeyByUser = async (req, res) => {
 exports.billingByUser = async (req, res) => {
   try {
     const {
-      // customer_uid,
+      isBillingWithKey, // true: again / false: onetime
+      customer_uid,
       card_number,
       expiry,
       birth,
@@ -268,7 +270,8 @@ exports.billingByUser = async (req, res) => {
     } = req.body;
     const transaction = await models.sequelize.transaction();
 
-    const account_id = req.account_id ? req.account_id : "12345";
+    const { authorization } = req.headers;
+    const account_id = authorization ? await verifyToken(authorization, "user") : "12345";
 
     // 아임포트 인증 토큰
     const token = await getToken();
@@ -295,7 +298,24 @@ exports.billingByUser = async (req, res) => {
       // 요청한 금액과 db에 있는 금액과 일치하는 경우
 
       // 결제 요청
-      const payWithBilling = await axios({
+      // onetime api 와 again api를 분리
+      // 이를 분리시키는 값을 받아온다.
+      // 그 값을 통해 onetime / again 구분지어서 호출
+      const billingData = isBillingWithKey ? {
+        url: `https://api.iamport.kr/subscribe/payments/again`,
+        method: "post",
+        headers: { Authorization: token },
+        data: {
+          customer_uid,
+          merchant_uid,
+          name,
+          amount,
+          buyer_name,
+          buyer_tel,
+          buyer_addr: `${buyer_addr_primary} ${buyer_addr_detail}`,
+          buyer_postcode
+        }
+      } : {
         url: `https://api.iamport.kr/subscribe/payments/onetime`,
         method: "post",
         headers: { Authorization: token },
@@ -312,7 +332,9 @@ exports.billingByUser = async (req, res) => {
           buyer_addr: `${buyer_addr_primary} ${buyer_addr_detail}`,
           buyer_postcode
         }
-      });
+      };
+
+      const payWithBilling = await axios(billingData);
 
       const { code, message, response } = payWithBilling.data;
 
@@ -357,16 +379,7 @@ exports.billingByUser = async (req, res) => {
 
           // 결제 완료 문자 전송
           const timestamp = new Date().getTime().toString();
-          const products = await Product.findAll({
-            where: { id: { [Op.in]: orderedProductId } }
-          });
-          const productOEN = products.map(p => p.dataValues.oe_number);
-          // const smsText = `${productOEN.length > 1 ? `${productOEN[0]}외 ${productOEN.length - 1}개` : productOEN[0] } 상품의 결제가 완료되었습니다.`;
-          const smsText = `주문번호[${merchant_uid.slice(7)}]\n${
-            productOEN.length > 1
-              ? `${productOEN[0]}외 ${productOEN.length - 1}종류`
-              : productOEN[0]
-          } 상품의 결제가 완료되었습니다.`;
+          const smsText = `주문번호[${merchant_uid.slice(7)}]\n${name} 상품의 결제가 완료되었습니다.`;
 
           await sendSMS(smsText, buyer_tel, timestamp);
 
@@ -385,7 +398,6 @@ exports.billingByUser = async (req, res) => {
         }
       } else {
         // 결제 실패
-
         // order DB 값 업데이트 ... imp_uid 값 추가, status 값 업데이트
         await Order.update(
           {

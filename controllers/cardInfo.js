@@ -6,7 +6,7 @@ exports.readByUser = async (req, res) => {
     try {
         const { account_id } = req;
 
-        const cardInfo = await CardInfo.findOne({
+        const cardInfo = await CardInfo.findAll({
             where: { account_id },
             attributes: ["customer_uid", "card_name", "card_number"]
         });
