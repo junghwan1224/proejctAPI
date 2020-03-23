@@ -16,7 +16,8 @@ exports.readByUser = async (req, res) => {
     OEN: ["oe_number"],
     CAR: ["brand", "model"],
     TYPE: ["type"],
-    ID: ["concatenatedID"]
+    ID: ["concatenatedID"],
+    "*": []
   };
 
   /** Raise 400 for invalid method key: */
@@ -53,6 +54,9 @@ exports.readByUser = async (req, res) => {
       Sequelize.Op.ne,
       0
     );
+  } else if (method === "*") {
+  } else {
+    return res.status(400).send({ message: "유효하지 않은 접근입니다." });
   }
 
   /* Check if user is logged in, and fetch USER_DISCOUNT: */
