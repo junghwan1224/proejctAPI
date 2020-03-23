@@ -1,10 +1,8 @@
 import requests
 import json
-from pprint import pformat
 
 BASE_ROUTE = 'http://localhost:3001'
-# BASE_ROUTE = "http://13.124.230.55:3001"
-PRODUCT_ROUTE = '/api/product/fetch-all'
+PRODUCT_ROUTE = '/product-list?method=*'
 
 
 def main():
@@ -12,33 +10,34 @@ def main():
     if response.status_code != 200:
         print("[*] Error :: Unable to fetch data from the server.")
         return
-
     map_file = {}
     products = json.loads(response.text)
 
+    valid_models = []
     for product in products:
-        if product['category'] not in map_file.keys():
-            map_file[product['category']] = {}
+        models = product['models'].split('%%')
+        for model in models:
+            valid_models.append(model)
 
-        if not product['end_year']:
-            product['end_year'] = 2019
-        years = range(product['start_year'], product['end_year']+1)
-        for year in years:
-            # Create year if not exist:
-            if year not in map_file[product['category']].keys():
-                map_file[product['category']][year] = {}
+    for model in valid_models:
+        data = list(map(str.strip, model.split('$$')))
+        car_brand = data[0].upper()
+        car_model = data[1].upper()
+        start_year = data[2]
+        end_year = data[3]
 
-            # Create brand if not exist:
-            if product['brand'] not in map_file[product['category']][year].keys():
-                map_file[product['category']][year][product['brand']] = []
+        for year in range(int(start_year), int(end_year) + 1):
+            if year not in map_file.keys():
+                map_file[year] = {}
 
-            # Add model if not exist:
-            if product['model'] not in map_file[product['category']][year][product['brand']]:
-                map_file[product['category']][year][product['brand']].append(
-                    product['model'])
+            if car_brand not in map_file[year].keys():
+                map_file[year][car_brand] = []
 
-    with open("output.json", 'w') as fp:
-        fp.write(str(map_file))
+            if car_model not in map_file[year][car_brand]:
+                map_file[year][car_brand].append(car_model)
+
+    with open('category-map.json', 'w') as fp:
+        json.dump(map_file, fp)
 
 
 if __name__ == "__main__":
