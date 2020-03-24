@@ -1,18 +1,26 @@
 import requests
 import json
+from requests.exceptions import ConnectionError
+import sys
 
 BASE_ROUTE = 'http://localhost:3001'
 PRODUCT_ROUTE = '/product-list?method=*'
 
 
 def main():
-    response = requests.get(url=BASE_ROUTE+PRODUCT_ROUTE)
-    if response.status_code != 200:
-        print("[*] Error :: Unable to fetch data from the server.")
-        return
-    map_file = {}
+    # Get product data from the server:
+    try:
+        response = requests.get(url=BASE_ROUTE+PRODUCT_ROUTE)
+        if response.status_code != 200:
+            print("[*] Error :: Unable to fetch data from the server.")
+            sys.exit(0)
+    except ConnectionError:
+        print('[*] Error :: Unable to connect to the server.')
+        sys.exit(0)
     products = json.loads(response.text)
 
+    # Create map file:
+    map_file = {}
     valid_models = []
     for product in products:
         models = product['models'].split('%%')
