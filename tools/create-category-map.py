@@ -44,6 +44,16 @@ def main():
             if car_model not in map_file[year][car_brand]:
                 map_file[year][car_brand].append(car_model)
 
+    # Sort models in ascending order:
+    for brand_dict in map_file.values():
+        for brand_name in brand_dict.keys():
+            brand_dict[brand_name].sort()
+
+    # Sort brands in ascending order:
+        for year in map_file.keys():
+            map_file[year] = dict(sorted(map_file[year].items()))
+
+    # Save to JSON file:
     with open('category-map.json', 'w') as fp:
         json.dump(map_file, fp)
 
