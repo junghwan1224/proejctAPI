@@ -37,6 +37,7 @@ exports.readByUser = async (req, res) => {
 
   /** Set searchField: */
   let searchField = { is_public: true };
+  let orderField = [["models", "ASC"]];
   if (method.toUpperCase() === "OEN") {
     searchField.oe_number = { [Op.like]: `%${req.query.oe_number}%` };
   } else if (method.toUpperCase() === "PART") {
@@ -54,6 +55,7 @@ exports.readByUser = async (req, res) => {
       Sequelize.Op.ne,
       0
     );
+    orderField = [["id", "ASC"]];
   } else if (method === "*") {
   } else {
     return res.status(400).send({ message: "유효하지 않은 접근입니다." });
@@ -84,7 +86,7 @@ exports.readByUser = async (req, res) => {
   try {
     const response = await Product.findAll({
       where: searchField,
-      order: [["models", "ASC"]],
+      order: orderField,
       attributes: { exclude: ["createdAt", "updatedAt", "is_public", "stock"] }
     });
 
@@ -102,6 +104,7 @@ exports.readByUser = async (req, res) => {
 
       products.push(product);
     }
+
     return res.status(200).send(products);
   } catch (err) {
     console.log(err);
