@@ -4,8 +4,7 @@ const Product = require("../models").product;
 const Account = require("../models").account;
 const AccountLevel = require("../models").account_level;
 const Sequelize = require("sequelize");
-const jwt = require("jsonwebtoken");
-const DEV_SECRET = process.env.DEV_SECRET;
+const { verifyToken } = require("../routes/verifyToken");
 
 const Op = Sequelize.Op;
 const calculateDiscount = require("./common").calculateDiscount;
@@ -78,12 +77,7 @@ exports.readByUser = async (req, res) => {
   /* Check if user is logged in, and fetch USER_DISCOUNT: */
   let USER_DISCOUNT = undefined;
   const { authorization } = req.headers;
-  const accountId = jwt.verify(authorization, DEV_SECRET, (err, decoded) => {
-    if (err) {
-      return null;
-    }
-    return decoded.id;
-  });
+  const accountId = authorization ? await verifyToken(authorization, "user") : null;
   if (accountId) {
     const account = await Account.findOne({
       where: {

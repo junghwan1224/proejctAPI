@@ -4,8 +4,7 @@ const Product = require("../models").product;
 const Account = require("../models").account;
 const AccountLevel = require("../models").account_level;
 const Sequelize = require("sequelize");
-const jwt = require("jsonwebtoken");
-const DEV_SECRET = process.env.DEV_SECRET;
+const { verifyToken } = require("../routes/verifyToken");
 
 const { Op } = Sequelize;
 const calculateDiscount = require("./common").calculateDiscount;
@@ -64,7 +63,9 @@ exports.readByUser = async (req, res) => {
   /* Check if user is logged in, and fetch USER_DISCOUNT: */
   let USER_DISCOUNT = undefined;
   const DEFAULT_DISCOUNT = parseFloat(process.env.DEFAULT_DISCOUNT);
-  const account_id = req.account_id;
+  const { authorization } = req.headers;
+  const account_id = authorization ? await verifyToken(authorization, "user") : null;
+
   if (account_id) {
     const account = await Account.findOne({
       where: {
