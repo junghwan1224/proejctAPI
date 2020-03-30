@@ -39,7 +39,7 @@ exports.readByUser = async (req, res) => {
   let orderField = [["models", "ASC"]];
   if (method.toUpperCase() === "OEN") {
     searchField.oe_number = { [Op.like]: `%${req.query.oe_number}%` };
-  } else if (method.toUpperCase() === "PART") {
+  } else if (method.toUpperCase() === "TYPE") {
     searchField.type = { [Op.like]: `%${req.query.type}%` };
   } else if (method.toUpperCase() === "CAR") {
     searchField.models = {
@@ -64,7 +64,9 @@ exports.readByUser = async (req, res) => {
   let USER_DISCOUNT = undefined;
   const DEFAULT_DISCOUNT = parseFloat(process.env.DEFAULT_DISCOUNT);
   const { authorization } = req.headers;
-  const account_id = authorization ? await verifyToken(authorization, "user") : null;
+  const account_id = authorization
+    ? await verifyToken(authorization, "user")
+    : null;
 
   if (account_id) {
     const account = await Account.findOne({
