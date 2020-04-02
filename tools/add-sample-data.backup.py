@@ -5,9 +5,9 @@ from random import randrange, getrandbits
 from hashlib import md5
 import sys
 
-ACCESS_KEY = 'AKIA2DUQVPGWY2QDDFMV'
-SECRET_KEY = '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'
-BUCKET_NAME = 'montar-static-resources'
+ACCESS_KEY = ''
+SECRET_KEY = ''
+BUCKET_NAME = ''
 
 
 def main():
