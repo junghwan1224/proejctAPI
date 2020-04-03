@@ -1,3 +1,4 @@
+SAMPLE_DATA = """
 CATEGORY, MODELS,OEN,PRICE,TYPE,MAKER,MAKER_ORIGIN,TAGS
 CAR, AUDI$$a3$$2009$$2019,1K0498621,20171,HUB_BEARING,SANLEI,중국,매진임박
 CAR, AUDI$$a3$$2009$$2019,1T0498621,20171,HUB_BEARING,KOYO,일본,
@@ -172,3 +173,38 @@ COM, SCANIA$$STREAMLINE$$2009$$2017,F-563438XT,18250,BRAKE_PAD,HYUNDAI,한국,
 COM, SCANIA$$STREAMLINE$$2009$$2019,F-80596F3,17650,HUB_BEARING,NSK,한국,
 COM, AUDI$$a3$$2009$$2013%%BENZ$$C-class$$2000$$2018%%SCANIA$$STREAMLINE Sportback$$2004$$2011%%VOLVO$$XC70$$2006$$2019%%SCANIA$$STREAMLINE$$2007$$2012,F-80F5963,17650,ENGINE_OIL,HYUNDAI,한국,
 COM, SCANIA$$STREAMLINE$$2009$$2017,F-8F05963,17650,HUB_BEARING,NSK,한국,
+"""
+
+
+def get_product_list():
+    product_list = []
+    for row in SAMPLE_DATA.strip().split('\n')[1:]:
+        classification, models, oe_number, price, dtype, maker, maker_origin, tags = [
+            x.strip() for x in row.split(',')]
+
+        # Data should be in uppercase:
+        classification = classification.upper()
+        models = models.upper()
+        oe_number = oe_number.upper()
+        maker = maker.upper()
+
+        # Fabricate price:
+        price = int(int(price)/10)*10 + \
+            10 if int(price[-1]) >= 5 else int(int(price)/10)*10
+
+        # Append data to the list with <dict> format:
+        item = {}
+        item['classification'] = classification
+        item['models'] = models
+        item['oe_number'] = oe_number
+        item['price'] = price
+        item['type'] = dtype
+        item['maker'] = maker
+        item['maker_origin'] = maker_origin
+        item['tags'] = tags
+        product_list.append(item)
+
+    return product_list
+
+
+sample_products = get_product_list()
