@@ -17,36 +17,39 @@ const sendSMS = require("../public/js/sendSMS");
 // order-info
 exports.readByUser = async (req, res) => {
   try {
-    const { order_id } = req.query;
-    const transaction = await models.sequelize.transaction();
+    const { order_id, phone } = req.query;
 
-    const order = await Order.findOne({
-      where: {
-        merchant_uid: order_id
-      },
-      transaction
-    });
+    const token = await getToken();
 
-    const amount = await Order.sum("amount", {
-      where: {
-        merchant_uid: order_id
-      },
-      transaction
+    const getPayment = await axios({
+      url: `https://api.iamport.kr/payments/find/${order_id}`,
+      method: "get",
+      headers: { Authorization: token }
     });
+    const paymentData = getPayment.data.response;
+
+    let getReceipt = null;
+    if(paymentData.pay_method === "trans") {
+      getReceipt = await axios({
+        url: `https://api.iamport.kr/payments/${paymentData.imp_uid}`,
+        method: "post",
+        headers: { Authorization: token },
+        data: {
+          identifier: phone
+        }
+      });
+    }
 
     const delivery = await Delivery.findOne({
       where: {
-        order_id
-      },
-      transaction
+        order_id: paymentData.merchant_uid
+      }
     });
 
-    await transaction.commit();
-
     res.status(200).send({
-      order: order.dataValues,
-      amount,
-      delivery: delivery.dataValues
+      order: paymentData,
+      delivery: delivery.dataValues,
+      receipt: paymentData.pay_method === "trans" ? getReceipt.data.response.receipt_url : null
     });
   } catch (err) {
     console.log(err);

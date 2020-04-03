@@ -21,38 +21,45 @@ exports.readByUser = async (req, res) => {
   try {
     const { account_id } = req;
     const { order_id } = req.query;
-    const transaction = await models.sequelize.transaction();
 
-    const order = await Order.findOne({
-      where: {
-        account_id,
-        merchant_uid: order_id
-      },
-      transaction
-    });
+    const account = await Account.findOne({
+      where: { id: account_id },
+      attributes: ["crn", "phone"]
+    }).dataValues;
 
-    const amount = await Order.sum("amount", {
-      where: {
-        account_id,
-        merchant_uid: order_id
-      },
-      transaction
+    const token = await getToken();
+
+    const getPayment = await axios({
+      url: `https://api.iamport.kr/payments/find/${order_id}`,
+      method: "get",
+      headers: { Authorization: token }
     });
+    const paymentData = getPayment.data.response;
+
+    let getReceipt = null;
+    if(paymentData.pay_method === "trans") {
+      getReceipt = await axios({
+        url: `https://api.iamport.kr/receipts/${paymentData.imp_uid}`,
+        method: "post",
+        headers: { Authorization: token },
+        data: {
+          imp_uid: paymentData.imp_uid,
+          identifier: account.phone
+        }
+      });
+    }
 
     const delivery = await Delivery.findOne({
       where: {
         account_id,
-        order_id
-      },
-      transaction
+        order_id: paymentData.merchant_uid
+      }
     });
 
-    await transaction.commit();
-
     res.status(200).send({
-      order: order.dataValues,
-      amount,
-      delivery: delivery.dataValues
+      order: paymentData,
+      delivery: delivery.dataValues,
+      receipt: paymentData.pay_method === "trans" ? getReceipt.data.response.receipt_url : null,
     });
   } catch (err) {
     console.log(err);
