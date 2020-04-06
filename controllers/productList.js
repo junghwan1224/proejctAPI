@@ -12,11 +12,11 @@ const calculateDiscount = require("./common").calculateDiscount;
 exports.readByUser = async (req, res) => {
   const method = req.query.method || "";
   const methodMap = {
-    OEN: ["oe_number"],
+    QUERY: ["query"],
     CAR: ["brand", "model"],
     TYPE: ["type"],
     ID: ["concatenatedID"],
-    "*": []
+    "*": [],
   };
 
   /** Raise 400 for invalid method key: */
@@ -37,16 +37,19 @@ exports.readByUser = async (req, res) => {
   /** Set searchField: */
   let searchField = { is_public: true };
   let orderField = [["models", "ASC"]];
-  if (method.toUpperCase() === "OEN") {
-    searchField.oe_number = { [Op.like]: `%${req.query.oe_number}%` };
+  if (method.toUpperCase() === "QUERY") {
+    searchField[Op.or] = [
+      { oe_number: { [Op.like]: `%${req.query.query}%` } },
+      { maker_number: { [Op.like]: `%${req.query.query}%` } },
+    ];
   } else if (method.toUpperCase() === "TYPE") {
     searchField.type = { [Op.like]: `%${req.query.type}%` };
   } else if (method.toUpperCase() === "CAR") {
     searchField.models = {
       [Op.like]: `%${[
         req.query.brand.toUpperCase(),
-        req.query.model.toUpperCase()
-      ].join("$$")}%`
+        req.query.model.toUpperCase(),
+      ].join("$$")}%`,
     };
   } else if (method.toUpperCase() === "ID") {
     searchField.where = Sequelize.where(
@@ -71,16 +74,16 @@ exports.readByUser = async (req, res) => {
   if (account_id) {
     const account = await Account.findOne({
       where: {
-        id: account_id
+        id: account_id,
       },
       include: [
         {
           model: AccountLevel,
           required: true,
           as: "level_detail",
-          attributes: ["discount_rate"]
-        }
-      ]
+          attributes: ["discount_rate"],
+        },
+      ],
     });
     USER_DISCOUNT = parseFloat(account.level_detail.discount_rate);
   }
@@ -90,7 +93,7 @@ exports.readByUser = async (req, res) => {
     const response = await Product.findAll({
       where: searchField,
       order: orderField,
-      attributes: { exclude: ["createdAt", "updatedAt", "is_public", "stock"] }
+      attributes: { exclude: ["createdAt", "updatedAt", "is_public", "stock"] },
     });
 
     let products = [];
