@@ -11,6 +11,7 @@ const Address = require("../models").address;
 const Product = require("../models").product;
 const models = require("../models");
 
+const updateMileage = require("../public/js/updateMileage");
 const processStock = require("../public/js/processStock");
 const getToken = require("../public/js/getToken");
 const sendSMS = require("../public/js/sendSMS");
@@ -27,23 +28,26 @@ exports.readByUser = async (req, res) => {
       attributes: ["crn", "phone"]
     }).dataValues;
 
-    const token = await getToken();
-
-    const getPayment = await axios({
-      url: `https://api.iamport.kr/payments/find/${order_id}`,
-      method: "get",
-      headers: { Authorization: token }
+    const order = await Order.findAll({
+      where: { merchant_uid: order_id },
+      limit: 1
     });
-    const paymentData = getPayment.data.response;
+    const { dataValues } = order[0];
+
+    const amount = await Order.sum("amount", {
+      where: { merchant_uid: order_id }
+    }) - dataValues.mileage;
 
     let getReceipt = null;
-    if(paymentData.pay_method === "trans") {
+    if(dataValues.pay_method === "trans") {
+      const token = await getToken();
+
       getReceipt = await axios({
-        url: `https://api.iamport.kr/receipts/${paymentData.imp_uid}`,
+        url: `https://api.iamport.kr/receipts/${dataValues.imp_uid}`,
         method: "post",
         headers: { Authorization: token },
         data: {
-          imp_uid: paymentData.imp_uid,
+          imp_uid: dataValues.imp_uid,
           identifier: account.phone
         }
       });
@@ -52,14 +56,15 @@ exports.readByUser = async (req, res) => {
     const delivery = await Delivery.findOne({
       where: {
         account_id,
-        order_id: paymentData.merchant_uid
+        order_id
       }
     });
 
     res.status(200).send({
-      order: paymentData,
-      delivery: delivery.dataValues,
-      receipt: paymentData.pay_method === "trans" ? getReceipt.data.response.receipt_url : null,
+      amount,
+      order: order[0],
+      delivery,
+      receipt: dataValues.pay_method === "trans" ? getReceipt.data.response.receipt_url : null,
     });
   } catch (err) {
     console.log(err);
@@ -78,6 +83,7 @@ exports.createByUser = async (req, res) => {
       pay_method,
       name,
       amount, // array
+      mileage,
       quantity, // array
       address_id,
       buyer_email,
@@ -212,6 +218,7 @@ exports.createByUser = async (req, res) => {
         product_id: product,
         name,
         amount: productsAmountArr[idx] * productsQuantityArr[idx],
+        mileage,
         quantity: productsQuantityArr[idx],
         pay_method,
         status: "not paid",
@@ -262,12 +269,12 @@ exports.updateByUser = async (req, res) => {
 
     // 결제 정보
     const paymentData = getPaymentData.data.response;
-    const { amount, status } = paymentData;
+    const { amount, status, paid_at } = paymentData;
 
     // DB에서 미리 저장된 결제 요청 정보
     const orderData = await Order.findAll({
       where: { merchant_uid },
-      attributes: ["id", "product_id", "quantity"],
+      attributes: ["id", "product_id", "quantity", "mileage"],
       transaction
     });
     const orderedId = orderData.map(order => order.dataValues.id);
@@ -283,7 +290,7 @@ exports.updateByUser = async (req, res) => {
     });
 
     // paymentData에 있는 amount(금액)값 비교
-    if (amount === amountToBePaid) {
+    if (amount === amountToBePaid-orderData[0].dataValues.mileage) {
       // 금액 일치하는 경우
       switch (status) {
         case "ready":
@@ -328,11 +335,15 @@ exports.updateByUser = async (req, res) => {
             transaction
           });
 
+          const paidAt = new Date(paid_at * 1000);
+          const parsedPaidAt = `${paidAt.getFullYear()}년 ${paidAt.getMonth()+1}월 ${paidAt.getDate()}일 ${paidAt.getHours()}시 ${paidAt.getMinutes()}분 ${paidAt.getSeconds()}초`;
+
           // order DB 값 업데이트 ... imp_uid 값 추가, status 값 업데이트
           await Order.update(
             {
               imp_uid,
-              status: "paid"
+              status: "paid",
+              paidAt: parsedPaidAt
             },
             {
               where: {
@@ -346,6 +357,9 @@ exports.updateByUser = async (req, res) => {
               transaction
             }
           );
+
+          // 마일리지 업데이트
+          await updateMileage(account_id, user.dataValues.mileage-orderData[0].dataValues.mileage, transaction);
 
           await transaction.commit();
 
