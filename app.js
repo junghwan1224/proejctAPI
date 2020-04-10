@@ -16,39 +16,16 @@ var options = {
   port: process.env.DB_PORT,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  database: process.env.DB
+  database: process.env.DB,
 };
 
-// cors
-// const allowedOrigins = ["http://192.168.0.13:3000", "http://yourapp.com"];
 app.use(
-  cors({
-    credentials: true,
-    origin: [
-      "http://www.montar.co.kr",
-      "https://www.montar.co.kr",
-      "http://montar.co.kr",
-      "https://montar.co.kr",
-      "http://13.124.25.4",
-      "https://13.124.25.4",
-      "http://localhost:3000",
-      "http://localhost:3001",
-      "http://localhost:3002"
-    ]
-  })
+  cors() // no cors for dev test
   // cors({
-  //   origin: function(origin, callback) {
-  //     // allow requests with no origin
-  //     // (like mobile apps or curl requests)
-  //     if (!origin) return callback(null, true);
-  //     if (allowedOrigins.indexOf(origin) === -1) {
-  //       var msg =
-  //         "The CORS policy for this site does not " +
-  //         "allow access from the specified Origin.";
-  //       return callback(new Error(msg), false);
-  //     }
-  //     return callback(null, true);
-  //   }
+  //   credentials: true,
+  //   origin: [
+  //     "https://montar.co.kr",
+  //   ]
   // })
 );
 
@@ -69,52 +46,25 @@ app.use(
     resave: false,
     saveUninitialized: true,
     cookie: { maxAge: 900000 }, // 15 minutes
-    store: new MySQLStore(options)
+    store: new MySQLStore(options),
   })
 );
 
-// Router setup
-// const verifyTokenRouter = require("./routes/verify");
-// // const accountRouter = require("./routes/account");
-// const articleRouter = require("./routes/article");
-// const paymentRouter = require("./routes/payment");
-// const basketRouter = require("./routes/basket");
-// const favoriteRouter = require("./routes/favorite");
-// // const productRouter = require("./routes/product");
-// const deliveryRouter = require("./routes/delivery");
-// const addressRouter = require("./routes/address");
-// const rosterRouter = require("./routes/roster");
-// const inquiryRouter = require("./routes/inquiry");
-// const transactionRouter = require("./routes/transaction");
-
-// app.use("/api/verify-token", verifyTokenRouter);
-// // app.use("/api/account", accountRouter);
-// app.use("/api/article", articleRouter);
-// app.use("/api/payment", paymentRouter);
-// // app.use("/api/basket", basketRouter);
-// app.use("/api/favorite", favoriteRouter);
-// // app.use("/api/product", productRouter);
-// app.use("/api/delivery", deliveryRouter);
-// app.use("/api/address", addressRouter);
-// app.use("/api/inquiry", inquiryRouter);
-// app.use("/api/transaction", transactionRouter);
-// app.use("/api/roster", rosterRouter);
-
-/******** START ********* */
+// Routes for user and admin:
 const userRouter = require("./routes/user");
 const adminRouter = require("./routes/admin");
+const acmeChallengeRouter = require("./routes/acmeChallenge");
 userRouter(app);
 adminRouter(app);
-
-/******** END ********* */
+acmeChallengeRouter(app);
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   next(createError(404));
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get("env") === "development" ? err : {};
