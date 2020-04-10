@@ -7,9 +7,9 @@ const { Op } = Sequelize;
 const Order = require("../models").order;
 const Account = require("../models").account;
 const Product = require("../models").product;
-const CardInfo = require("../models").card_info;
 const models = require("../models");
 
+const updateMileage = require("../public/js/updateMileage");
 const processStock = require("../public/js/processStock");
 const getToken = require("../public/js/getToken");
 const sendSMS = require("../public/js/sendSMS");
@@ -279,7 +279,7 @@ exports.billingByUser = async (req, res) => {
     // 결제 정보 조회
     const orderData = await Order.findAll({
       where: { merchant_uid },
-      attributes: ["id", "product_id", "quantity"],
+      attributes: ["id", "product_id", "quantity", "mileage"],
       transaction
     });
     const orderedId = orderData.map(order => order.dataValues.id);
@@ -294,7 +294,8 @@ exports.billingByUser = async (req, res) => {
     });
 
     // 결제 금액 비교
-    if (amount === amountToBePaid) {
+    // amount(finalAmount) === (제품들의 총 금액 - 마일리지)
+    if (amount === amountToBePaid-orderData[0].dataValues.mileage) {
       // 요청한 금액과 db에 있는 금액과 일치하는 경우
 
       // 결제 요청
@@ -356,11 +357,15 @@ exports.billingByUser = async (req, res) => {
             transaction
           });
 
+          const paidAt = new Date(response.paid_at * 1000);
+          const parsedPaidAt = `${paidAt.getFullYear()}년 ${paidAt.getMonth()+1}월 ${paidAt.getDate()}일 ${paidAt.getHours()}시 ${paidAt.getMinutes()}분 ${paidAt.getSeconds()}초`;
+
           // order DB 값 업데이트 ... imp_uid 값 추가, status 값 업데이트
           await Order.update(
             {
               imp_uid: response.imp_uid,
-              status: "paid"
+              status: "paid",
+              paidAt: parsedPaidAt
             },
             {
               where: {
@@ -374,6 +379,17 @@ exports.billingByUser = async (req, res) => {
               transaction
             }
           );
+
+          if(authorization) {
+            const user = await Account.findOne({
+              where: { id: account_id },
+              attributes: ["mileage"],
+              transaction
+            });
+
+            // 마일리지 업데이트
+            await updateMileage(account_id, user.dataValues.mileage-orderData[0].dataValues.mileage, transaction);
+          }
 
           await transaction.commit();
 
