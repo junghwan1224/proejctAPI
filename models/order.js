@@ -12,10 +12,12 @@ module.exports = (sequelize, DataTypes) => {
       product_id: DataTypes.UUID,
       name: DataTypes.STRING,
       amount: DataTypes.INTEGER,
+      mileage: DataTypes.INTEGER,
       quantity: DataTypes.INTEGER.UNSIGNED,
       pay_method: DataTypes.STRING,
       status: DataTypes.STRING,
-      memo: DataTypes.STRING
+      memo: DataTypes.STRING,
+      paidAt: DataTypes.STRING
     },
     {
       hooks: {

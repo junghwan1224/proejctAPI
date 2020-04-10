@@ -36,11 +36,16 @@ module.exports = {
       },
       name: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
+        defaultValue: 0
       },
       amount: {
         type: Sequelize.INTEGER,
         allowNull: false
+      },
+      mileage: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
       },
       quantity: {
         type: Sequelize.INTEGER.UNSIGNED,
@@ -55,6 +60,10 @@ module.exports = {
         allowNull: false
       },
       memo: {
+        type: Sequelize.STRING,
+        allowNull: true
+      },
+      paidAt: {
         type: Sequelize.STRING,
         allowNull: true
       },
