@@ -19,7 +19,7 @@ const updateMileage = async (id, usedMileage, amount, purchaseFlag, transaction)
     const { mileage } = await Account.findOne({
         where: { id },
         attributes: ["mileage"]
-    }).dataValues;
+    });
 
     if(purchaseFlag) {
         // 마일리지를 이용해서 결제했을 경우: 마일리지 차감
