@@ -359,7 +359,7 @@ exports.updateByUser = async (req, res) => {
           );
 
           // 마일리지 업데이트
-          await updateMileage(account_id, user.dataValues.mileage-orderData[0].dataValues.mileage, transaction);
+          await updateMileage(account_id, orderData[0].dataValues.mileage, amount, true, transaction);
 
           await transaction.commit();
 

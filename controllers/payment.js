@@ -381,14 +381,8 @@ exports.billingByUser = async (req, res) => {
           );
 
           if(authorization) {
-            const user = await Account.findOne({
-              where: { id: account_id },
-              attributes: ["mileage"],
-              transaction
-            });
-
             // 마일리지 업데이트
-            await updateMileage(account_id, user.dataValues.mileage-orderData[0].dataValues.mileage, transaction);
+            await updateMileage(account_id, orderData[0].dataValues.mileage, amount, true, transaction);
           }
 
           await transaction.commit();
@@ -470,6 +464,9 @@ exports.cancelByUser = async (req, res) => {
 
     const transaction = await models.sequelize.transaction();
 
+    const { authorization } = req.headers;
+    const account_id = authorization ? await verifyToken(authorization, "user") : "12345";
+
     // 아임포트 인증 토큰 발급
     const token = await getToken();
 
@@ -522,6 +519,9 @@ exports.cancelByUser = async (req, res) => {
           transaction
         }
       );
+
+      const { mileage } = wouldBeRefundedOrder[0].dataValues;
+      await updateMileage(account_id, mileage, wantCancelAmount-mileage, false, transaction);
 
       await transaction.commit();
 
@@ -666,6 +666,9 @@ exports.refundByAdmin = async (req, res) => {
           transaction
         }
       );
+
+      const { mileage } = wouldBeRefundedOrder[0].dataValues;
+      await updateMileage(account_id, mileage, wantCancelAmount-mileage, false, transaction);
 
       await transaction.commit();
 
