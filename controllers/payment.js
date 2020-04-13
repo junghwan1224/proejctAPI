@@ -547,15 +547,12 @@ exports.refundByAdmin = async (req, res) => {
   try {
     const {
       account_id,
+      buyer_phone,
       imp_uid,
+      order_name,
       reason // 환불 사유
     } = req.body;
     const transaction = await models.sequelize.transaction();
-
-    const user = await Account.findOne({
-      where: { id: account_id },
-      transaction
-    });
 
     // 아임포트 인증 토큰 발급
     const token = await getToken();
@@ -579,7 +576,7 @@ exports.refundByAdmin = async (req, res) => {
     const wantCancelAmount = await Order.sum("amount", {
       where: {
         id: { [Op.in]: ordersArr },
-        [Op.and]: [{ status: "paid" }, { status: { [Op.not]: "cancelled" } }]
+        status: "paid"
       },
       transaction
     });
@@ -673,18 +670,10 @@ exports.refundByAdmin = async (req, res) => {
       await transaction.commit();
 
       // 환불 완료 문자 전송
-      const products = await Product.findAll({
-        where: { id: { [Op.in]: refundedProductId } }
-      });
-      const productOEN = products.map(p => p.dataValues.oe_number);
-      const smsText = `${
-        productOEN.length > 1
-          ? `${productOEN[0]}외 ${productOEN.length - 1}개`
-          : productOEN[0]
-      } 상품 주문이 취소되었습니다.`;
-
+      const smsText = `주문번호[${wouldBeRefundedOrder[0].dataValues.merchant_uid.slice(7)}]\n${order_name} 상품의 결제가 완료되었습니다.`;
       const timestamp = new Date().getTime().toString();
-      await sendSMS(smsText, user.dataValues.phone, timestamp);
+
+      await sendSMS(smsText, buyer_phone, timestamp);
 
       return res.status(200).send({
         status: "success",
