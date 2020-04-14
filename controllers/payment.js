@@ -464,9 +464,6 @@ exports.cancelByUser = async (req, res) => {
 
     const transaction = await models.sequelize.transaction();
 
-    const { authorization } = req.headers;
-    const account_id = authorization ? await verifyToken(authorization, "user") : "12345";
-
     // 아임포트 인증 토큰 발급
     const token = await getToken();
 
@@ -485,7 +482,7 @@ exports.cancelByUser = async (req, res) => {
         id: { [Op.in]: ordersArr }
       },
       transaction
-    });
+    }) - wouldBeRefundedOrder[0].dataValues.mileage;
 
     // 아임포트 REST API로 환불 요청
     // 가상계좌로 결제한 경우 - 환불 가상계좌 예금주, 환불 가상계좌 은행코드, 환불 가상계좌번호 필수 입력
@@ -520,9 +517,6 @@ exports.cancelByUser = async (req, res) => {
         }
       );
 
-      const { mileage } = wouldBeRefundedOrder[0].dataValues;
-      await updateMileage(account_id, mileage, wantCancelAmount-mileage, false, transaction);
-
       await transaction.commit();
 
       const timestamp = new Date().getTime().toString();
@@ -547,15 +541,12 @@ exports.refundByAdmin = async (req, res) => {
   try {
     const {
       account_id,
+      buyer_phone,
       imp_uid,
+      order_name,
       reason // 환불 사유
     } = req.body;
     const transaction = await models.sequelize.transaction();
-
-    const user = await Account.findOne({
-      where: { id: account_id },
-      transaction
-    });
 
     // 아임포트 인증 토큰 발급
     const token = await getToken();
@@ -579,13 +570,13 @@ exports.refundByAdmin = async (req, res) => {
     const wantCancelAmount = await Order.sum("amount", {
       where: {
         id: { [Op.in]: ordersArr },
-        [Op.and]: [{ status: "paid" }, { status: { [Op.not]: "cancelled" } }]
+        status: "paid"
       },
       transaction
-    });
+    }) - wouldBeRefundedOrder[0].dataValues.mileage;
 
     // 이미 환불된 금액
-    let canceled = await Order.sum("amount", {
+    let cancelled = await Order.sum("amount", {
       where: {
         id: { [Op.in]: ordersArr },
         status: "cancelled"
@@ -594,17 +585,17 @@ exports.refundByAdmin = async (req, res) => {
     });
 
     // 환불된 금액이 없으면 null을 반환하므로 값 변경
-    if (!canceled) {
-      canceled = 0;
+    if (!cancelled) {
+      cancelled = 0;
     }
 
-    let totalAmount = await Order.sum("amount", {
+    const totalAmount = await Order.sum("amount", {
       where: { imp_uid },
       transaction
     });
 
     // 환불 가능한 금액
-    const cancelableAmount = totalAmount - canceled;
+    const cancelableAmount = (totalAmount-wouldBeRefundedOrder[0].dataValues.mileage) - cancelled;
 
     // checksum 파라미터 관련 로직
     if (cancelableAmount <= 0) {
@@ -673,18 +664,10 @@ exports.refundByAdmin = async (req, res) => {
       await transaction.commit();
 
       // 환불 완료 문자 전송
-      const products = await Product.findAll({
-        where: { id: { [Op.in]: refundedProductId } }
-      });
-      const productOEN = products.map(p => p.dataValues.oe_number);
-      const smsText = `${
-        productOEN.length > 1
-          ? `${productOEN[0]}외 ${productOEN.length - 1}개`
-          : productOEN[0]
-      } 상품 주문이 취소되었습니다.`;
-
+      const smsText = `주문번호[${wouldBeRefundedOrder[0].dataValues.merchant_uid.slice(7)}]\n${order_name} 상품의 결제가 완료되었습니다.`;
       const timestamp = new Date().getTime().toString();
-      await sendSMS(smsText, user.dataValues.phone, timestamp);
+
+      await sendSMS(smsText, buyer_phone, timestamp);
 
       return res.status(200).send({
         status: "success",
