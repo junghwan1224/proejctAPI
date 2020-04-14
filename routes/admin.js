@@ -119,5 +119,6 @@ module.exports = app => {
 
   app
     .route(ADMIN_ROUTE + "/purchase-list")
-    .get(purchaseList.readByAdmin);
+    .get(purchaseList.readByAdmin)
+    .post(purchaseList.createByAdmin);
 };
