@@ -485,7 +485,7 @@ exports.cancelByUser = async (req, res) => {
         id: { [Op.in]: ordersArr }
       },
       transaction
-    });
+    }) - wouldBeRefundedOrder[0].dataValues.mileage;
 
     // 아임포트 REST API로 환불 요청
     // 가상계좌로 결제한 경우 - 환불 가상계좌 예금주, 환불 가상계좌 은행코드, 환불 가상계좌번호 필수 입력
@@ -579,7 +579,7 @@ exports.refundByAdmin = async (req, res) => {
         status: "paid"
       },
       transaction
-    });
+    }) - wouldBeRefundedOrder[0].dataValues.mileage;
 
     // 이미 환불된 금액
     let canceled = await Order.sum("amount", {
