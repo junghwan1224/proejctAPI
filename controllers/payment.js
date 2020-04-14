@@ -576,7 +576,7 @@ exports.refundByAdmin = async (req, res) => {
     }) - wouldBeRefundedOrder[0].dataValues.mileage;
 
     // 이미 환불된 금액
-    let canceled = await Order.sum("amount", {
+    let cancelled = await Order.sum("amount", {
       where: {
         id: { [Op.in]: ordersArr },
         status: "cancelled"
@@ -585,17 +585,17 @@ exports.refundByAdmin = async (req, res) => {
     });
 
     // 환불된 금액이 없으면 null을 반환하므로 값 변경
-    if (!canceled) {
-      canceled = 0;
+    if (!cancelled) {
+      cancelled = 0;
     }
 
-    let totalAmount = await Order.sum("amount", {
+    const totalAmount = await Order.sum("amount", {
       where: { imp_uid },
       transaction
     });
 
     // 환불 가능한 금액
-    const cancelableAmount = totalAmount - canceled;
+    const cancelableAmount = (totalAmount-wouldBeRefundedOrder[0].dataValues.mileage) - cancelled;
 
     // checksum 파라미터 관련 로직
     if (cancelableAmount <= 0) {
