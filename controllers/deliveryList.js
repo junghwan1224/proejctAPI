@@ -32,7 +32,7 @@ exports.readByUser = async (req, res) => {
           "quantity",
           "pay_method",
           "memo",
-          "updatedAt"
+          "paidAt"
         ],
         include: [
           {
@@ -62,11 +62,11 @@ exports.readByUser = async (req, res) => {
       return info;
     });
 
-    // order.updatedAt(결제 날짜 최신 순)을 기준으로 정렬
+    // order.paidAt(결제 날짜 최신 순)을 기준으로 정렬
     result.sort((a, b) => {
-      if (a[0].order.updatedAt > b[0].order.updatedAt) {
+      if (a[0].order.paidAt > b[0].order.paidAt) {
         return -1;
-      } else if (a[0].order.updatedAt < b[0].order.updatedAt) {
+      } else if (a[0].order.paidAt < b[0].order.paidAt) {
         return 1;
       }
       return 0;
@@ -112,7 +112,7 @@ exports.readByAdmin = async (req, res) => {
           "quantity",
           "pay_method",
           "memo",
-          "updatedAt"
+          "paidAt"
         ],
         include: [
           {
@@ -148,11 +148,11 @@ exports.readByAdmin = async (req, res) => {
       return info;
     });
 
-    // order.updatedAt(결제 날짜 최신 순)을 기준으로 정렬
+    // order.paidAt(결제 날짜 최신 순)을 기준으로 정렬
     result.sort((a, b) => {
-      if (a[0].order.updatedAt > b[0].order.updatedAt) {
+      if (a[0].order.paidAt > b[0].order.paidAt) {
         return -1;
-      } else if (a[0].order.updatedAt < b[0].order.updatedAt) {
+      } else if (a[0].order.paidAt < b[0].order.paidAt) {
         return 1;
       }
       return 0;
