@@ -211,6 +211,7 @@ exports.updateByAdmin = async (req, res) => {
       attribute => (newData[attribute] = req.body[attribute])
     );
 
+    const { account_id } = req.headers;
     const response = await Account.findOne({
       where: {
         id: account_id
