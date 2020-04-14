@@ -464,9 +464,6 @@ exports.cancelByUser = async (req, res) => {
 
     const transaction = await models.sequelize.transaction();
 
-    const { authorization } = req.headers;
-    const account_id = authorization ? await verifyToken(authorization, "user") : "12345";
-
     // 아임포트 인증 토큰 발급
     const token = await getToken();
 
@@ -519,9 +516,6 @@ exports.cancelByUser = async (req, res) => {
           transaction
         }
       );
-
-      const { mileage } = wouldBeRefundedOrder[0].dataValues;
-      await updateMileage(account_id, mileage, wantCancelAmount-mileage, false, transaction);
 
       await transaction.commit();
 
