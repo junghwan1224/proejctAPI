@@ -175,6 +175,68 @@ exports.updateByNonUser = async (req, res) => {
   }
 };
 
+
+/* Admin */
+
+exports.readByAdmin = async (req, res) => {
+  try {
+    const { account_id } = req.headers;
+    user = await Account.findOne({
+      where: { id: account_id },
+      attributes: {
+        exclude: ["password"]
+      },
+      include: [
+        {
+          model: AccountLevel,
+          required: true,
+          as: "level_detail",
+          attributes: ["discount_rate"]
+        }
+      ]
+    });
+
+    return res.status(200).send(user);
+  }
+  catch(err) {
+    res.status(400).send();
+  }
+};
+
+exports.updateByAdmin = async (req, res) => {
+  try {
+    const POSSIBLE_ATTRIBUTES = ["email", "crn", "name", "type", "password"];
+    let newData = {};
+    POSSIBLE_ATTRIBUTES.map(
+      attribute => (newData[attribute] = req.body[attribute])
+    );
+
+    const response = await Account.findOne({
+      where: {
+        id: account_id
+      }
+    });
+
+    if (!response) {
+      return res
+        .status(400)
+        .send({ message: "해당 ID에 대한 유저 데이터가 존재하지 않습니다." });
+    }
+
+    await Account.update(newData, {
+      where: {
+        id: account_id
+      },
+      individualHooks: true
+    });
+
+    return res.status(200).send();
+  }
+  catch(err) {
+    res.status(400).send();
+  }
+};
+
 exports.deleteByAdmin = async (req, res) => {
   /* Send 400 if account_id is not given: */
   try {
