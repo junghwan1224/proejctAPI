@@ -21,6 +21,8 @@ module.exports = app => {
 
   const roster = require("../controllers/roster");
 
+  const purchaseList = require("../controllers/purchaseList");
+
   const ADMIN_ROUTE = "/admin";
   app
     .route(ADMIN_ROUTE + "/account")
@@ -114,4 +116,8 @@ module.exports = app => {
     // .all(verifyToken.authAdmin)
     .get(roster.readByAdmin)
     .post(roster.createByAdmin);
+
+  app
+    .route(ADMIN_ROUTE + "/purchase-list")
+    .get(purchaseList.readByAdmin);
 };
