@@ -23,8 +23,8 @@ app.use(
   cors({
     credentials: true,
     origin: [
-      "*",
       "https://montar.co.kr",
+      "http://localhost:3000"
     ]
   })
 );
