@@ -1,6 +1,6 @@
 "use strict";
 
-const sendSMS = require("../public/js/sendSMS");
+const sendSMS = require("./common/sendSMS");
 
 // 인증번호 발급
 exports.issueNumber = async (req, res) => {

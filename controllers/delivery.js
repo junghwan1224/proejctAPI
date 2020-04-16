@@ -7,7 +7,7 @@ const Order = require("../models").order;
 const Product = require("../models").product;
 const models = require("../models");
 
-const getToken = require("../public/js/getToken");
+const getToken = require("./common/getToken");
 
 // By user
 
