@@ -20,13 +20,13 @@ var options = {
 };
 
 app.use(
-  cors() // no cors for dev test
-  // cors({
-  //   credentials: true,
-  //   origin: [
-  //     "https://montar.co.kr",
-  //   ]
-  // })
+  cors({
+    credentials: true,
+    origin: [
+      "*",
+      "https://montar.co.kr",
+    ]
+  })
 );
 
 // view engine setup
