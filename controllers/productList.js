@@ -93,9 +93,25 @@ exports.readByUser = async (req, res) => {
     const response = await Product.findAll({
       where: searchField,
       order: orderField,
-      attributes: { exclude: ["createdAt", "updatedAt"] },
+      attributes: { exclude: ["createdAt", "updatedAt", "is_public", "stock"] },
     });
-    return res.status(200).send(response.data);
+
+    let products = [];
+    for (const idx of Array(response.length).keys()) {
+      let product = response[idx].dataValues;
+      const calculated = calculateDiscount(
+        USER_DISCOUNT,
+        product.price,
+        product.allow_discount
+      );
+      product.price = calculated.price;
+      product.originalPrice = calculated.originalPrice;
+      product.discountRate = calculated.discountRate;
+
+      products.push(product);
+    }
+
+    return res.status(200).send(products);
   } catch (err) {
     console.log(err);
     return res
@@ -130,7 +146,7 @@ exports.readByAdmin = async (req, res) => {
   }
 
   /** Set searchField: */
-  let searchField = {}; // show all data, regardless of `is_public` value
+  let searchField = { is_public: true };
   let orderField = [["models", "ASC"]];
   if (method.toUpperCase() === "QUERY") {
     searchField[Op.or] = [
@@ -163,25 +179,10 @@ exports.readByAdmin = async (req, res) => {
     const response = await Product.findAll({
       where: searchField,
       order: orderField,
-      attributes: { exclude: ["createdAt", "updatedAt", "is_public", "stock"] },
+      attributes: { exclude: ["createdAt", "updatedAt"] },
     });
 
-    let products = [];
-    for (const idx of Array(response.length).keys()) {
-      let product = response[idx].dataValues;
-      const calculated = calculateDiscount(
-        USER_DISCOUNT,
-        product.price,
-        product.allow_discount
-      );
-      product.price = calculated.price;
-      product.originalPrice = calculated.originalPrice;
-      product.discountRate = calculated.discountRate;
-
-      products.push(product);
-    }
-
-    return res.status(200).send(products);
+    return res.status(200).send(response);
   } catch (err) {
     console.log(err);
     return res
