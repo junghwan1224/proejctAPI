@@ -7,7 +7,7 @@ const Sequelize = require("sequelize");
 const { verifyToken } = require("../routes/verifyToken");
 
 const { Op } = Sequelize;
-const calculateDiscount = require("./common/common").calculateDiscount;
+const calculateDiscount = require("./common/discount").calculateDiscount;
 
 exports.readByUser = async (req, res) => {
   const method = req.query.method || "";

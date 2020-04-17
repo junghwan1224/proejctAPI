@@ -6,7 +6,7 @@ const Account = require("../models").account;
 const AccountLevel = require("../models").account_level;
 const jwt = require("jsonwebtoken");
 const DEV_SECRET = process.env.DEV_SECRET;
-const calculateDiscount = require("./common/common").calculateDiscount;
+const calculateDiscount = require("./common/discount").calculateDiscount;
 
 // By user
 
@@ -19,23 +19,23 @@ exports.readByUser = async (req, res) => {
     if (account_id) {
       const account = await Account.findOne({
         where: {
-          id: account_id
+          id: account_id,
         },
         include: [
           {
             model: AccountLevel,
             required: true,
             as: "level_detail",
-            attributes: ["discount_rate"]
-          }
-        ]
+            attributes: ["discount_rate"],
+          },
+        ],
       });
       USER_DISCOUNT = parseFloat(account.level_detail.discount_rate);
     }
 
     const response = await Basket.findAll({
       where: {
-        account_id
+        account_id,
       },
       attributes: ["quantity"],
       include: [
@@ -43,10 +43,10 @@ exports.readByUser = async (req, res) => {
           model: Product,
           required: true,
           attributes: {
-            exclude: ["createdAt", "updatedAt", "is_public", "stock"]
-          }
-        }
-      ]
+            exclude: ["createdAt", "updatedAt", "is_public", "stock"],
+          },
+        },
+      ],
     });
 
     let carts = {};
@@ -114,35 +114,35 @@ exports.createOrUpdateByUser = async (req, res) => {
       const isProductExist = await Basket.count({
         where: {
           account_id,
-          product_id
-        }
+          product_id,
+        },
       });
       if (quantity === 0) {
         // Delete if quantity is 0:
         await Basket.destroy({
           where: {
             account_id,
-            product_id
-          }
+            product_id,
+          },
         });
       } else if (!isProductExist) {
         // Create producut
         await Basket.create({
           account_id,
           product_id,
-          quantity
+          quantity,
         });
       } else {
         // Update if quantity is not zero and product exists
         const basket = await Basket.findOne({
           where: {
             account_id,
-            product_id
-          }
+            product_id,
+          },
         });
 
         await basket.update({
-          quantity
+          quantity,
         });
       }
     }
@@ -161,7 +161,7 @@ exports.deleteByUser = async (req, res) => {
     const { account_id } = req;
 
     await Basket.destroy({
-      where: { account_id }
+      where: { account_id },
     });
 
     return res.status(200).send();
