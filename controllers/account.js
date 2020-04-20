@@ -9,14 +9,14 @@ exports.createByUser = async (req, res) => {
   /* If phone, password, name are not included, return 400: */
   if (!(req.body.phone && req.body.password && req.body.name)) {
     return res.status(400).send({
-      message: "필요한 정보를 모두 입력해주세요."
+      message: "필요한 정보를 모두 입력해주세요.",
     });
   }
 
   /* If the phone number is already registered, raise 400: */
   try {
     const response = await Account.findOne({
-      where: { phone: req.body.phone }
+      where: { phone: req.body.phone },
     });
     if (response) {
       return res.status(400).send({ message: "이미 등록된 전화번호입니다." });
@@ -27,7 +27,7 @@ exports.createByUser = async (req, res) => {
       .send({ message: "에러가 발생했습니다. 잠시 후 다시 시도해주세요." });
   }
 
-  /* Create account, with level set to "NORMAL" : */
+  /* Create account, with level set to "UNCONFIRMED" : */
   try {
     await Account.create({
       phone: req.body.phone,
@@ -35,7 +35,7 @@ exports.createByUser = async (req, res) => {
       name: req.body.name,
       crn: req.body.crn,
       email: req.body.email,
-      level: "NORMAL"
+      level: "UNCONFIRMED",
     });
     return res.status(201).send();
   } catch (error) {
@@ -55,16 +55,16 @@ exports.readByUser = async (req, res) => {
     const response = await Account.findOne({
       where: { id: account_id },
       attributes: {
-        exclude: ["password"]
+        exclude: ["password"],
       },
       include: [
         {
           model: AccountLevel,
           required: true,
           as: "level_detail",
-          attributes: ["discount_rate"]
-        }
-      ]
+          attributes: ["discount_rate"],
+        },
+      ],
     });
 
     /* Return attributes based on the user request(parameters): */
@@ -73,7 +73,7 @@ exports.readByUser = async (req, res) => {
       let data = {};
       if (fields.toLowerCase() != "all") {
         attributes.map(
-          attribute => (data[attribute.trim()] = response[attribute.trim()])
+          (attribute) => (data[attribute.trim()] = response[attribute.trim()])
         );
       } else {
         data = response;
@@ -96,7 +96,7 @@ exports.readByNonUser = async (req, res) => {
 
     let isValid = false;
     const account = await Account.findOne({
-      where: { phone }
+      where: { phone },
     });
 
     if (account) {
@@ -115,7 +115,7 @@ exports.updateByUser = async (req, res) => {
   const POSSIBLE_ATTRIBUTES = ["email", "crn", "name", "type", "password"];
   let newData = {};
   POSSIBLE_ATTRIBUTES.map(
-    attribute => (newData[attribute] = req.body[attribute])
+    (attribute) => (newData[attribute] = req.body[attribute])
   );
 
   const { account_id } = req;
@@ -124,8 +124,8 @@ exports.updateByUser = async (req, res) => {
   try {
     const response = await Account.findOne({
       where: {
-        id: account_id
-      }
+        id: account_id,
+      },
     });
     if (!response) {
       return res
@@ -142,9 +142,9 @@ exports.updateByUser = async (req, res) => {
   try {
     await Account.update(newData, {
       where: {
-        id: account_id
+        id: account_id,
       },
-      individualHooks: true
+      individualHooks: true,
     });
     return res.status(200).send();
   } catch (err) {
@@ -164,7 +164,7 @@ exports.updateByNonUser = async (req, res) => {
     await Account.update(
       { password: bcryptPwd },
       {
-        where: { phone }
+        where: { phone },
       }
     );
 
@@ -175,7 +175,6 @@ exports.updateByNonUser = async (req, res) => {
   }
 };
 
-
 /* Admin */
 
 exports.readByAdmin = async (req, res) => {
@@ -184,21 +183,20 @@ exports.readByAdmin = async (req, res) => {
     user = await Account.findOne({
       where: { id: account_id },
       attributes: {
-        exclude: ["password"]
+        exclude: ["password"],
       },
       include: [
         {
           model: AccountLevel,
           required: true,
           as: "level_detail",
-          attributes: ["discount_rate"]
-        }
-      ]
+          attributes: ["discount_rate"],
+        },
+      ],
     });
 
     return res.status(200).send(user);
-  }
-  catch(err) {
+  } catch (err) {
     res.status(400).send();
   }
 };
@@ -208,14 +206,14 @@ exports.updateByAdmin = async (req, res) => {
     const POSSIBLE_ATTRIBUTES = ["email", "crn", "name", "type", "password"];
     let newData = {};
     POSSIBLE_ATTRIBUTES.map(
-      attribute => (newData[attribute] = req.body[attribute])
+      (attribute) => (newData[attribute] = req.body[attribute])
     );
 
     const { account_id } = req.headers;
     const response = await Account.findOne({
       where: {
-        id: account_id
-      }
+        id: account_id,
+      },
     });
 
     if (!response) {
@@ -226,14 +224,13 @@ exports.updateByAdmin = async (req, res) => {
 
     await Account.update(newData, {
       where: {
-        id: account_id
+        id: account_id,
       },
-      individualHooks: true
+      individualHooks: true,
     });
 
     return res.status(200).send();
-  }
-  catch(err) {
+  } catch (err) {
     res.status(400).send();
   }
 };
@@ -245,12 +242,12 @@ exports.deleteByAdmin = async (req, res) => {
 
     if (!account_id) {
       return res.status(400).send({
-        message: "필요한 정보를 모두 입력해주세요."
+        message: "필요한 정보를 모두 입력해주세요.",
       });
     }
     /* Verify whether the user exists: */
     const response = await Account.findOne({
-      where: { id: account_id }
+      where: { id: account_id },
     });
     if (!response) {
       return res.status(400).send({ message: "User not found." });
@@ -259,7 +256,7 @@ exports.deleteByAdmin = async (req, res) => {
     /* Delete account data from the DB: */
     await Account.destroy({
       where: { id: account_id },
-      limit: 1
+      limit: 1,
     });
     return res.status(200).send();
   } catch (err) {
