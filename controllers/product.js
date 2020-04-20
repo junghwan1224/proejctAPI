@@ -7,7 +7,7 @@ const Sequelize = require("sequelize");
 const { verifyToken } = require("../routes/verifyToken");
 
 const Op = Sequelize.Op;
-const calculateDiscount = require("./common/common").calculateDiscount;
+const calculateDiscount = require("./common/discount").calculateDiscount;
 
 exports.createByAdmin = async (req, res) => {
   /* If necessary fields are not given, return 400: */
@@ -24,7 +24,7 @@ exports.createByAdmin = async (req, res) => {
     )
   ) {
     return res.status(400).send({
-      message: "필요한 정보를 모두 입력해주세요."
+      message: "필요한 정보를 모두 입력해주세요.",
     });
   }
 
@@ -77,20 +77,22 @@ exports.readByUser = async (req, res) => {
   /* Check if user is logged in, and fetch USER_DISCOUNT: */
   let USER_DISCOUNT = undefined;
   const { authorization } = req.headers;
-  const accountId = authorization ? await verifyToken(authorization, "user") : null;
+  const accountId = authorization
+    ? await verifyToken(authorization, "user")
+    : null;
   if (accountId) {
     const account = await Account.findOne({
       where: {
-        id: accountId
+        id: accountId,
       },
       include: [
         {
           model: AccountLevel,
           required: true,
           as: "level_detail",
-          attributes: ["discount_rate"]
-        }
-      ]
+          attributes: ["discount_rate"],
+        },
+      ],
     });
     USER_DISCOUNT = parseFloat(account.level_detail.discount_rate);
   }
@@ -100,9 +102,9 @@ exports.readByUser = async (req, res) => {
     const response = await Product.findOne({
       where: {
         id: req.query.product_id,
-        is_public: true
+        is_public: true,
       },
-      attributes: { exclude: ["createdAt", "updatedAt", "is_public", "stock"] }
+      attributes: { exclude: ["createdAt", "updatedAt", "is_public", "stock"] },
     });
 
     if (!response) {
@@ -141,8 +143,8 @@ exports.readByAdmin = async (req, res) => {
   try {
     const response = await Product.findOne({
       where: {
-        id: req.query.product_id
-      }
+        id: req.query.product_id,
+      },
     });
 
     if (!response) {
@@ -182,7 +184,7 @@ exports.updateByAdmin = async (req, res) => {
       { ...req.body },
       {
         where: { id: req.body.product_id },
-        limit: 1
+        limit: 1,
       }
     );
     return res.status(200).send();
@@ -199,12 +201,12 @@ exports.deleteByAdmin = async (req, res) => {
   try {
     if (!req.query.product_id) {
       return res.status(400).send({
-        message: "필요한 정보를 모두 입력해주세요."
+        message: "필요한 정보를 모두 입력해주세요.",
       });
     }
     /* Verify whether the product exists: */
     const response = await Product.findOne({
-      where: { id: req.query.product_id }
+      where: { id: req.query.product_id },
     });
     if (!response) {
       return res
@@ -215,7 +217,7 @@ exports.deleteByAdmin = async (req, res) => {
     /* Delete account product from the DB: */
     await Product.destroy({
       where: { id: req.query.product_id },
-      limit: 1
+      limit: 1,
     });
     return res.status(200).send();
   } catch (err) {
