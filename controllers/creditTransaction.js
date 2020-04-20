@@ -3,7 +3,7 @@ const Account = require("../models").account;
 const Order = require("../models").order;
 const Product = require("../models").product;
 
-const processStock = require("../public/js/processStock");
+const processStock = require("./common/processStock");
 
 // (get) /ark/detail: 특정 거래 상세정보 조회
 exports.readByAdmin = async (req, res) => {

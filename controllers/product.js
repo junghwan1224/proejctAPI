@@ -7,7 +7,7 @@ const Sequelize = require("sequelize");
 const { verifyToken } = require("../routes/verifyToken");
 
 const Op = Sequelize.Op;
-const calculateDiscount = require("./common").calculateDiscount;
+const calculateDiscount = require("./common/common").calculateDiscount;
 
 exports.createByAdmin = async (req, res) => {
   /* If necessary fields are not given, return 400: */

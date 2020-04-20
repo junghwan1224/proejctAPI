@@ -1,7 +1,7 @@
 const axios = require("axios");
 const Account = require("../models").account;
 
-const getToken = require("../public/js/getToken");
+const getToken = require("./common/getToken");
 
 exports.readByUser = async (req, res) => {
     try {

@@ -9,10 +9,10 @@ const Account = require("../models").account;
 const Product = require("../models").product;
 const models = require("../models");
 
-const updateMileage = require("../public/js/updateMileage");
-const processStock = require("../public/js/processStock");
-const getToken = require("../public/js/getToken");
-const sendSMS = require("../public/js/sendSMS");
+const updateMileage = require("./common/updateMileage");
+const processStock = require("./common/processStock");
+const getToken = require("./common/getToken");
+const sendSMS = require("./common/sendSMS");
 const { verifyToken } = require("../routes/verifyToken");
 
 /* 일반 결제 */

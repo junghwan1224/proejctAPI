@@ -9,9 +9,9 @@ const Delivery = require("../models").delivery;
 const Product = require("../models").product;
 const models = require("../models");
 
-const processStock = require("../public/js/processStock");
-const getToken = require("../public/js/getToken");
-const sendSMS = require("../public/js/sendSMS");
+const processStock = require("./common/processStock");
+const getToken = require("./common/getToken");
+const sendSMS = require("./common/sendSMS");
 
 /* 일반 결제 */
 // order-info
