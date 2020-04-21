@@ -13,6 +13,7 @@ module.exports = app => {
 
   const delivery = require("../controllers/delivery");
   const deliveryList = require("../controllers/deliveryList");
+  const invoice = require("../controllers/invoice");
 
   const order = require("../controllers/order");
   const payment = require("../controllers/payment");
@@ -76,6 +77,10 @@ module.exports = app => {
     .route("/delivery-list")
     .all(verifyToken.authUser)
     .get(deliveryList.readByUser);
+
+  app
+    .route("/invoice")
+    .get(invoice.readByUser);
 
   app
     .route("/favorite")
