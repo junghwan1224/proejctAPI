@@ -19,10 +19,10 @@ def main():
     s3 = S3(ACCESS_KEY=ACCESS_KEY, SECRET_KEY=SECRET_KEY,
             BUCKET_NAME=BUCKET_NAME)
 
-    # # Create Default level 'NORMAL':
+    # # Create Default level 'UNCONFIRMED':
     validate(getframeinfo(currentframe()).lineno,
              automator.request('ADMIN', '/admin/account-level',
-                               'POST', id='NORMAL', discount_rate=0))
+                               'POST', id='UNCONFIRMED', discount_rate=-0.03))
 
     # # Create ANONYMOUS (비회원) account data:
     random_password = "%x" % getrandbits(512)
