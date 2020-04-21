@@ -128,15 +128,15 @@ exports.readByAdmin = async (req, res) => {
 // 배송 상태, 위치 동시 업데이트
 exports.updateByAdmin = async (req, res) => {
   try {
+    const POSSIBLE_ATTRIBUTES = ["status", "location", "courier", "invoice"];
+    let newData = {};
+    POSSIBLE_ATTRIBUTES.map(
+      attribute => (newData[attribute] = req.body[attribute])
+    );
+
     const { order_id } = req.body;
-    const data = {};
 
-    if (req.body["status"]) Object.assign(data, { status: req.body.status });
-
-    if (req.body["location"])
-      Object.assign(data, { location: req.body.location });
-
-    await Delivery.update(data, {
+    await Delivery.update(newData, {
       where: { order_id }
     });
 
