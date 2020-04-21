@@ -179,7 +179,7 @@ exports.updateByNonUser = async (req, res) => {
 
 exports.readByAdmin = async (req, res) => {
   try {
-    const account_id = req.body.account_id;
+    const account_id = req.query.account_id;
     const user = await Account.findOne({
       where: { id: account_id },
       attributes: {
@@ -197,6 +197,7 @@ exports.readByAdmin = async (req, res) => {
 
     return res.status(200).send(user);
   } catch (err) {
+    console.log(err);
     res.status(400).send();
   }
 };
