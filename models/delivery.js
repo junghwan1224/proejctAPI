@@ -11,7 +11,9 @@ module.exports = (sequelize, DataTypes) => {
       shipping_postcode: DataTypes.STRING,
       shipping_primary: DataTypes.STRING,
       shipping_detail: DataTypes.STRING,
-      arrived_at: DataTypes.DATE
+      arrived_at: DataTypes.DATE,
+      courier: DataTypes.STRING, // 택배사
+      invoice: DataTypes.STRING, // 운송장 번호
     },
     {}
   );

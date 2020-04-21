@@ -46,6 +46,14 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true
       },
+      courier: {
+        type: Sequelize.STRING,
+        allowNull: true
+      },
+      invoice: {
+        type: Sequelize.STRING,
+        allowNull: true
+      },
       arrived_at: {
         type: Sequelize.DATE
       },
