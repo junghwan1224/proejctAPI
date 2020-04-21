@@ -179,8 +179,8 @@ exports.updateByNonUser = async (req, res) => {
 
 exports.readByAdmin = async (req, res) => {
   try {
-    const { account_id } = req.headers;
-    user = await Account.findOne({
+    const account_id = req.body.account_id;
+    const user = await Account.findOne({
       where: { id: account_id },
       attributes: {
         exclude: ["password"],
