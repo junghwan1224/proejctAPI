@@ -90,11 +90,17 @@ module.exports = app => {
     .put()
     .delete();
 
-  app.route("/inquiry").post(inquiry.sendByUser);
+  app
+    .route("/inquiry")
+    .post(inquiry.createByUser);
 
-  app.route("/payment/webhook").post(payment.webHookByUser);
+  app
+    .route("/payment/webhook")
+    .post(payment.webHookByUser);
 
-  app.route("/payment/cancel").post(payment.cancelByUser);
+  app
+    .route("/payment/cancel")
+    .post(payment.cancelByUser);
 
   app
     .route("/payment/issue-billing")

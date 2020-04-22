@@ -2,6 +2,9 @@
 
 const nodemailer = require("nodemailer");
 
+const S3 = require("../controllers/common/s3");
+const Inquiry = require("../models").inquiry;
+
 exports.sendByUser = async (req, res) => {
     try {
         const EMAIL_ADDRESS = process.env.EMAIL_ADDRESS;
@@ -82,4 +85,57 @@ exports.sendByUser = async (req, res) => {
             .status(403)
             .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
     }
+};
+
+exports.createByUser = async (req, res) => {
+  try {
+    // 이메일 필수
+    const { phone, poc, title, content, type } = req.body;
+    const fabricatedPhone = phone ? 
+      phone.replace(/\D/g, "").slice(0, 3) +
+      "-" +
+      phone.replace(/\D/g, "").slice(3, 7) +
+      "-" +
+      phone.replace(/\D/g, "").slice(7, 11)
+      : "비회원";
+    
+    const s3Path = `inquiry/${new Date().getTime()+Math.floor(Math.random() * 899 + 100)}`;
+    let flag = true;
+    let fileList = null;
+
+    if(req.files) {
+      const fileValue = Array.from(Object.values(req.files));
+
+      // 첨부파일이 2개 이상인 경우
+      if(fileValue.length > 1) {
+        const upload = fileValue.map( file => S3.uploadFile(file.data, `${s3Path}/${file.name}`) );
+        await Promise.all(upload);
+      }
+
+      // 첨부파일이 1개인 경우
+      else {
+        const { file } = req.files;
+        flag = await S3.uploadFile(file.data, `${s3Path}/${file.name}`);
+      }
+
+      fileList = await S3.getFileList(s3Path);
+    }
+
+    if(flag) {
+      await Inquiry.create({
+        phone: fabricatedPhone,
+        email: poc,
+        type,
+        title,
+        content,
+        attachment: fileList ? fileList.map(file => file.Key).join("&*&*&*") : null
+      });
+  
+      return res.status(200).send();
+    }
+  }
+  catch(err) {
+    console.log(err);
+    return res.status(400).send();
+  }
 };
