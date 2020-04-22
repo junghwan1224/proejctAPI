@@ -1,6 +1,7 @@
 "use strict";
 
 const axios = require("axios");
+const { Op } = require("sequelize");
 
 const Delivery = require("../models").delivery;
 const Order = require("../models").order;
@@ -52,11 +53,14 @@ exports.readByNonUser = async (req, res) => {
     // 결제 시각, 결제 금액, 주문 번호, 도착 예정, 현금 영수증
 
     const delivery = await Delivery.findOne({
-      where: { order_id: merchant_uid }
+      where: {[Op.or]: [
+        { order_id: merchant_uid },
+        { invoice: orderNum }
+      ]}
     });
 
     const orderInfo = await Order.findAll({
-      where: { merchant_uid },
+      where: { merchant_uid: delivery.order_id },
       include: [
         {
           model: Product,
@@ -67,17 +71,9 @@ exports.readByNonUser = async (req, res) => {
     const orders = orderInfo.map(o => o.dataValues);
 
     if (orders.length) {
-      const token = await getToken();
-
-      const getPayment = await axios({
-        url: `https://api.iamport.kr/payments/${orders[0].imp_uid}`,
-        method: "get",
-        headers: { Authorization: token }
-      });
-
       return res
         .status(200)
-        .send({ delivery, orders, payment: getPayment.data.response });
+        .send({ delivery, orders });
     } else {
       return res.status(200).send({
         warning:
@@ -128,15 +124,15 @@ exports.readByAdmin = async (req, res) => {
 // 배송 상태, 위치 동시 업데이트
 exports.updateByAdmin = async (req, res) => {
   try {
+    const POSSIBLE_ATTRIBUTES = ["status", "location", "courier", "invoice"];
+    let newData = {};
+    POSSIBLE_ATTRIBUTES.map(
+      attribute => (newData[attribute] = req.body[attribute])
+    );
+
     const { order_id } = req.body;
-    const data = {};
 
-    if (req.body["status"]) Object.assign(data, { status: req.body.status });
-
-    if (req.body["location"])
-      Object.assign(data, { location: req.body.location });
-
-    await Delivery.update(data, {
+    await Delivery.update(newData, {
       where: { order_id }
     });
 
