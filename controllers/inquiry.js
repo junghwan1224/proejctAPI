@@ -5,6 +5,8 @@ const nodemailer = require("nodemailer");
 const S3 = require("../controllers/common/s3");
 const Inquiry = require("../models").inquiry;
 
+const Separator = "&*&*&*";
+
 exports.sendByUser = async (req, res) => {
     try {
         const EMAIL_ADDRESS = process.env.EMAIL_ADDRESS;
@@ -128,7 +130,7 @@ exports.createByUser = async (req, res) => {
         type,
         title,
         content,
-        attachment: fileList ? fileList.map(file => file.Key).join("&*&*&*") : null
+        attachment: fileList ? fileList.map(file => file.Key).join(Separator) : null
       });
   
       return res.status(200).send();
