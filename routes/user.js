@@ -47,9 +47,18 @@ module.exports = app => {
     .get(address.readByUser)
     .post(address.createByUser);
 
-  app.route("/certify/issue-number").post(certify.issueNumber);
+  app
+    .route("/certify/issue-number")
+    .post(certify.issueNumber);
 
-  app.route("/certify/check").post(certify.check);
+  app
+    .route("/certify/check")
+    .post(certify.check);
+
+  app
+    .route("/certify/document")
+    .all(verifyToken.authUser)
+    .post(certify.saveCrnDocument);
 
   app
     .route("/product")

@@ -5,6 +5,7 @@ module.exports = app => {
   const accountList = require("../controllers/accountList");
   const login = require("../controllers/login");
   const accountLevel = require("../controllers/accountLevel");
+  const certify = require("../controllers/certify");
 
   const admin = require("../controllers/admin");
   const product = require("../controllers/product");
@@ -56,6 +57,10 @@ module.exports = app => {
   app.route(ADMIN_ROUTE + "/product-list")
     // .all(verifyToken.authAdmin);
     .get(productList.readByAdmin);
+
+  app
+    .route(ADMIN_ROUTE + "/account-document")
+    .post(certify.approveDocument);
 
   app
     .route(`${ADMIN_ROUTE}/product`)
