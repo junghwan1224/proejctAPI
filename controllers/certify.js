@@ -66,11 +66,10 @@ exports.check = async (req, res) => {
 
 exports.saveCrnDocument = async (req, res) => {
     try {
-        const { phone } = req.body;
         const { file } = req.files;
         const { account_id } = req;
 
-        const path = `crn-document/${phone}`;
+        const path = `crn-document/${account_id}`;
 
         const flag = await S3.uploadFile(file.data, `${path}/${file.name}`);
 
@@ -89,7 +88,6 @@ exports.saveCrnDocument = async (req, res) => {
         }
     }
     catch(err) {
-        console.log(err);
         return res.status(400).send();
     }
 };
