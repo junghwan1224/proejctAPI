@@ -59,7 +59,7 @@ module.exports = app => {
     .get(productList.readByAdmin);
 
   app
-    .route(ADMIN_ROUTE + "/account-document")
+    .route(ADMIN_ROUTE + "/approve-document")
     .post(certify.approveDocument);
 
   app
