@@ -103,6 +103,17 @@ exports.approveDocument = async (req, res) => {
             where: { id: account_id }
         });
 
+        const account = await Account.findOne({
+            where: { id: account_id },
+            attributes: ["crn_document"]
+        });
+
+        const path = `crn-document/${account_id}`;
+        const fileList = await S3.getFileList(path);
+        const leftFiles = fileList.filter(file => file.Key !== account.dataValues.crn_document);
+        const deleteFile = leftFiles.map(file => S3.deleteFile(file.Key));
+        await Promise.all(deleteFile);
+
         return res.status(200).send();
     }
     catch(err) {
