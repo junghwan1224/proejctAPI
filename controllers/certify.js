@@ -72,7 +72,8 @@ exports.saveCrnDocument = async (req, res) => {
 
     const flag = await S3.uploadFile(
       file.data,
-      file.mimetype`${path}/${file.name}`
+      file.mimetype,
+      `${path}/${file.name}`
     );
 
     if (flag) {
