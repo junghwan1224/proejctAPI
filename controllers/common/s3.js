@@ -5,7 +5,7 @@ AWS.config.update({
   secretAccessKey: process.env.S3_SECRET,
 });
 
-exports.uploadFile = async (fileContent, key) => {
+exports.uploadFile = async (fileContent, mimeType, key) => {
   /**
    * Params:
    *   - fileContent: filedata Buffer
@@ -18,6 +18,8 @@ exports.uploadFile = async (fileContent, key) => {
     Bucket: process.env.S3_BUCKET,
     Key: key,
     Body: fileContent,
+    ContentType: mimeType,
+    ACL: "public-read",
   };
 
   try {
