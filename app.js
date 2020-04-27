@@ -24,8 +24,9 @@ app.use(
     credentials: true,
     origin: [
       "https://montar.co.kr",
-      "http://localhost:3000"
-    ]
+      "http://localhost:3000",
+      "http://localhost:3002",
+    ],
   })
 );
 
