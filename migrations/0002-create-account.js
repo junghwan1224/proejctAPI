@@ -45,6 +45,10 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true
       },
+      crn_document: {
+        type: Sequelize.STRING,
+        allowNull: true
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
