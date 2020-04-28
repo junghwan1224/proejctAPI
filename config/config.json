@@ -1,0 +1,27 @@
+{
+  "development": {
+    "username": "root",
+    "password": null,
+    "database": "hermes_dev_db",
+    "host": "127.0.0.1",
+    "dialect": "mysql",
+    "operatorsAliases": "0",
+    "logging": false
+  },
+  "test": {
+    "username": "root",
+    "password": null,
+    "database": "hermes_test_db",
+    "host": "127.0.0.1",
+    "dialect": "mysql",
+    "operatorsAliases": false
+  },
+  "production": {
+    "username": "root",
+    "password": null,
+    "database": "hermes_production_db",
+    "host": "127.0.0.1",
+    "dialect": "mysql",
+    "operatorsAliases": false
+  }
+}
