@@ -37,15 +37,15 @@ module.exports = {
       name: {
         type: Sequelize.STRING,
         allowNull: false,
-        defaultValue: 0
       },
       amount: {
         type: Sequelize.INTEGER,
-        allowNull: false
+        allowNull: false,
       },
       mileage: {
         type: Sequelize.INTEGER,
         allowNull: false,
+        defaultValue: 0
       },
       quantity: {
         type: Sequelize.INTEGER.UNSIGNED,
