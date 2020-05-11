@@ -139,7 +139,10 @@ exports.readByAdmin = async (req, res) => {
   /* Fetch products and apply discount_rate: */
   try {
     const response = await sequelize.query(
-      `select products.*, ifnull(sum(orders.quantity), 0) as sales_quantity from products left join orders on products.id=orders.product_id group by products.id;
+      `
+      select products.*, ifnull(sum(o.quantity), 0) as sales_quantity
+from products left join (select product_id, quantity from orders where status="paid") o on o.product_id=products.id                                        
+group by products.id;
    `,
       { type: sequelize.QueryTypes.SELECT }
     );
