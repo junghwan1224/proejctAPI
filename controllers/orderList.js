@@ -1,7 +1,6 @@
 "use strict";
 
 const Order = require("../models").order;
-const Sequelize = require("sequelize");
 
 exports.readByAdmin = async (req, res) => {
   /** Raise 400 for product_id is not given: */
@@ -18,7 +17,7 @@ exports.readByAdmin = async (req, res) => {
   try {
     const response = await Order.findAll({
       where: where,
-      order: ["createdAt"],
+      order: ["updatedAt"],
       attributes: { exclude: ["createdAt", "updatedAt"] },
     });
     return res.status(200).send(response);
