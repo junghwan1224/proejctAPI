@@ -4,6 +4,7 @@ const Order = require("../models").order;
 const Delivery = require("../models").delivery;
 const Product = require("../models").product;
 const models = require("../models");
+const Account = require("../models").account;
 
 // 유저의 모든 배송정보 조회
 exports.readByUser = async (req, res) => {
@@ -14,15 +15,15 @@ exports.readByUser = async (req, res) => {
     const delivery = await Delivery.findAll({
       where: { account_id },
       attributes: { exclude: ["createdAt", "updatedAt"] },
-      transaction
+      transaction,
     });
-    const deliveryInfo = delivery.map(d => d.dataValues);
+    const deliveryInfo = delivery.map((d) => d.dataValues);
 
     if (!deliveryInfo.length) {
       return res.status(200).send();
     }
 
-    const orderInfo = deliveryInfo.map(d => {
+    const orderInfo = deliveryInfo.map((d) => {
       const { order_id } = d;
       return Order.findAll({
         where: { merchant_uid: order_id },
@@ -32,15 +33,15 @@ exports.readByUser = async (req, res) => {
           "quantity",
           "pay_method",
           "memo",
-          "paidAt"
+          "paidAt",
         ],
         include: [
           {
             model: Product,
-            required: true
-          }
+            required: true,
+          },
         ],
-        transaction
+        transaction,
       });
     });
     const orderList = await Promise.all(orderInfo);
@@ -51,11 +52,11 @@ exports.readByUser = async (req, res) => {
     const result = orderList.map((order, idx) => {
       const delInfo = deliveryInfo[idx];
 
-      const info = order.map(o => {
+      const info = order.map((o) => {
         const { dataValues } = o;
         return {
           delivery: delInfo,
-          order: dataValues
+          order: dataValues,
         };
       });
 
@@ -92,17 +93,17 @@ exports.readByAdmin = async (req, res) => {
         "status",
         "location",
         "arrived_at",
-        "createdAt"
+        "createdAt",
       ],
-      transaction
+      transaction,
     });
-    const deliveryInfo = delivery.map(d => d.dataValues);
+    const deliveryInfo = delivery.map((d) => d.dataValues);
 
     if (!deliveryInfo.length) {
       return res.status(200).send();
     }
 
-    const orderInfo = deliveryInfo.map(d => {
+    const orderInfo = deliveryInfo.map((d) => {
       const { order_id } = d;
       return Order.findAll({
         where: { merchant_uid: order_id },
@@ -112,20 +113,20 @@ exports.readByAdmin = async (req, res) => {
           "quantity",
           "pay_method",
           "memo",
-          "paidAt"
+          "paidAt",
         ],
         include: [
           {
             model: Product,
-            required: true
+            required: true,
           },
           {
             model: Account,
             required: true,
-            attributes: ["id", "phone", "name", "crn", "mileage", "email"]
-          }
+            attributes: ["id", "phone", "name", "crn", "mileage", "email"],
+          },
         ],
-        transaction
+        transaction,
       });
     });
 
@@ -137,11 +138,11 @@ exports.readByAdmin = async (req, res) => {
     const result = orderList.map((order, idx) => {
       const delInfo = deliveryInfo[idx];
 
-      const info = order.map(o => {
+      const info = order.map((o) => {
         const { dataValues } = o;
         return {
           delivery: delInfo,
-          order: dataValues
+          order: dataValues,
         };
       });
 
@@ -158,7 +159,7 @@ exports.readByAdmin = async (req, res) => {
       return 0;
     });
 
-    const deliveries = result.map(r => {
+    const deliveries = result.map((r) => {
       const { delivery, order } = r[0];
       let obj = {};
       obj["account"] = { id: order.account.id, name: order.account.name };
