@@ -24,6 +24,8 @@ module.exports = (app) => {
   const roster = require("../controllers/roster");
 
   const purchaseList = require("../controllers/purchaseList");
+  const staff = require("../controllers/staff");
+  const staffList = require("../controllers/staffList");
 
   const ADMIN_ROUTE = "/admin";
   app
@@ -34,6 +36,18 @@ module.exports = (app) => {
     .put(account.updateByAdmin)
     .delete(account.deleteByAdmin);
 
+  app
+    .route(ADMIN_ROUTE + "/staff")
+    // .all(verifyToken.authAdmin)
+    .post(staff.createByAdmin)
+    .get(staff.readByAdmin)
+    .put(staff.updateByAdmin)
+    .delete(staff.deleteByAdmin);
+
+  app
+    .route(ADMIN_ROUTE + "/staff-list")
+    // .all(verifyToken.authAdmin)
+    .get(staffList.readByAdmin);
   app
     .route(ADMIN_ROUTE + "/account-list")
     // .all(verifyToken.authAdmin)
