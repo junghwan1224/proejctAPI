@@ -1,4 +1,4 @@
-module.exports = app => {
+module.exports = (app) => {
   const verifyToken = require("./verifyToken");
 
   const account = require("../controllers/account");
@@ -11,6 +11,7 @@ module.exports = app => {
   const product = require("../controllers/product");
   const productList = require("../controllers/productList");
 
+  const orderList = require("../controllers/orderList");
   const delivery = require("../controllers/delivery");
   const deliveryList = require("../controllers/deliveryList");
   const deliveryPerUser = require("../controllers/deliveryPerUser");
@@ -54,13 +55,12 @@ module.exports = app => {
     .post(accountLevel.createByAdmin)
     .get(accountLevel.readByUser);
 
-  app.route(ADMIN_ROUTE + "/product-list")
+  app
+    .route(ADMIN_ROUTE + "/product-list")
     // .all(verifyToken.authAdmin);
     .get(productList.readByAdmin);
 
-  app
-    .route(ADMIN_ROUTE + "/approve-document")
-    .post(certify.approveDocument);
+  app.route(ADMIN_ROUTE + "/approve-document").post(certify.approveDocument);
 
   app
     .route(`${ADMIN_ROUTE}/product`)
@@ -71,6 +71,11 @@ module.exports = app => {
     .delete(product.deleteByAdmin);
 
   app.route(ADMIN_ROUTE + "/basket").all(verifyToken.authAdmin);
+
+  app
+    .route(ADMIN_ROUTE + "/order-list")
+    // .all(verifyToken.authAdmin)
+    .get(orderList.readByAdmin);
 
   app
     .route(ADMIN_ROUTE + "/delivery")
