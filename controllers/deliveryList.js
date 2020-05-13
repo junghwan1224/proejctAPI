@@ -114,6 +114,7 @@ exports.readByAdmin = async (req, res) => {
           "pay_method",
           "memo",
           "paidAt",
+          "mileage",
         ],
         include: [
           {
@@ -123,7 +124,7 @@ exports.readByAdmin = async (req, res) => {
           {
             model: Account,
             required: true,
-            attributes: ["id", "phone", "name", "crn", "mileage", "email"],
+            attributes: ["id", "name"],
           },
         ],
         transaction,
@@ -161,6 +162,13 @@ exports.readByAdmin = async (req, res) => {
 
     const deliveries = result.map((r) => {
       const { delivery, order } = r[0];
+
+      let products = [];
+      let amount = 0;
+      for (const item of r) {
+        products.push(item.order.product);
+        amount += item.order.amount;
+      }
       let obj = {};
       obj["account"] = { id: order.account.id, name: order.account.name };
       obj["driver"] = "추가 예정";
@@ -168,12 +176,23 @@ exports.readByAdmin = async (req, res) => {
       obj["delivery_number"] = delivery.delivery_num;
       obj["arriveAt"] = delivery.arrived_at;
       obj["status"] = delivery.status;
+      obj["products"] = products;
+      obj["paidAt"] = order.paidAt;
+      obj["mileage"] = order.mileage;
+      obj["amount"] = amount;
 
       return obj;
     });
 
-    res.status(200).send(deliveries);
+    let filtered_deliveries = deliveries;
+    if (req.query.account_id) {
+      filtered_deliveries = deliveries.filter(
+        (delivery) => delivery.account.id === req.query.account_id
+      );
+    }
+    return res.status(200).send(filtered_deliveries);
   } catch (err) {
+    console.log(err);
     return res
       .status(400)
       .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
