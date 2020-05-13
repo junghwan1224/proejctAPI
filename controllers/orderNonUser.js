@@ -17,7 +17,7 @@ const sendSMS = require("./common/sendSMS");
 // order-info
 exports.readByUser = async (req, res) => {
   try {
-    const { order_id, phone } = req.query;
+    const { order_id } = req.query;
 
     const order = await Order.findAll({
       where: { merchant_uid: order_id },
@@ -29,20 +29,6 @@ exports.readByUser = async (req, res) => {
       where: { merchant_uid: order_id }
     }) - dataValues.mileage;
 
-    let getReceipt = null;
-    if(dataValues.pay_method === "trans") {
-      const token = await getToken();
-      
-      getReceipt = await axios({
-        url: `https://api.iamport.kr/payments/${dataValues.imp_uid}`,
-        method: "post",
-        headers: { Authorization: token },
-        data: {
-          identifier: phone
-        }
-      });
-    }
-
     const delivery = await Delivery.findOne({
       where: {
         order_id: dataValues.merchant_uid
@@ -53,7 +39,6 @@ exports.readByUser = async (req, res) => {
       amount,
       order: order[0],
       delivery,
-      receipt: dataValues.pay_method === "trans" ? getReceipt.data.response.receipt_url : null
     });
   } catch (err) {
     console.log(err);
