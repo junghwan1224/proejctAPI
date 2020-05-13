@@ -17,7 +17,7 @@ exports.readByAdmin = async (req, res) => {
   try {
     const response = await Order.findAll({
       where: where,
-      order: ["updatedAt"],
+      order: [["updatedAt", "DESC"]],
       attributes: { exclude: ["createdAt", "updatedAt"] },
     });
     return res.status(200).send(response);
