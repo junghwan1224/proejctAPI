@@ -204,13 +204,11 @@ exports.readByAdmin = async (req, res) => {
 
 exports.updateByAdmin = async (req, res) => {
   try {
-    const POSSIBLE_ATTRIBUTES = ["email", "crn", "name", "type", "password"];
-    let newData = {};
-    POSSIBLE_ATTRIBUTES.map(
-      (attribute) => (newData[attribute] = req.body[attribute])
-    );
-
-    const { account_id } = req.headers;
+    const account_id = req.body.account_id;
+    if (!account_id)
+      return res
+        .status(400)
+        .send({ message: "필요한 정보를 모두 입력해주세요." });
     const response = await Account.findOne({
       where: {
         id: account_id,
@@ -223,15 +221,43 @@ exports.updateByAdmin = async (req, res) => {
         .send({ message: "해당 ID에 대한 유저 데이터가 존재하지 않습니다." });
     }
 
-    await Account.update(newData, {
-      where: {
-        id: account_id,
+    /** Validate Level */
+    if (req.body.level) {
+      const response = await AccountLevel.findOne({
+        where: {
+          id: req.body.level,
+        },
+      });
+      if (!response) {
+        return res
+          .status(400)
+          .send({ message: "유효하지 않은 유저 등급입니다." });
+      }
+    }
+
+    await Account.update(
+      {
+        email: req.body.email,
+        crn: req.body.crn,
+        name: req.body.name,
+        type: req.body.type,
+        mileage: req.body.mileage,
+        level: req.body.level,
+        password: req.body.password
+          ? bcrypt.hashSync(req.body.password, 10)
+          : undefined,
       },
-      individualHooks: true,
-    });
+      {
+        where: {
+          id: account_id,
+        },
+        individualHooks: true,
+      }
+    );
 
     return res.status(200).send();
   } catch (err) {
+    console.log(err);
     res.status(400).send();
   }
 };
