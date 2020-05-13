@@ -246,6 +246,7 @@ exports.updateByAdmin = async (req, res) => {
         password: req.body.password
           ? bcrypt.hashSync(req.body.password, 10)
           : undefined,
+        crn_document: req.body.crn_document,
       },
       {
         where: {
