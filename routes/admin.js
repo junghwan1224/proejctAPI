@@ -27,6 +27,9 @@ module.exports = (app) => {
   const staff = require("../controllers/staff");
   const staffList = require("../controllers/staffList");
 
+  const supplier = require("../controllers/supplier");
+  const supplierList = require("../controllers/supplierList");
+
   const ADMIN_ROUTE = "/admin";
   app
     .route(ADMIN_ROUTE + "/account")
@@ -149,4 +152,17 @@ module.exports = (app) => {
     .route(ADMIN_ROUTE + "/purchase-list")
     .get(purchaseList.readByAdmin)
     .post(purchaseList.createByAdmin);
+
+  app
+    .route(ADMIN_ROUTE + "/supplier")
+    // .all(verifyToken.authAdmin)
+    .get(supplier.readByAdmin)
+    .post(supplier.createByAdmin)
+    .put(supplier.updateByAdmin)
+    .delete(supplier.deleteByAdmin);
+
+  app
+    .route(ADMIN_ROUTE + "/supplier-list")
+    // .all(verifyToken.authAdmin)
+    .get(supplierList.readByAdmin);
 };
