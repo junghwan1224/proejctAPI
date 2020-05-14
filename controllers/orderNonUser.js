@@ -110,12 +110,12 @@ exports.createByUser = async (req, res) => {
         merchant_uid,
         account_id,
         product_id: product,
-        name,
+        name: `[주문자명: ${name} / 연락처: ${phone}]`,
         amount: productsAmountArr[idx] * productsQuantityArr[idx],
         quantity: productsQuantityArr[idx],
         pay_method,
         status: "not paid",
-        memo: memo.concat(`\n **[주문자명: ${name}  연락처: ${phone}]`)
+        memo
       };
     });
     await Order.bulkCreate(newOrderArray, { transaction });
