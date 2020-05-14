@@ -23,12 +23,14 @@ module.exports = (app) => {
 
   const roster = require("../controllers/roster");
 
-  const purchaseList = require("../controllers/purchaseList");
   const staff = require("../controllers/staff");
   const staffList = require("../controllers/staffList");
 
   const supplier = require("../controllers/supplier");
   const supplierList = require("../controllers/supplierList");
+
+  const domesticPurchase = require("../controllers/domesticPurchase");
+  const domesticPurchaseList = require("../controllers/domesticPurchaseList");
 
   const ADMIN_ROUTE = "/admin";
   app
@@ -149,11 +151,6 @@ module.exports = (app) => {
     .post(roster.createByAdmin);
 
   app
-    .route(ADMIN_ROUTE + "/purchase-list")
-    .get(purchaseList.readByAdmin)
-    .post(purchaseList.createByAdmin);
-
-  app
     .route(ADMIN_ROUTE + "/supplier")
     // .all(verifyToken.authAdmin)
     .get(supplier.readByAdmin)
@@ -165,4 +162,15 @@ module.exports = (app) => {
     .route(ADMIN_ROUTE + "/supplier-list")
     // .all(verifyToken.authAdmin)
     .get(supplierList.readByAdmin);
+
+  app
+    .route(ADMIN_ROUTE + "/domestic-purchase")
+    .get(domesticPurchase.readByAdmin)
+    .post(domesticPurchase.createByAdmin)
+    .put(domesticPurchase.updateByAdmin)
+    .delete(domesticPurchase.deleteByAdmin);
+
+  app
+    .route(ADMIN_ROUTE + "/domestic-purchase-list")
+    .get(domesticPurchaseList.readByAdmin);
 };
