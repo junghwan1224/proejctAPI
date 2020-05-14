@@ -75,7 +75,7 @@ exports.updateByAdmin = async (req, res) => {
 
         const transaction = await models.sequelize.transaction();
 
-        if(newData.quantity) {
+        if(newData.quantity || newData.product_id) {
             prev = await DomesticPurchase.findOne({
                 where: { id: domestic_purchase_id },
                 attribute: ["id", "product_id", "quantity"]
