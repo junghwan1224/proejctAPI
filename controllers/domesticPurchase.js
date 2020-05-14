@@ -5,10 +5,10 @@ const models = require("../models");
 
 exports.readByAdmin = async (req, res) => {
     try {
-        const { id } = req.query;
+        const { domestic_purchase_id } = req.query;
 
         const response = await DomesticPurchase.findOne({
-            where: { id }
+            where: { id: domestic_purchase_id }
         });
 
         return res.status(200).send(response);
@@ -70,20 +70,20 @@ exports.updateByAdmin = async (req, res) => {
             (attribute) => (newData[attribute] = req.body[attribute])
         );
 
-        const { id } = req.body;
+        const { domestic_purchase_id } = req.body;
         let prev = null;
 
         const transaction = await models.sequelize.transaction();
 
         if(newData.quantity) {
             prev = await DomesticPurchase.findOne({
-                where: { id },
+                where: { id: domestic_purchase_id },
                 attribute: ["id", "product_id", "quantity"]
             });
         }
 
         await DomesticPurchase.update(newData, {
-            where: { id },
+            where: { id: domestic_purchase_id },
             productId: prev.dataValues.product_id,
             prevQuantity: prev.dataValues.quantity,
             individualHooks: true,
