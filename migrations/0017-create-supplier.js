@@ -58,6 +58,6 @@ module.exports = {
     });
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable("accounts");
+    return queryInterface.dropTable("suppliers");
   },
 };
