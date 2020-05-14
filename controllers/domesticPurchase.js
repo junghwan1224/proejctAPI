@@ -78,7 +78,8 @@ exports.updateByAdmin = async (req, res) => {
         if(newData.quantity || newData.product_id) {
             prev = await DomesticPurchase.findOne({
                 where: { id: domestic_purchase_id },
-                attribute: ["id", "product_id", "quantity"]
+                attribute: ["id", "product_id", "quantity"],
+                transaction
             });
         }
 
