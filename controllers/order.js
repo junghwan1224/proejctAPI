@@ -23,11 +23,6 @@ exports.readByUser = async (req, res) => {
     const { account_id } = req;
     const { order_id } = req.query;
 
-    const account = await Account.findOne({
-      where: { id: account_id },
-      attributes: ["crn", "phone"]
-    }).dataValues;
-
     const order = await Order.findAll({
       where: { merchant_uid: order_id },
       limit: 1
@@ -37,21 +32,6 @@ exports.readByUser = async (req, res) => {
     const amount = await Order.sum("amount", {
       where: { merchant_uid: order_id }
     }) - dataValues.mileage;
-
-    let getReceipt = null;
-    if(dataValues.pay_method === "trans") {
-      const token = await getToken();
-
-      getReceipt = await axios({
-        url: `https://api.iamport.kr/receipts/${dataValues.imp_uid}`,
-        method: "post",
-        headers: { Authorization: token },
-        data: {
-          imp_uid: dataValues.imp_uid,
-          identifier: account.phone
-        }
-      });
-    }
 
     const delivery = await Delivery.findOne({
       where: {
@@ -64,7 +44,6 @@ exports.readByUser = async (req, res) => {
       amount,
       order: order[0],
       delivery,
-      receipt: dataValues.pay_method === "trans" ? getReceipt.data.response.receipt_url : null,
     });
   } catch (err) {
     console.log(err);
