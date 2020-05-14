@@ -85,8 +85,8 @@ exports.updateByAdmin = async (req, res) => {
 
         await DomesticPurchase.update(newData, {
             where: { id: domestic_purchase_id },
-            productId: prev.dataValues.product_id,
-            prevQuantity: prev.dataValues.quantity,
+            productId: prev ? prev.dataValues.product_id : null,
+            prevQuantity: prev ? prev.dataValues.quantity : null,
             individualHooks: true,
             transaction
         });
