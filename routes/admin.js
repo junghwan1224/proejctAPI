@@ -30,6 +30,8 @@ module.exports = (app) => {
   const supplier = require("../controllers/supplier");
   const supplierList = require("../controllers/supplierList");
 
+  const address = require("../controllers/address");
+
   const ADMIN_ROUTE = "/admin";
   app
     .route(ADMIN_ROUTE + "/account")
@@ -165,4 +167,9 @@ module.exports = (app) => {
     .route(ADMIN_ROUTE + "/supplier-list")
     // .all(verifyToken.authAdmin)
     .get(supplierList.readByAdmin);
+
+  app
+    .route(ADMIN_ROUTE + "/address")
+    // .all(verifyToken.authAdmin)
+    .get(address.readByAdmin);
 };
