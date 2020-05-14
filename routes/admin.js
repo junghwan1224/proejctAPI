@@ -31,6 +31,8 @@ module.exports = (app) => {
 
   const domesticPurchase = require("../controllers/domesticPurchase");
   const domesticPurchaseList = require("../controllers/domesticPurchaseList");
+  
+  const address = require("../controllers/address");
 
   const ADMIN_ROUTE = "/admin";
   app
@@ -173,4 +175,9 @@ module.exports = (app) => {
   app
     .route(ADMIN_ROUTE + "/domestic-purchase-list")
     .get(domesticPurchaseList.readByAdmin);
+
+  app
+    .route(ADMIN_ROUTE + "/address")
+    // .all(verifyToken.authAdmin)
+    .get(address.readByAdmin);
 };

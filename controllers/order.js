@@ -80,7 +80,7 @@ exports.createByUser = async (req, res) => {
       transaction
     });
 
-    const { email } = user.dataValues;
+    const { phone, email } = user.dataValues;
 
     // check stock of product
     const productsIdArr = products.split(",");
@@ -195,7 +195,7 @@ exports.createByUser = async (req, res) => {
         merchant_uid,
         account_id,
         product_id: product,
-        name,
+        name: `[주문자명: ${name} / 연락처: ${phone}]`,
         amount: productsAmountArr[idx] * productsQuantityArr[idx],
         mileage,
         quantity: productsQuantityArr[idx],
