@@ -82,7 +82,7 @@ module.exports = (app) => {
     .get(productList.readByAdmin);
 
   app
-    .route(ADMIN_ROUTE + "/document")
+    .route(ADMIN_ROUTE + "/crn-document")
     .post(certify.approveDocument)
     .delete(certify.deleteDocument);
 
