@@ -195,7 +195,7 @@ exports.createByUser = async (req, res) => {
         merchant_uid,
         account_id,
         product_id: product,
-        name: `[주문자명: ${name} / 연락처: ${phone}]`,
+        name: `${name} && ${phone}`,
         amount: productsAmountArr[idx] * productsQuantityArr[idx],
         mileage,
         quantity: productsQuantityArr[idx],
