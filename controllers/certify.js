@@ -1,7 +1,8 @@
 "use strict";
 
 const sendSMS = require("./common/sendSMS");
-const S3 = require("../controllers/common/s3");
+const S3 = require("./common/s3");
+const deleteUploadedFiles = require("./common/deleteUploadedFiles");
 
 const Account = require("../models").account;
 
@@ -99,33 +100,41 @@ exports.saveCrnDocument = async (req, res) => {
 
 exports.approveDocument = async (req, res) => {
   try {
-    const { account_id, crn } = req.body;
+    const { account_id } = req.body;
 
     await Account.update(
       {
         level: "NORMAL",
-        crn,
       },
       {
         where: { id: account_id },
       }
     );
 
-    const account = await Account.findOne({
-      where: { id: account_id },
-      attributes: ["crn_document"],
-    });
-
-    const path = `crn-document/${account_id}`;
-    const fileList = await S3.getFileList(path);
-    const leftFiles = fileList.filter(
-      (file) => file.Key !== account.dataValues.crn_document
-    );
-    const deleteFile = leftFiles.map((file) => S3.deleteFile(file.Key));
-    await Promise.all(deleteFile);
+    await deleteUploadedFiles(account_id, "approve");
 
     return res.status(200).send();
   } catch (err) {
+    return res.status(400).send();
+  }
+};
+
+exports.deleteDocument = async (req, res) => {
+  try {
+    const { account_id } = req.headers;
+
+    await Account.update({
+      crn_document: null
+    }, {
+      where: { id: account_id }
+    });
+
+    await deleteUploadedFiles(account_id, "delete");
+
+    return res.status(200).send();
+  }
+  catch(err) {
+    console.log(err);
     return res.status(400).send();
   }
 };
