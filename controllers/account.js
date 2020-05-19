@@ -204,11 +204,19 @@ exports.readByAdmin = async (req, res) => {
 
 exports.updateByAdmin = async (req, res) => {
   try {
+    /* Allow pre-defined attributes only:  */
+    const POSSIBLE_ATTRIBUTES = ["email", "crn", "name", "type", "mileage", "password"];
+    let newData = {};
+    POSSIBLE_ATTRIBUTES.map(
+      (attribute) => (newData[attribute] = req.body[attribute])
+    );
+
     const account_id = req.body.account_id;
     if (!account_id)
       return res
         .status(400)
         .send({ message: "필요한 정보를 모두 입력해주세요." });
+    
     const response = await Account.findOne({
       where: {
         id: account_id,
@@ -235,20 +243,7 @@ exports.updateByAdmin = async (req, res) => {
       }
     }
 
-    await Account.update(
-      {
-        email: req.body.email,
-        crn: req.body.crn,
-        name: req.body.name,
-        type: req.body.type,
-        mileage: req.body.mileage,
-        level: req.body.level,
-        password: req.body.password
-          ? bcrypt.hashSync(req.body.password, 10)
-          : undefined,
-        crn_document: req.body.crn_document,
-      },
-      {
+    await Account.update(newData, {
         where: {
           id: account_id,
         },

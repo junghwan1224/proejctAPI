@@ -81,7 +81,10 @@ module.exports = (app) => {
     // .all(verifyToken.authAdmin);
     .get(productList.readByAdmin);
 
-  app.route(ADMIN_ROUTE + "/approve-document").post(certify.approveDocument);
+  app
+    .route(ADMIN_ROUTE + "/crn-document")
+    .post(certify.approveDocument)
+    .delete(certify.deleteDocument);
 
   app
     .route(`${ADMIN_ROUTE}/product`)
