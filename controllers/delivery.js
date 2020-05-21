@@ -112,7 +112,7 @@ exports.readByAdmin = async (req, res) => {
     const orders = orderInfo.map(o => o.dataValues);
 
     await transaction.commit();
-    return res.status(201).send({ delivery, orders });
+    return res.status(200).send({ delivery, orders });
   } catch (err) {
     console.log(err);
     return res
