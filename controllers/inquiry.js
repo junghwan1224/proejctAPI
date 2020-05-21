@@ -4,6 +4,7 @@ const nodemailer = require("nodemailer");
 
 const S3 = require("../controllers/common/s3");
 const Inquiry = require("../models").inquiry;
+const Staff = require("../models").staff;
 
 const Separator = "&*&*&*";
 
@@ -162,8 +163,17 @@ exports.readByAdmin = async (req, res) => {
       attributes: { exclude: ["updatedAt"] },
     });
 
+    let staff = null;
+    if(inquiry.dataValues.staff_id) {
+      staff = await Staff.findOne({
+        where: { id: inquiry.dataValues.staff_id },
+        attributes: ["name"]
+      });
+    }
+
     return res.status(200).send({
       inquiry,
+      staff,
       separator: Separator
     });
   }
