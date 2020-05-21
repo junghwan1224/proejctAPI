@@ -4,6 +4,7 @@ const DomesticPurchase = require("../models").domestic_purchase;
 const models = require("../models");
 const Product = require("../models").product;
 const Staff = require("../models").staff;
+const Supplier = require("../models").supplier;
 
 exports.readByAdmin = async (req, res) => {
   try {
@@ -20,6 +21,10 @@ exports.readByAdmin = async (req, res) => {
         },
         {
           model: Staff,
+          required: true,
+        },
+        {
+          model: Supplier,
           required: true,
         },
       ],
