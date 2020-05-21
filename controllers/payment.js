@@ -543,7 +543,6 @@ exports.refundByAdmin = async (req, res) => {
       account_id,
       buyer_phone,
       imp_uid,
-      order_name,
       reason // 환불 사유
     } = req.body;
     const transaction = await models.sequelize.transaction();
@@ -659,12 +658,15 @@ exports.refundByAdmin = async (req, res) => {
       );
 
       const { mileage } = wouldBeRefundedOrder[0].dataValues;
-      await updateMileage(account_id, mileage, wantCancelAmount-mileage, false, transaction);
+
+      if(account_id !== "12345") {
+        await updateMileage(account_id, mileage, wantCancelAmount-mileage, false, transaction);
+      }
 
       await transaction.commit();
 
       // 환불 완료 문자 전송
-      const smsText = `주문번호[${wouldBeRefundedOrder[0].dataValues.merchant_uid.slice(7)}]\n${order_name} 상품의 결제가 완료되었습니다.`;
+      const smsText = `주문번호[${wouldBeRefundedOrder[0].dataValues.merchant_uid.slice(7)}] 환불이 완료되었습니다.`;
       const timestamp = new Date().getTime().toString();
 
       await sendSMS(smsText, buyer_phone, timestamp);
