@@ -1,118 +1,132 @@
-"use strict"
+"use strict";
 
 const DomesticPurchase = require("../models").domestic_purchase;
 const models = require("../models");
+const Product = require("../models").product;
+const Staff = require("../models").staff;
+const Supplier = require("../models").supplier;
 
 exports.readByAdmin = async (req, res) => {
-    try {
-        const { domestic_purchase_id } = req.query;
+  try {
+    const { domestic_purchase_id } = req.query;
 
-        const response = await DomesticPurchase.findOne({
-            where: { id: domestic_purchase_id }
-        });
+    const response = await DomesticPurchase.findOne({
+      where: {
+        id: domestic_purchase_id,
+      },
+      include: [
+        {
+          model: Product,
+          required: true,
+        },
+        {
+          model: Staff,
+          required: true,
+        },
+        {
+          model: Supplier,
+          required: true,
+        },
+      ],
+    });
 
-        return res.status(200).send(response);
-    }
-    catch(err) {
-        console.log(err);
-        return res.status(400).send();
-    }
+    return res.status(200).send(response);
+  } catch (err) {
+    console.log(err);
+    return res.status(400).send();
+  }
 };
 
 exports.createByAdmin = async (req, res) => {
-    try {
-        const {
-            supplier_id,
-            product_id,
-            staff_id,
-            quantity,
-            price
-        } = req.body;
+  try {
+    const { supplier_id, product_id, staff_id, quantity, price } = req.body;
 
-        if(! (supplier_id && product_id && staff_id && quantity && price)) {
-            return res.status(400).send({ message: "필요한 정보를 모두 입력해주세요." });
-        }
-
-        const transaction = await models.sequelize.transaction();
-
-        await DomesticPurchase.create({
-            supplier_id,
-            product_id,
-            staff_id,
-            quantity,
-            price,
-        }, {
-            transaction
-        });
-
-        await transaction.commit();
-
-        return res.status(201).send();
+    if (!(supplier_id && product_id && staff_id && quantity && price)) {
+      return res
+        .status(400)
+        .send({ message: "필요한 정보를 모두 입력해주세요." });
     }
-    catch(err) {
-        console.log(err);
-        return res.status(400).send();
-    }
+
+    const transaction = await models.sequelize.transaction();
+
+    await DomesticPurchase.create(
+      {
+        supplier_id,
+        product_id,
+        staff_id,
+        quantity,
+        price,
+      },
+      {
+        transaction,
+      }
+    );
+
+    await transaction.commit();
+
+    return res.status(201).send();
+  } catch (err) {
+    console.log(err);
+    return res.status(400).send();
+  }
 };
 
 exports.updateByAdmin = async (req, res) => {
-    try {
-        const POSSIBLE_ATTRIBUTES = [
-            "supplier_id",
-            "product_id",
-            "staff_id",
-            "quantity",
-            "price"
-        ];
-    
-        let newData = {};
-        POSSIBLE_ATTRIBUTES.map(
-            (attribute) => (newData[attribute] = req.body[attribute])
-        );
+  try {
+    const POSSIBLE_ATTRIBUTES = [
+      "supplier_id",
+      "product_id",
+      "staff_id",
+      "quantity",
+      "price",
+    ];
 
-        const { domestic_purchase_id } = req.body;
-        let prev = null;
+    let newData = {};
+    POSSIBLE_ATTRIBUTES.map(
+      (attribute) => (newData[attribute] = req.body[attribute])
+    );
 
-        const transaction = await models.sequelize.transaction();
+    const { domestic_purchase_id } = req.body;
+    let prev = null;
 
-        if(newData.quantity || newData.product_id) {
-            prev = await DomesticPurchase.findOne({
-                where: { id: domestic_purchase_id },
-                attribute: ["id", "product_id", "quantity"],
-                transaction
-            });
-        }
+    const transaction = await models.sequelize.transaction();
 
-        await DomesticPurchase.update(newData, {
-            where: { id: domestic_purchase_id },
-            productId: prev ? prev.dataValues.product_id : null,
-            prevQuantity: prev ? prev.dataValues.quantity : null,
-            individualHooks: true,
-            transaction
-        });
-
-        await transaction.commit();
-
-        return res.status(200).send();
+    if (newData.quantity || newData.product_id) {
+      prev = await DomesticPurchase.findOne({
+        where: { id: domestic_purchase_id },
+        attribute: ["id", "product_id", "quantity"],
+        transaction,
+      });
     }
-    catch(err) {
-        console.log(err);
-        return res.status(400).send();
-    }
+
+    await DomesticPurchase.update(newData, {
+      where: { id: domestic_purchase_id },
+      productId: prev ? prev.dataValues.product_id : null,
+      prevQuantity: prev ? prev.dataValues.quantity : null,
+      individualHooks: true,
+      transaction,
+    });
+
+    await transaction.commit();
+
+    return res.status(200).send();
+  } catch (err) {
+    console.log(err);
+    return res.status(400).send();
+  }
 };
 
 exports.deleteByAdmin = async (req, res) => {
-    try {
-        const { domesticPurchaseId } = req.headers;
+  try {
+    const { domesticPurchaseId } = req.headers;
 
-        await DomesticPurchase.destory({
-            where: { id: domesticPurchaseId }
-        });
+    await DomesticPurchase.destory({
+      where: { id: domesticPurchaseId },
+    });
 
-        return res.status(200).send();
-    }
-    catch(err) {
-        console.log(err);
-        return res.status(400).send();
-    }
+    return res.status(200).send();
+  } catch (err) {
+    console.log(err);
+    return res.status(400).send();
+  }
 };
