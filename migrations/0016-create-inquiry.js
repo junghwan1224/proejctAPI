@@ -28,9 +28,24 @@ module.exports = {
         type: Sequelize.TEXT,
         allowNull: false
       },
+      status: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        defaultValue: "답변 대기중"
+      },
       attachment: {
         type: Sequelize.TEXT,
         allowNull: true
+      },
+      staff_id: {
+        type: Sequelize.UUID,
+        allowNull: true,
+        references: {
+          model: "staffs",
+          key: "id"
+        },
+        onDelete: "SET NULL",
+        onUpdate: "CASCADE"
       },
       createdAt: {
         allowNull: false,
