@@ -152,3 +152,23 @@ exports.createByUser = async (req, res) => {
     return res.status(400).send();
   }
 };
+
+exports.readByAdmin = async (req, res) => {
+  try {
+    const { inquiry_id } = req.query;
+
+    const inquiry = await Inquiry.findOne({
+      where: { id: inquiry_id },
+      attributes: { exclude: ["updatedAt"] },
+    });
+
+    return res.status(200).send({
+      inquiry,
+      separator: Separator
+    });
+  }
+  catch(err) {
+    console.log(err);
+    return res.status(400).send();
+  }
+};
