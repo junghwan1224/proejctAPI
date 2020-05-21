@@ -182,3 +182,22 @@ exports.readByAdmin = async (req, res) => {
     return res.status(400).send();
   }
 };
+
+exports.updateByAdmin = async (req, res) => {
+  try {
+    const { inquiry_id, staff_id, status } = req.body;
+
+    await Inquiry.update({
+      staff_id,
+      status
+    }, {
+      where: { id: inquiry_id }
+    });
+
+    return res.status(200).send();
+  }
+  catch(err) {
+    console.log(err);
+    return res.status(400).send();
+  }
+};
