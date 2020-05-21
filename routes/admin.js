@@ -34,6 +34,9 @@ module.exports = (app) => {
   
   const address = require("../controllers/address");
 
+  const inquiry = require("../controllers/inquiry");
+  const inquiryList = require("../controllers/inquiryList");
+
   const ADMIN_ROUTE = "/admin";
   app
     .route(ADMIN_ROUTE + "/account")
@@ -183,4 +186,13 @@ module.exports = (app) => {
     .route(ADMIN_ROUTE + "/address")
     // .all(verifyToken.authAdmin)
     .get(address.readByAdmin);
+
+  app
+    .route(ADMIN_ROUTE + "/inquiry")
+    .get(inquiry.readByAdmin)
+    .put(inquiry.updateByAdmin);
+
+  app
+    .route(ADMIN_ROUTE + "/inquiry-list")
+    .get(inquiryList.readByAdmin);
 };
