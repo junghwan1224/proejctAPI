@@ -4,6 +4,7 @@ const nodemailer = require("nodemailer");
 
 const S3 = require("../controllers/common/s3");
 const Inquiry = require("../models").inquiry;
+const Staff = require("../models").staff;
 
 const Separator = "&*&*&*";
 
@@ -148,6 +149,54 @@ exports.createByUser = async (req, res) => {
       return res.status(200).send();
     }
   } catch (err) {
+    console.log(err);
+    return res.status(400).send();
+  }
+};
+
+exports.readByAdmin = async (req, res) => {
+  try {
+    const { inquiry_id } = req.query;
+
+    const inquiry = await Inquiry.findOne({
+      where: { id: inquiry_id },
+      attributes: { exclude: ["updatedAt"] },
+    });
+
+    let staff = null;
+    if(inquiry.dataValues.staff_id) {
+      staff = await Staff.findOne({
+        where: { id: inquiry.dataValues.staff_id },
+        attributes: ["name"]
+      });
+    }
+
+    return res.status(200).send({
+      inquiry,
+      staff,
+      separator: Separator
+    });
+  }
+  catch(err) {
+    console.log(err);
+    return res.status(400).send();
+  }
+};
+
+exports.updateByAdmin = async (req, res) => {
+  try {
+    const { inquiry_id, staff_id, status } = req.body;
+
+    await Inquiry.update({
+      staff_id,
+      status
+    }, {
+      where: { id: inquiry_id }
+    });
+
+    return res.status(200).send();
+  }
+  catch(err) {
     console.log(err);
     return res.status(400).send();
   }
