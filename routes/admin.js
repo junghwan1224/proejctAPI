@@ -189,7 +189,8 @@ module.exports = (app) => {
 
   app
     .route(ADMIN_ROUTE + "/inquiry")
-    .get(inquiry.readByAdmin);
+    .get(inquiry.readByAdmin)
+    .put(inquiry.updateByAdmin);
 
   app
     .route(ADMIN_ROUTE + "/inquiry-list")
