@@ -1,5 +1,7 @@
 "use strict";
 
+const { Op } = require("sequelize");
+
 const DomesticPurchase = require("../models").domestic_purchase;
 const models = require("../models");
 const Product = require("../models").product;
@@ -30,7 +32,32 @@ exports.readByAdmin = async (req, res) => {
       ],
     });
 
-    return res.status(200).send(response);
+    const { product, createdAt } = response.dataValues;
+
+    const recentPurchaseList = await DomesticPurchase.findAll({
+      where: {
+        product_id: product.id,
+        createdAt: { [Op.lt]: createdAt }
+      },
+      include: [
+        {
+          model: Product,
+          required: true,
+        },
+        {
+          model: Staff,
+          required: true,
+        },
+        {
+          model: Supplier,
+          required: true,
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+      limit: 5
+    });
+
+    return res.status(200).send({ purchase: response, recentPurchaseList });
   } catch (err) {
     console.log(err);
     return res.status(400).send();
