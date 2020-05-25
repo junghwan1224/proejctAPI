@@ -2,39 +2,17 @@ const jwt = require("jsonwebtoken");
 const Account = require("../models").account;
 const Admin = require("../models").admin;
 
-const DEV_SECRET = process.env.DEV_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_ADMIN_SECRET = process.env.JWT_ADMIN_SECRET;
 
 /**
  * Validate view access by verifying given token.
  */
 
-// const verifyToken = (req, res, next) => {
-//   const token = req.headers.authorization;
-
-//   const verify = jwt.verify(token, DEV_SECRET, (err, decoded) => {
-//     if (err) {
-//       console.log("jwt verify error");
-//       return null;
-//     }
-
-//     return decoded.id;
-//   });
-
-//   if (verify) {
-//     req.account_id = verify;
-//     next();
-//   } else {
-//     return res.status(403).send({
-//       status: "jwt verify failed",
-//       message: "유효한 유저의 정보가 아닙니다. 다시 로그인해주세요."
-//     });
-//   }
-// };
-
 const verifyToken = async (token, type) => {
   // if user
   if (type === "user") {
-    const accountId = jwt.verify(token, DEV_SECRET, (err, decoded) => {
+    const accountId = jwt.verify(token, JWT_SECRET, (err, decoded) => {
       if (err) {
         return null;
       }
@@ -43,7 +21,7 @@ const verifyToken = async (token, type) => {
 
     if (accountId) {
       const account = await Account.findOne({
-        where: { id: accountId }
+        where: { id: accountId },
       });
 
       if (account) {
@@ -56,9 +34,9 @@ const verifyToken = async (token, type) => {
     }
   }
 
-  // if admin
+  // if admin - validate ark access:
   else {
-    const adminId = jwt.verify(token, DEV_SECRET, (err, decoded) => {
+    const adminId = jwt.verify(token, JWT_ADMIN_SECRET, (err, decoded) => {
       if (err) {
         return null;
       }
@@ -68,7 +46,7 @@ const verifyToken = async (token, type) => {
     if (adminId) {
       // find in admin
       const admin = await Admin.findOne({
-        where: { id: adminId }
+        where: { id: adminId },
       });
 
       if (admin) {
