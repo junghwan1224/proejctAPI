@@ -3,10 +3,10 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-const Admin = require("../models").admin;
+const Staff = require("../models").staff;
 const Account = require("../models").account;
 
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_STAFF_SECRET = process.env.JWT_STAFF_SECRET;
 
 exports.loginByUser = async (req, res) => {
   const { phone, password } = req.body;
@@ -69,26 +69,24 @@ exports.loginByAdmin = async (req, res) => {
   }
 
   try {
-    const admin = await Admin.findOne({
+    const staff = await Staff.findOne({
       where: {
         email,
       },
     });
 
-    if (admin) {
-      const { id, name, code } = admin.dataValues;
-      if (bcrypt.compareSync(password, admin.dataValues.password)) {
+    if (staff) {
+      const { id, name, department } = staff.dataValues;
+      if (bcrypt.compareSync(password, staff.dataValues.password)) {
         // create JWT and send data.
-        let token = jwt.sign({ id }, JWT_SECRET, {
+        let token = jwt.sign({ id }, JWT_STAFF_SECRET, {
           expiresIn: "15 days",
         });
 
-        res.cookie("user", token);
+        res.cookie("staff", token);
         res.status(200).send({
-          id,
           name,
-          email,
-          code,
+          department,
           token,
         });
       } else {
@@ -102,6 +100,7 @@ exports.loginByAdmin = async (req, res) => {
       });
     }
   } catch (err) {
+    console.log(err);
     res
       .status(400)
       .send({ message: "에러가 발생했습니다. 잠시 후 다시 시도해주세요." });
