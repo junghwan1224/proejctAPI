@@ -400,10 +400,9 @@ exports.billingByUser = async (req, res) => {
         else {
           await transaction.commit();
 
-          return res.status(200).send({
+          return res.status(400).send({
             status: "failed",
-            message:
-              "카드 승인에 실패했습니다. 귀하의 카드가 한도 초과, 거래 정지, 잔액 부족 등에 해당되는지 확인 바랍니다."
+            message
           });
         }
       } else {
