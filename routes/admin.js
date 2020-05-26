@@ -40,7 +40,7 @@ module.exports = (app) => {
   const ADMIN_ROUTE = "/admin";
   app
     .route(ADMIN_ROUTE + "/account")
-    // .all(verifyToken.authAdmin)
+    .all(verifyToken.authAdmin)
     .get(account.readByAdmin)
     .post(account.createByUser)
     .put(account.updateByAdmin)
@@ -48,7 +48,7 @@ module.exports = (app) => {
 
   app
     .route(ADMIN_ROUTE + "/staff")
-    // .all(verifyToken.authAdmin)
+    .all(verifyToken.authAdmin)
     .post(staff.createByAdmin)
     .get(staff.readByAdmin)
     .put(staff.updateByAdmin)
@@ -56,18 +56,18 @@ module.exports = (app) => {
 
   app
     .route(ADMIN_ROUTE + "/staff-list")
-    // .all(verifyToken.authAdmin)
+    .all(verifyToken.authAdmin)
     .get(staffList.readByAdmin);
   app
     .route(ADMIN_ROUTE + "/account-list")
-    // .all(verifyToken.authAdmin)
+    .all(verifyToken.authAdmin)
     .get(accountList.readByAdmin);
 
   app.route(ADMIN_ROUTE + "/login").post(login.loginByAdmin);
 
   app
     .route(ADMIN_ROUTE + "/admin")
-    // .all(verifyToken.authAdmin)
+    .all(verifyToken.authAdmin)
     .get(admin.readByAdmin)
     .post(admin.createByAdmin)
     .put(admin.updateByAdmin)
@@ -75,23 +75,24 @@ module.exports = (app) => {
 
   app
     .route(ADMIN_ROUTE + "/account-level")
-    // .all(verifyToken.authAdmin)
+    .all(verifyToken.authAdmin)
     .post(accountLevel.createByAdmin)
     .get(accountLevel.readByUser);
 
   app
     .route(ADMIN_ROUTE + "/product-list")
-    // .all(verifyToken.authAdmin);
+    .all(verifyToken.authAdmin);
     .get(productList.readByAdmin);
 
   app
     .route(ADMIN_ROUTE + "/crn-document")
+    .all(verifyToken.authAdmin)
     .post(certify.approveDocument)
     .delete(certify.deleteDocument);
 
   app
     .route(`${ADMIN_ROUTE}/product`)
-    // .all(verifyToken.authAdmin)
+    .all(verifyToken.authAdmin)
     .post(product.createByAdmin)
     .get(product.readByAdmin)
     .put(product.updateByAdmin)
@@ -101,41 +102,34 @@ module.exports = (app) => {
 
   app
     .route(ADMIN_ROUTE + "/order-list")
-    // .all(verifyToken.authAdmin)
+    .all(verifyToken.authAdmin)
     .get(orderList.readByAdmin);
 
   app
     .route(ADMIN_ROUTE + "/delivery")
-    // .all(verifyToken.authAdmin)
+    .all(verifyToken.authAdmin)
     .get(delivery.readByAdmin)
     .put(delivery.updateByAdmin);
 
   app
     .route(ADMIN_ROUTE + "/delivery-list")
-    // .all(verifyToken.authAdmin)
+    .all(verifyToken.authAdmin)
     .get(deliveryList.readByAdmin);
 
   app
     .route(ADMIN_ROUTE + "/delivery-per-user")
-    // .all(verifyToken.authAdmin)
+    .all(verifyToken.authAdmin)
     .get(deliveryPerUser.readByAdmin);
 
-  app
-    .route(ADMIN_ROUTE + "/article")
-    // .all(verifyToken.authAdmin)
-    .get()
-    .post()
-    .put()
-    .delete();
 
   app
     .route(ADMIN_ROUTE + "/payment/refund")
-    // .all(verifyToken.authAdmin)
+    .all(verifyToken.authAdmin)
     .post(payment.refundByAdmin);
 
   app
     .route(ADMIN_ROUTE + "/credit-transaction")
-    // .all(verifyToken.authAdmin)
+    .all(verifyToken.authAdmin)
     .get(creditTransaction.readByAdmin)
     .post(creditTransaction.createByAdmin)
     .put(creditTransaction.updateByAdmin)
@@ -143,24 +137,24 @@ module.exports = (app) => {
 
   app
     .route(ADMIN_ROUTE + "/credit-transaction/list")
-    // .all(verifyToken.authAdmin)
+    .all(verifyToken.authAdmin)
     .get(creditTransactionList.readByAdmin);
 
   app
     .route(ADMIN_ROUTE + "/receipt-external")
-    // .all(verifyToken.authAdmin)
+    .all(verifyToken.authAdmin)
     .get(receiptExternal.readByAdmin)
     .post(receiptExternal.createByAdmin);
 
   app
     .route(ADMIN_ROUTE + "/roster")
-    // .all(verifyToken.authAdmin)
+    .all(verifyToken.authAdmin)
     .get(roster.readByAdmin)
     .post(roster.createByAdmin);
 
   app
     .route(ADMIN_ROUTE + "/supplier")
-    // .all(verifyToken.authAdmin)
+    .all(verifyToken.authAdmin)
     .get(supplier.readByAdmin)
     .post(supplier.createByAdmin)
     .put(supplier.updateByAdmin)
@@ -168,7 +162,7 @@ module.exports = (app) => {
 
   app
     .route(ADMIN_ROUTE + "/supplier-list")
-    // .all(verifyToken.authAdmin)
+    .all(verifyToken.authAdmin)
     .get(supplierList.readByAdmin);
 
   app
@@ -184,7 +178,7 @@ module.exports = (app) => {
 
   app
     .route(ADMIN_ROUTE + "/address")
-    // .all(verifyToken.authAdmin)
+    .all(verifyToken.authAdmin)
     .get(address.readByAdmin);
 
   app
