@@ -42,7 +42,6 @@ const verifyToken = async (token, type) => {
       return decoded.id;
     });
 
-    console.log(staff_id);
     if (staff_id) {
       // find in admin
       const response = await Staff.findOne({
