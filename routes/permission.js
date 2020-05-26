@@ -32,39 +32,39 @@ const calculateMod = (str, mod) => {
 
 const TYPE = {
   /* 쇼핑몰 계정 관리 권한: */
-  CREATE_ACCOUNT: "2",
-  READ_ACCOUNT: "2",
-  EDIT_ACCOUNT: "2",
+  CREATE_ACCOUNT: 2,
+  READ_ACCOUNT: 3,
+  EDIT_ACCOUNT: 5,
 
   /* 제품 관리 권한: */
-  CREATE_PRODUCT: "2",
-  READ_PRODUCT: "2",
-  EDIT_PRODUCT: "2",
+  CREATE_PRODUCT: 7,
+  READ_PRODUCT: 11,
+  EDIT_PRODUCT: 13,
 
   /* 사원 관리 권한: */
-  CREATE_STAFF: "2",
-  READ_STAFF: "2",
-  EDIT_STAFF: "2",
+  CREATE_STAFF: 17,
+  READ_STAFF: 19,
+  EDIT_STAFF: 23,
 
   /* 주문, 배송 관련 권한: */
-  CREATE_ORDER: "2",
-  READ_ORDER: "2",
-  EDIT_ORDER: "2",
+  CREATE_ORDER: 29,
+  READ_ORDER: 31,
+  EDIT_ORDER: 37,
 
   /* 거래처 관련 권한: */
-  CREATE_SUPPLIER: "2",
-  READ_SUPPLIER: "2",
-  EDIT_SUPPLIER: "2",
+  CREATE_SUPPLIER: 41,
+  READ_SUPPLIER: 43,
+  EDIT_SUPPLIER: 47,
 
   /* 국내 매입 관리 권한: */
-  CREATE_DPURCHASE: "2",
-  READ_DPURCHASE: "2",
-  EDIT_DPURCHASE: "2",
+  CREATE_DPURCHASE: 53,
+  READ_DPURCHASE: 59,
+  EDIT_DPURCHASE: 61,
 
   /* 쇼핑몰 문의하기 관련 권한: */
-  CREATE_INQUIRY: "2",
-  READ_INQUIRY: "2",
-  EDIT_INQUIRY: "2",
+  CREATE_INQUIRY: 67,
+  READ_INQUIRY: 71,
+  EDIT_INQUIRY: 73,
 };
 
 module.exports = { verify, TYPE };
