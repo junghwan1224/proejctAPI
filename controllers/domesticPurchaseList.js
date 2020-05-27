@@ -1,12 +1,48 @@
 "use strict";
 
+const { Op } = require("sequelize");
+
 const DomesticPurchase = require("../models").domestic_purchase;
 const Product = require("../models").product;
 const Staff = require("../models").staff;
+const Supplier = require("../models").supplier;
 
+/**
+ * req.query.singleProduct :: Boolean
+ * req.query.recentLimit :: Integer
+ */
 exports.readByAdmin = async (req, res) => {
+  let product_id;
+  let createdAt;
+
+  let where = {};
+
+  if (req.query.singleProduct) {
+    try {
+      const response = await DomesticPurchase.findOne({
+        where: {
+          id: req.query.domestic_purchase_id,
+        },
+        include: [
+          {
+            model: Product,
+            required: true,
+            attributes: ["id"],
+          },
+        ],
+      });
+      const { product, createdAt } = response.dataValues;
+      where.product_id = product.id;
+      if (req.query.recentLimit) where.createdAt = { [Op.lt]: createdAt };
+    } catch (err) {
+      console.log(err);
+      return res.status(400).send();
+    }
+  }
+
   try {
     const response = await DomesticPurchase.findAll({
+      where: where,
       include: [
         {
           model: Product,
@@ -18,9 +54,10 @@ exports.readByAdmin = async (req, res) => {
           required: true,
           attributes: ["id", "name", "department"],
         },
+        { model: Supplier, required: true },
       ],
+      order: [["createdAt", "DESC"]],
     });
-
     return res.status(200).send(response);
   } catch (err) {
     console.log(err);
