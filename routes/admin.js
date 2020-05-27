@@ -92,6 +92,7 @@ module.exports = (app) => {
    * ----------------------------------------------------------------------- */
   app
     .route(ADMIN_ROUTE + "/domestic-purchase")
+    .all(verifyToken.authAdmin)
     .get(permission.verify(domesticPurchase.readByAdmin, PTYPE.READ_DPURCHASE))
     .post(
       permission.verify(domesticPurchase.createByAdmin, PTYPE.CREATE_DPURCHASE)
@@ -104,6 +105,7 @@ module.exports = (app) => {
     );
   app
     .route(ADMIN_ROUTE + "/domestic-purchase-list")
+    .all(verifyToken.authAdmin)
     .get(
       permission.verify(domesticPurchaseList.readByAdmin, PTYPE.READ_DPURCHASE)
     );
@@ -158,6 +160,7 @@ module.exports = (app) => {
     .post(permission.verify(receiptExternal.createByAdmin, PTYPE.CREATE_ORDER));
   app
     .route(ADMIN_ROUTE + "/roster")
+    .all(verifyToken.authAdmin)
     .post(permission.verify(roster.createByAdmin, PTYPE.CREATE_ORDER));
   /* ----------------------------------------------------------------------- */
 
@@ -200,8 +203,8 @@ module.exports = (app) => {
   app
     .route(ADMIN_ROUTE + "/supplier")
     .all(verifyToken.authAdmin)
-    .get(permission.verify(supplier.readByAdmin, PTYPE.CREATE_SUPPLIER))
-    .post(permission.verify(supplier.createByAdmin, PTYPE.READ_SUPPLIER))
+    .get(permission.verify(supplier.readByAdmin, PTYPE.READ_SUPPLIER))
+    .post(permission.verify(supplier.createByAdmin, PTYPE.CREATE_SUPPLIER))
     .put(permission.verify(supplier.updateByAdmin, PTYPE.EDIT_SUPPLIER))
     .delete(permission.verify(supplier.deleteByAdmin, PTYPE.EDIT_SUPPLIER));
   app
