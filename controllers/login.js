@@ -7,6 +7,7 @@ const Staff = require("../models").staff;
 const Account = require("../models").account;
 
 const JWT_STAFF_SECRET = process.env.JWT_STAFF_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET;
 
 exports.loginByUser = async (req, res) => {
   const { phone, password } = req.body;
