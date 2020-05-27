@@ -10,10 +10,15 @@ const Supplier = require("../models").supplier;
 /**
  * req.query.singleProduct :: Boolean
  * req.query.recentLimit :: Integer
+ * req.query.domestic_purchase_id
  */
 exports.readByAdmin = async (req, res) => {
   let product_id;
   let createdAt;
+
+  if (!req.query.domestic_purchase_id) {
+    return res.status(400).send({ message: "필요한 정보가 누락되었습니다." });
+  }
 
   let where = {};
 
