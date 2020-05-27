@@ -4,8 +4,6 @@ const Basket = require("../models").basket;
 const Product = require("../models").product;
 const Account = require("../models").account;
 const AccountLevel = require("../models").account_level;
-const jwt = require("jsonwebtoken");
-const DEV_SECRET = process.env.DEV_SECRET;
 const calculateDiscount = require("./common/discount").calculateDiscount;
 
 // By user
