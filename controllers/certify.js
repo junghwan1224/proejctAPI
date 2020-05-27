@@ -124,7 +124,9 @@ exports.deleteDocument = async (req, res) => {
     const { account_id } = req.headers;
 
     await Account.update({
-      crn_document: null
+      level: "UNCONFIRMED",
+      crn: null,
+      crn_document: null,
     }, {
       where: { id: account_id }
     });

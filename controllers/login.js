@@ -3,10 +3,10 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-const Admin = require("../models").admin;
+const Staff = require("../models").staff;
 const Account = require("../models").account;
 
-const DEV_SECRET = process.env.DEV_SECRET;
+const JWT_STAFF_SECRET = process.env.JWT_STAFF_SECRET;
 
 exports.loginByUser = async (req, res) => {
   const { phone, password } = req.body;
@@ -21,16 +21,16 @@ exports.loginByUser = async (req, res) => {
   try {
     const account = await Account.findOne({
       where: {
-        phone
-      }
+        phone,
+      },
     });
 
     if (account) {
       const { id, name, level } = account.dataValues;
       if (bcrypt.compareSync(password, account.dataValues.password)) {
         // create JWT and send data.
-        let token = jwt.sign({ id }, DEV_SECRET, {
-          expiresIn: "15 days"
+        let token = jwt.sign({ id }, JWT_SECRET, {
+          expiresIn: "15 days",
         });
 
         res.cookie("user", token);
@@ -39,7 +39,7 @@ exports.loginByUser = async (req, res) => {
           name,
           phone,
           level,
-          token
+          token,
         });
       } else {
         return res
@@ -52,7 +52,7 @@ exports.loginByUser = async (req, res) => {
   } catch (err) {
     console.log(err);
     return res.status(400).send({
-      message: "에러가 발생했습니다. 잠시 후 다시 시도해주세요."
+      message: "에러가 발생했습니다. 잠시 후 다시 시도해주세요.",
     });
   }
 };
@@ -69,27 +69,25 @@ exports.loginByAdmin = async (req, res) => {
   }
 
   try {
-    const admin = await Admin.findOne({
+    const staff = await Staff.findOne({
       where: {
-        email
-      }
+        email,
+      },
     });
 
-    if (admin) {
-      const { id, name, code } = admin.dataValues;
-      if (bcrypt.compareSync(password, admin.dataValues.password)) {
+    if (staff) {
+      const { id, name, department } = staff.dataValues;
+      if (bcrypt.compareSync(password, staff.dataValues.password)) {
         // create JWT and send data.
-        let token = jwt.sign({ id }, DEV_SECRET, {
-          expiresIn: "15 days"
+        let token = jwt.sign({ id }, JWT_STAFF_SECRET, {
+          expiresIn: "15 days",
         });
 
-        res.cookie("user", token);
+        res.cookie("staff", token);
         res.status(200).send({
-          id,
           name,
-          email,
-          code,
-          token
+          department,
+          token,
         });
       } else {
         return res
@@ -98,10 +96,11 @@ exports.loginByAdmin = async (req, res) => {
       }
     } else {
       res.status(400).send({
-        message: "가입되지 않은 이메일 주소입니다."
+        message: "가입되지 않은 이메일 주소입니다.",
       });
     }
   } catch (err) {
+    console.log(err);
     res
       .status(400)
       .send({ message: "에러가 발생했습니다. 잠시 후 다시 시도해주세요." });
