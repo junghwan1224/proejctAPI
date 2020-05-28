@@ -116,4 +116,50 @@ exports.readByAdmin = async (req, res) => {
   }
 };
 
-exports.createByAdmin = async (req, res) => {};
+exports.createByAdmin = async (req, res) => {
+  try {
+    const { account_id, postcode, primary, detail } = req.body;
+
+    if(!postcode.length || !primary.length || !detail.length) {
+      return res.status(400).send();
+    }
+ 
+    await Address.create({
+        account_id,
+        postcode,
+        primary,
+        detail,
+    });
+
+    return res.status(201).send();
+
+  } catch (err) {
+    res
+      .status(400)
+      .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+  }
+};
+
+exports.updateByAdmin = async (req, res) => {
+  try {
+    const POSSIBLE_ATTRIBUTES = ["postcode", "primary", "detail"];
+    let newData = {};
+    POSSIBLE_ATTRIBUTES.map(
+      (attribute) => (newData[attribute] = req.body[attribute])
+    );
+
+    const { account_id } = req.body;
+
+    await Address.update(newData,
+      {
+        where: { id: account_id },
+      }
+    );
+
+    return res.status(200).send();
+  }
+  catch(err) {
+    console.log(err);
+    return res.status(400).send();
+  }
+};

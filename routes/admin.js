@@ -66,7 +66,9 @@ module.exports = (app) => {
   app
     .route(ADMIN_ROUTE + "/address")
     .all(verifyToken.authAdmin)
-    .get(permission.verify(address.readByAdmin, PTYPE.READ_ACCOUNT));
+    .get(permission.verify(address.readByAdmin, PTYPE.READ_ACCOUNT))
+    .post(permission.verify(address.createByAdmin, PTYPE.CREATE_ACCOUNT))
+    .put(permission.verify(address.updateByAdmin, PTYPE.EDIT_ACCOUNT));
   /* ----------------------------------------------------------------------- */
 
   /**
