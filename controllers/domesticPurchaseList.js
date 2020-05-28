@@ -38,7 +38,7 @@ exports.readByAdmin = async (req, res) => {
       });
       const { product, createdAt } = response.dataValues;
       where.product_id = product.id;
-      if (req.query.recentLimit) where.createdAt = { [Op.lt]: createdAt };
+      if (req.query.recentLimit) where.createdAt = { [Op.lte]: createdAt };
     } catch (err) {
       console.log(err);
       return res.status(400).send();
