@@ -185,12 +185,14 @@ exports.readByAdmin = async (req, res) => {
 
 exports.updateByAdmin = async (req, res) => {
   try {
-    const { inquiry_id, staff_id, status } = req.body;
+    const { inquiry_id } = req.body;
+    const { staff_id } = req;
 
-    await Inquiry.update({
-      staff_id,
-      status
-    }, {
+    const data = {};
+    data["staff_id"] = staff_id;
+    if(req.body.status) data["status"] = req.body.status;
+
+    await Inquiry.update(data, {
       where: { id: inquiry_id }
     });
 
