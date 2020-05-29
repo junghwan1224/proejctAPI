@@ -7,6 +7,7 @@ const Sequelize = require("sequelize");
 const { verifyToken } = require("../routes/verifyToken");
 
 const Op = Sequelize.Op;
+const S3 = require("../controllers/common/s3");
 const calculateDiscount = require("./common/discount").calculateDiscount;
 
 exports.createByAdmin = async (req, res) => {
@@ -224,5 +225,35 @@ exports.deleteByAdmin = async (req, res) => {
     return res
       .status(400)
       .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
+  }
+};
+
+exports.uploadImageByAdmin = async (req, res) => {
+  try {
+    // 이미지 타입에 따라 제품 이미지인지, 설명 이미지인지 구분
+    const { imageType } = req.body;
+    const imagePath = imageType==="image" ? `product-image` : `product-detail`;
+    const S3URL = "https://montar-static-resources.s3.ap-northeast-2.amazonaws.com";
+
+    const { files } = req;
+    const fileValue = Array.from(Object.values(files));
+    let fileList = [];
+
+    // 파일 정보들을 배열로 변환
+    if(fileValue.length > 1) fileList = fileValue
+    else fileList.push(files.file);
+
+    // 파일 업로드
+    const upload = fileList.map(file => S3.uploadFile(file.data, file.mimetype, `${imagePath}/${file.name}`));
+    await Promise.all(upload);
+
+    // db에 저장할 텍스트 형식으로 변경(,를 구분자로 해서 문자열로 변환)
+    const filePath = fileList.map(file => `${S3URL}/${imagePath}/${file.name}`).join(",");
+
+    return res.status(200).send(filePath);
+  }
+  catch(err) {
+    console.log(err);
+    return res.status(400).send();
   }
 };
