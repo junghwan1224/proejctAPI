@@ -86,6 +86,11 @@ module.exports = (app) => {
     .get(permission.verify(product.readByAdmin, PTYPE.READ_PRODUCT))
     .put(permission.verify(product.updateByAdmin, PTYPE.EDIT_PRODUCT))
     .delete(permission.verify(product.deleteByAdmin, PTYPE.EDIT_PRODUCT));
+
+  app
+    .route(`${ADMIN_ROUTE}/product-image`)
+    .all(verifyToken.authAdmin)
+    .post(permission.verify(product.uploadImageByAdmin, PTYPE.CREATE_PRODUCT));
   /* ----------------------------------------------------------------------- */
 
   /**
