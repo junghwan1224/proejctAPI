@@ -31,11 +31,13 @@ exports.createByAdmin = async (req, res) => {
 
   /* Validate models: */
   try {
-    const rows = req.body.models.split("\n");
+    const rows = req.body.models.split("%%");
     for (const row of rows) {
       /* brand$$model$$start_year$$end_year$$engine */
       const item = row.split("$$");
-      parseInt(item[2]) + parseInt(item[3]); // INT TEST
+      const startYear = item[2], endYear = item[3];
+      if(parseInt(startYear) || parseInt(endYear))
+        throw "Number Type Exception";
     }
   } catch (err) {
     console.log(err);
