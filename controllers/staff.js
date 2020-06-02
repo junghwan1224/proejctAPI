@@ -2,6 +2,8 @@
 
 const bcrypt = require("bcryptjs");
 const Staff = require("../models").staff;
+const PERMISSION_TYPE = require("../routes/permission").TYPE;
+const calculateMod = require("../routes/permission").calculateMod;
 
 exports.createByAdmin = async (req, res) => {
   /* If phone, password, name are not included, return 400: */
@@ -64,7 +66,17 @@ exports.readByAdmin = async (req, res) => {
     });
 
     if (response) {
-      return res.status(200).send(response);
+      // Convert numeric permission to STRING arrays:
+      const data = response.dataValues;
+      let permission_keys = [];
+      for (const key of Object.keys(PERMISSION_TYPE)) {
+        if (!calculateMod(data.permission, parseInt(PERMISSION_TYPE[key]))) {
+          permission_keys.push(key);
+        }
+      }
+      data.permission = permission_keys;
+
+      return res.status(200).send(data);
     } else {
       return res.status(400).send({ message: "해당 유저를 찾을 수 없습니다." });
     }
@@ -120,6 +132,17 @@ exports.updateByAdmin = async (req, res) => {
       .status(400)
       .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
   }
+
+  // Convert permission string to numeric string:
+  let permissionValue = 1;
+  const permissions = newData.permission.split(",").map((item) => item.trim());
+  for (const key of permissions) {
+    if (PERMISSION_TYPE[key] === undefined) return null;
+    permissionValue *= parseInt(PERMISSION_TYPE[key]);
+  }
+  if (permissionValue === 1)
+    return res.status(400).send({ message: "잘못된 permission 키값입니다." });
+  newData.permission = permissionValue;
 
   /* Return attributes based on the user request(parameters): */
   try {

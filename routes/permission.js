@@ -67,4 +67,4 @@ const TYPE = {
   EDIT_INQUIRY: 73,
 };
 
-module.exports = { verify, TYPE };
+module.exports = { verify, TYPE, calculateMod };
