@@ -90,7 +90,8 @@ module.exports = (app) => {
   app
     .route(`${ADMIN_ROUTE}/product-image`)
     .all(verifyToken.authAdmin)
-    .post(permission.verify(product.uploadImageByAdmin, PTYPE.CREATE_PRODUCT));
+    .post(permission.verify(product.createImageByAdmin, PTYPE.CREATE_PRODUCT))
+    .put(permission.verify(product.updateImageByAdmin, PTYPE.EDIT_PRODUCT));
   /* ----------------------------------------------------------------------- */
 
   /**

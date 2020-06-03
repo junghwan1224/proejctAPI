@@ -10,6 +10,8 @@ const Op = Sequelize.Op;
 const S3 = require("../controllers/common/s3");
 const calculateDiscount = require("./common/discount").calculateDiscount;
 
+const S3URL = "https://montar-static-resources.s3.ap-northeast-2.amazonaws.com";
+
 exports.createByAdmin = async (req, res) => {
   /* If necessary fields are not given, return 400: */
   if (
@@ -230,12 +232,11 @@ exports.deleteByAdmin = async (req, res) => {
   }
 };
 
-exports.uploadImageByAdmin = async (req, res) => {
+exports.createImageByAdmin = async (req, res) => {
   try {
     // 이미지 타입에 따라 제품 이미지인지, 설명 이미지인지 구분
     const { imageType } = req.body;
     const imagePath = imageType==="image" ? `product-image` : `product-detail`;
-    const S3URL = "https://montar-static-resources.s3.ap-northeast-2.amazonaws.com";
 
     const { files } = req;
     const fileValue = Array.from(Object.values(files));
