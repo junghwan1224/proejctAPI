@@ -260,3 +260,53 @@ exports.createImageByAdmin = async (req, res) => {
     return res.status(400).send();
   }
 };
+
+exports.updateImageByAdmin = async (req, res) => {
+  try {
+    const { imageType, product_id } = req.query;
+    const s3Files = req.body ? Object.values(req.body) : null;
+    const newFiles = req.files ? Object.values(req.files) : null;
+
+    const product = await Product.findOne({
+      where: { id: product_id },
+    });
+    const productImage = imageType === "image" ? product.dataValues.images : product.dataValues.description_images;
+    const s3Path = imageType === "image" ? "product-image" : "product-detail";
+    let filePath = "";
+
+    // s3Files에 값이 있는 경우 - 요청으로 넘긴 url은 다 지운다.
+    if(s3Files) {
+      // s3 delete file 호출
+      const deleteFile = s3Files.map(path => S3.deleteFile(path.replace(`${S3URL}/`, "")));
+      await Promise.all(deleteFile);
+      
+      // db에 저장할 경로 텍스트
+      const remainedFile = productImage.split(",").filter(file => ! s3Files.includes(file)).join(",");
+      filePath += remainedFile;
+    }
+
+    // newFiles에 값이 있는 경우 - S3에 파일 업로드 후 해당 주소 추출 후 기존 값에 더한다.
+    if(newFiles) {
+      const upload = newFiles.map(file => S3.uploadFile(file.data, file.mimetype, `${s3Path}/${file.name}`));
+      await Promise.all(upload);
+
+      // db에 저장할 경로 텍스트
+      filePath += `,${newFiles.map(file => `${S3URL}/${s3Path}/${file.name}`).join(",")}`;
+    }
+
+    // 제품 이미지 경로 업데이트
+    const updatedImage = {};
+    if(imageType === "image") updatedImage["images"] = filePath;
+    else updatedImage["description_images"] = filePath;
+
+    await Product.update(updatedImage, {
+      where: { id: product_id }
+    });
+    
+    return res.status(200).send();
+  }
+  catch(err) {
+    console.log(err);
+    return res.status(400).send();
+  }
+};
