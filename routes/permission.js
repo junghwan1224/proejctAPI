@@ -2,16 +2,19 @@
  * PERMISSION MAP
  */
 const verify = (originalFunction, permissionType = undefined) => {
-  if(! permissionType) {
+  if (!permissionType) {
     return res.status(400).send();
   }
 
   return function (req, res, next) {
     const permission = parseInt(permissionType);
-    const convertedPermissionValue = calculateMod(req.staff_permission, permission);
-    
-    if(req.headers.ping) {
-      if(convertedPermissionValue === 0) {
+    const convertedPermissionValue = calculateMod(
+      req.staff_permission,
+      permission
+    );
+
+    if (req.headers.ping) {
+      if (convertedPermissionValue === 0) {
         return res.status(200).send();
       }
       return res.status(403).send();
@@ -79,4 +82,19 @@ const TYPE = {
   EDIT_INQUIRY: 73,
 };
 
-module.exports = { verify, TYPE, calculateMod };
+const multiply = (a, b) => {
+  /** https://stackoverflow.com/questions/1685680 */
+  const product = Array(a.length + b.length).fill(0);
+  for (let i = a.length; i--; null) {
+    let carry = 0;
+    for (let j = b.length; j--; null) {
+      product[1 + i + j] += carry + a[i] * b[j];
+      carry = Math.floor(product[1 + i + j] / 10);
+      product[1 + i + j] = product[1 + i + j] % 10;
+    }
+    product[i] += carry;
+  }
+  return product.join("").replace(/^0*(\d)/, "$1");
+};
+
+module.exports = { verify, TYPE, calculateMod, multiply };

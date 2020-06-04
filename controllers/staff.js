@@ -4,6 +4,7 @@ const bcrypt = require("bcryptjs");
 const Staff = require("../models").staff;
 const PERMISSION_TYPE = require("../routes/permission").TYPE;
 const calculateMod = require("../routes/permission").calculateMod;
+const multiply = require("../routes/permission").multiply;
 
 exports.createByAdmin = async (req, res) => {
   /* If phone, password, name are not included, return 400: */
@@ -134,11 +135,14 @@ exports.updateByAdmin = async (req, res) => {
   }
 
   // Convert permission string to numeric string:
-  let permissionValue = 1;
+  let permissionValue = "1";
   const permissions = newData.permission.split(",").map((item) => item.trim());
   for (const key of permissions) {
     if (PERMISSION_TYPE[key] === undefined) return null;
-    permissionValue *= parseInt(PERMISSION_TYPE[key]);
+    permissionValue = multiply(
+      permissionValue,
+      PERMISSION_TYPE[key].toString()
+    );
   }
   if (permissionValue === 1)
     return res.status(400).send({ message: "잘못된 permission 키값입니다." });
