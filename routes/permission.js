@@ -1,13 +1,25 @@
 /**
  * PERMISSION MAP
  */
-const verify = (originalFunction, permissionType = null) => {
+const verify = (originalFunction, permissionType = undefined) => {
+  if(! permissionType) {
+    return res.status(400).send();
+  }
+
+  const permission = parseInt(permissionType);
+  const convertedPermissionValue = calculateMod(req.staff_permission, permission);
+
   return function (req, res, next) {
-    if (permissionType) {
-      const permission = parseInt(permissionType);
-      if (calculateMod(req.staff_permission, permission) === 0)
-        return originalFunction.call(this, req, res, next);
+    if(req.headers.ping) {
+      if(convertedPermissionValue === 0) {
+        return res.status(200).send();
+      }
+      return res.status(403).send();
     }
+
+    if (convertedPermissionValue === 0)
+      return originalFunction.call(this, req, res, next);
+
     return res.status(403).send();
   };
 };
