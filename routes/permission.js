@@ -16,12 +16,8 @@ const verify = (originalFunction, permissionType = undefined) => {
       return res.status(403).send();
     }
 
-    else {
-      if (permissionType) {
-        if (calculateMod(req.staff_permission, permission) === 0)
-          return originalFunction.call(this, req, res, next);
-      }
-    }
+    if (convertedPermissionValue === 0)
+      return originalFunction.call(this, req, res, next);
 
     return res.status(403).send();
   };
