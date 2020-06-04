@@ -36,7 +36,7 @@ exports.createByAdmin = async (req, res) => {
       /* brand$$model$$start_year$$end_year$$engine */
       const item = row.split("$$");
       const startYear = item[2], endYear = item[3];
-      if(parseInt(startYear) || parseInt(endYear))
+      if(!(parseInt(startYear) && parseInt(endYear)))
         throw Error("Number Type Exception");
     }
   } catch (err) {
