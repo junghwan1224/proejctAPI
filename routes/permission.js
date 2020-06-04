@@ -2,6 +2,10 @@
  * PERMISSION MAP
  */
 const verify = (originalFunction, permissionType = undefined) => {
+  if(! permissionType) {
+    return res.status(400).send();
+  }
+
   const permission = parseInt(permissionType);
 
   return function (req, res, next) {
