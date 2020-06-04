@@ -6,10 +6,10 @@ const verify = (originalFunction, permissionType = undefined) => {
     return res.status(400).send();
   }
 
-  const permission = parseInt(permissionType);
-  const convertedPermissionValue = calculateMod(req.staff_permission, permission);
-
   return function (req, res, next) {
+    const permission = parseInt(permissionType);
+    const convertedPermissionValue = calculateMod(req.staff_permission, permission);
+    
     if(req.headers.ping) {
       if(convertedPermissionValue === 0) {
         return res.status(200).send();
