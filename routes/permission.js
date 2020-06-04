@@ -1,7 +1,7 @@
 /**
  * PERMISSION MAP
  */
-const verify = (originalFunction, permissionType = null) => {
+const verify = (originalFunction, permissionType = undefined) => {
   const permission = parseInt(permissionType);
 
   return function (req, res, next) {
