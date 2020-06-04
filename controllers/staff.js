@@ -143,7 +143,6 @@ exports.updateByAdmin = async (req, res) => {
       permissionValue,
       PERMISSION_TYPE[key].toString()
     );
-    console.log(permissionValue);
   }
   if (permissionValue === 1)
     return res.status(400).send({ message: "잘못된 permission 키값입니다." });
