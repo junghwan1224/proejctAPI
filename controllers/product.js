@@ -10,8 +10,6 @@ const Op = Sequelize.Op;
 const S3 = require("../controllers/common/s3");
 const calculateDiscount = require("./common/discount").calculateDiscount;
 
-const S3URL = "https://montar-static-resources.s3.ap-northeast-2.amazonaws.com";
-
 exports.createByAdmin = async (req, res) => {
   /* If necessary fields are not given, return 400: */
   if (
@@ -251,7 +249,7 @@ exports.createImageByAdmin = async (req, res) => {
     await Promise.all(upload);
 
     // db에 저장할 텍스트 형식으로 변경(,를 구분자로 해서 문자열로 변환)
-    const filePath = fileList.map(file => `${S3URL}/${imagePath}/${file.name}`).join(",");
+    const filePath = fileList.map(file => `/${imagePath}/${file.name}`).join(",");
 
     return res.status(200).send(filePath);
   }
@@ -277,7 +275,7 @@ exports.updateImageByAdmin = async (req, res) => {
     // s3Files에 값이 있는 경우 - 요청으로 넘긴 url은 다 지운다.
     if(s3Files) {
       // s3 delete file 호출
-      const deleteFile = s3Files.map(path => S3.deleteFile(path.replace(`${S3URL}/`, "")));
+      const deleteFile = s3Files.map(path => S3.deleteFile(path.replace("/", ""))); // 맨 앞 / 제거
       await Promise.all(deleteFile);
       
       // db에 저장할 경로 텍스트
@@ -291,7 +289,8 @@ exports.updateImageByAdmin = async (req, res) => {
       await Promise.all(upload);
 
       // db에 저장할 경로 텍스트
-      filePath += `,${newFiles.map(file => `${S3URL}/${s3Path}/${file.name}`).join(",")}`;
+      if(filePath.length > 0) filePath += ",";
+      filePath += `${newFiles.map(file => `/${s3Path}/${file.name}`).join(",")}`;
     }
 
     // 제품 이미지 경로 업데이트
