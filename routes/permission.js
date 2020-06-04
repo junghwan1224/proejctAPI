@@ -6,7 +6,7 @@ const verify = (originalFunction, permissionType = null) => {
 
   return function (req, res, next) {
     if(req.headers.ping) {
-      if(calculateMod(req.staff_permission, permission)) {
+      if(calculateMod(req.staff_permission, permission) === 0) {
         return res.status(200).send();
       }
       return res.status(403).send();
