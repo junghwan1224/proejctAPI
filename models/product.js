@@ -19,8 +19,9 @@ module.exports = (sequelize, DataTypes) => {
       is_public: DataTypes.BOOLEAN,
       type: DataTypes.STRING, // e.g. 허브베어링
       attributes: DataTypes.STRING, // e.g. 소모부품,승용차,하체부품
-      tags: DataTypes.STRING, // 매ㅂ진임박, 할인 등등
-      optional: DataTypes.TEXT
+      tags: DataTypes.STRING, // 매진임박, 할인 등등
+      optional: DataTypes.TEXT,
+      ea_per_box: DataTypes.INTEGER
     },
     {
       hooks: {

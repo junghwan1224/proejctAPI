@@ -77,6 +77,10 @@ module.exports = {
         type: Sequelize.TEXT,
         allowNull: true
       },
+      ea_per_box: {
+        type: Sequelize.INTEGER,
+        allowNull: true
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
