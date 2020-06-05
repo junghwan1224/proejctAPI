@@ -13,6 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       alias: DataTypes.STRING,
       worker: DataTypes.STRING,
       worker_poc: DataTypes.STRING,
+      staff_id: DataTypes.UUID,
       memo: DataTypes.TEXT,
     },
     {

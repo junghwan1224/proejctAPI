@@ -35,6 +35,7 @@ exports.createByAdmin = async (req, res) => {
       alias: req.body.alias,
       worker: req.body.worker,
       worker_poc: req.body.worker_poc,
+      staff_id: req.body.staff_id,
       memo: req.body.memo,
     });
     return res.status(201).send();
@@ -78,6 +79,7 @@ exports.updateByAdmin = async (req, res) => {
     "alias",
     "worker",
     "worker_poc",
+    "staff_id",
     "memo",
   ];
 
