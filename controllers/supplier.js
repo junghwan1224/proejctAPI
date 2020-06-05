@@ -1,6 +1,7 @@
 "use strict";
 
 const Supplier = require("../models").supplier;
+const Staff = require("../models").staff;
 
 exports.createByAdmin = async (req, res) => {
   /* If phone, password, name are not included, return 400: */
@@ -50,9 +51,20 @@ exports.createByAdmin = async (req, res) => {
 exports.readByAdmin = async (req, res) => {
   try {
     const response = await Supplier.findOne({
-      where: { id: req.query.supplier_id },
+      where: {
+        id: req.query.supplier_id,
+      },
+      attributes: {
+        exclude: ["staff_id"],
+      },
+      include: [
+        {
+          model: Staff,
+          required: false,
+          attributes: ["id", "name", "department", "rank"],
+        },
+      ],
     });
-
     if (response) {
       return res.status(200).send(response);
     } else {

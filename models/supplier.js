@@ -26,6 +26,12 @@ module.exports = (sequelize, DataTypes) => {
       },
     }
   );
-  supplier.associate = function (models) {};
+  supplier.associate = function (models) {
+    supplier.belongsTo(models.staff, {
+      foreignKey: "staff_id",
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    });
+  };
   return supplier;
 };
