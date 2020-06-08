@@ -19,8 +19,9 @@ module.exports = (sequelize, DataTypes) => {
       is_public: DataTypes.BOOLEAN,
       type: DataTypes.STRING, // e.g. 허브베어링
       attributes: DataTypes.STRING, // e.g. 소모부품,승용차,하체부품
-      tags: DataTypes.STRING, // 매ㅂ진임박, 할인 등등
-      optional: DataTypes.TEXT
+      tags: DataTypes.STRING, // 매진임박, 할인 등등
+      optional: DataTypes.TEXT, // 특정 제품들에만 쓰이는 필드가 생겼을 때, 동적으로 옵셔널하게 필드를 추가할 때 쓰는 필드
+      ea_per_box: DataTypes.INTEGER // 박스 1개당 제품이 몇개가 들어가는지에 대한 값
     },
     {
       hooks: {
