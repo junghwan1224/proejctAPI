@@ -138,7 +138,9 @@ exports.updateByAdmin = async (req, res) => {
   let permissionValue = "1";
   const permissions = newData.permission.split(",").map((item) => item.trim());
   for (const key of permissions) {
-    if (PERMISSION_TYPE[key] === undefined) return null;
+    if (PERMISSION_TYPE[key] === undefined)
+      return res.status(400).send({ message: "잘못된 권한을 입력하셨습니다." });
+
     permissionValue = multiply(
       permissionValue,
       PERMISSION_TYPE[key].toString()
