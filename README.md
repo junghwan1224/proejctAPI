@@ -116,7 +116,6 @@
 - images: text
 - maker:
 - maker_number
-- stock
 - allow_discount
 - price
 - models
