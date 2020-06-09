@@ -97,7 +97,7 @@
 
 - id: UUID
 - address: text
-- name: stringg
+- name: string
 - crn: string
 - poc: string
 - fax: string
@@ -106,7 +106,6 @@
 - worker_poc: string
 - memo: text
 - staff_id: UUID
--
 
 ## products
 
