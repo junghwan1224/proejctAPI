@@ -152,7 +152,7 @@ exports.updateByAdmin = async (req, res) => {
 
     await Address.update(newData,
       {
-        where: { id: account_id },
+        where: { account_id },
       }
     );
 
