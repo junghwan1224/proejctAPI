@@ -3,6 +3,7 @@ module.exports = (sequelize, DataTypes) => {
   const inquiry = sequelize.define(
     "inquiry",
     {
+      account_id: DataTypes.UUID,
       phone: DataTypes.STRING,
       email: DataTypes.STRING,
       type: DataTypes.STRING,
@@ -16,6 +17,12 @@ module.exports = (sequelize, DataTypes) => {
   );
   inquiry.associate = function(models) {
     // associations can be defined here
+    inquiry.belongsTo(models.account, {
+      foreignKey: "account_id",
+      onDelete: "set null",
+      onUpdate: "cascade"
+    });
+
     inquiry.belongsTo(models.staff, {
       foreignKey: "staff_id",
       onDelete: "set null",
