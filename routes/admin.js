@@ -68,7 +68,7 @@ module.exports = (app) => {
     .post(permission.verify(certify.approveDocument, PTYPE.EDIT_ACCOUNT))
     .delete(permission.verify(certify.deleteDocument, PTYPE.EDIT_ACCOUNT));
   app
-    .route(ADMIN_ROUTE + "/address")
+    .route(ADMIN_ROUTE + "/account-address")
     .all(verifyToken.authAdmin)
     .get(permission.verify(accountAddress.readByAdmin, PTYPE.READ_ACCOUNT))
     .post(permission.verify(accountAddress.createByAdmin, PTYPE.CREATE_ACCOUNT))
