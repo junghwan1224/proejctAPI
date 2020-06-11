@@ -1,7 +1,7 @@
 "use strict";
 module.exports = (sequelize, DataTypes) => {
-  const address = sequelize.define(
-    "address",
+  const account_address = sequelize.define(
+    "account_address",
     {
       account_id: DataTypes.UUID,
       postcode: DataTypes.STRING,
@@ -10,13 +10,13 @@ module.exports = (sequelize, DataTypes) => {
     },
     {}
   );
-  address.associate = function(models) {
+  account_address.associate = function(models) {
     // associations can be defined here
-    address.belongsTo(models.account, {
+    account_address.belongsTo(models.account, {
       foreignKey: "account_id",
       onDelete: "cascade",
       onUpdate: "cascade"
     });
   };
-  return address;
+  return account_address;
 };

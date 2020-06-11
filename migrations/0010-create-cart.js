@@ -1,7 +1,7 @@
 "use strict";
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable("card_infos", {
+    return queryInterface.createTable("carts", {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -18,16 +18,17 @@ module.exports = {
         onDelete: "CASCADE",
         onUpdate: "CASCADE"
       },
-      customer_uid: {
-        type: Sequelize.STRING,
-        allowNull: false
+      product_id: {
+        type: Sequelize.UUID,
+        references: {
+          model: "products",
+          key: "id"
+        },
+        onDelete: "SET NULL",
+        onUpdate: "CASCADE"
       },
-      card_name: {
-        type: Sequelize.STRING,
-        allowNull: false
-      },
-      card_number: {
-        type: Sequelize.STRING,
+      quantity: {
+        type: Sequelize.INTEGER.UNSIGNED,
         allowNull: false
       },
       createdAt: {
@@ -41,6 +42,6 @@ module.exports = {
     });
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable("card_infos");
+    return queryInterface.dropTable("carts");
   }
 };
