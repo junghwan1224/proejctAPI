@@ -1,12 +1,12 @@
 "use strict";
 
-const CardInfo = require("../models").card_info;
+const AccountCard = require("../models").account_card;
 
 exports.readByUser = async (req, res) => {
     try {
         const { account_id } = req;
 
-        const cardInfo = await CardInfo.findAll({
+        const cardInfo = await AccountCard.findAll({
             where: { account_id },
             attributes: ["customer_uid", "card_name", "card_number"]
         });
@@ -28,7 +28,7 @@ exports.createByUser = async (req, res) => {
         const { account_id } = req;
         const { customer_uid, card_name, card_number } = req.body;
 
-        await CardInfo.create({
+        await AccountCard.create({
             account_id,
             customer_uid,
             card_name,
@@ -51,7 +51,7 @@ exports.deleteByUser = async (req, res) => {
         const { account_id } = req;
         const { customer_uid } = req.headers;
     
-        await CardInfo.destroy({
+        await AccountCard.destroy({
             where: {
                 account_id,
                 customer_uid

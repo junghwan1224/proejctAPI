@@ -2,14 +2,14 @@ module.exports = app => {
   const verifyToken = require("./verifyToken");
 
   const account = require("../controllers/account");
-  const address = require("../controllers/address");
+  const accountAddress = require("../controllers/accountAddress");
   const login = require("../controllers/login");
   const certify = require("../controllers/certify");
 
   const product = require("../controllers/product");
   const productList = require("../controllers/productList");
 
-  const basket = require("../controllers/basket");
+  const cart = require("../controllers/cart");
 
   const delivery = require("../controllers/delivery");
   const deliveryList = require("../controllers/deliveryList");
@@ -17,8 +17,7 @@ module.exports = app => {
 
   const order = require("../controllers/order");
   const payment = require("../controllers/payment");
-  const receipt = require("../controllers/receipt");
-  const cardInfo = require("../controllers/cardInfo");
+  const accountCard = require("../controllers/accountCard");
 
   const inquiry = require("../controllers/inquiry");
 
@@ -42,10 +41,10 @@ module.exports = app => {
     .post(login.loginByUser);
   
   app
-    .route("/address")
+    .route("/account-address")
     .all(verifyToken.authUser)
-    .get(address.readByUser)
-    .post(address.createByUser);
+    .get(accountAddress.readByUser)
+    .post(accountAddress.createByUser);
 
   app
     .route("/certify/issue-number")
@@ -71,11 +70,11 @@ module.exports = app => {
     .get(productList.readByUser);
 
   app
-    .route("/basket")
+    .route("/cart")
     .all(verifyToken.authUser)
-    .get(basket.readByUser)
-    .post(basket.createOrUpdateByUser)
-    .delete(basket.deleteByUser);
+    .get(cart.readByUser)
+    .post(cart.createOrUpdateByUser)
+    .delete(cart.deleteByUser);
 
   app
     .route("/delivery")
@@ -128,17 +127,11 @@ module.exports = app => {
     .put(order.updateByUser);
 
   app
-    .route("/receipt")
+    .route("/account-card")
     .all(verifyToken.authUser)
-    .get(receipt.readByUser)
-    .post(receipt.createByUser);
-
-  app
-    .route("/card-info")
-    .all(verifyToken.authUser)
-    .get(cardInfo.readByUser)
-    .post(cardInfo.createByUser)
-    .delete(cardInfo.deleteByUser);
+    .get(accountCard.readByUser)
+    .post(accountCard.createByUser)
+    .delete(accountCard.deleteByUser);
 
   /* Non User API */
 

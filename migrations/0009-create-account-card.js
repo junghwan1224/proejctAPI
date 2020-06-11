@@ -1,7 +1,7 @@
 "use strict";
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable("addresses", {
+    return queryInterface.createTable("account_cards", {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -18,16 +18,17 @@ module.exports = {
         onDelete: "CASCADE",
         onUpdate: "CASCADE"
       },
-      postcode: {
+      customer_uid: {
         type: Sequelize.STRING,
         allowNull: false
       },
-      primary: {
+      card_name: {
         type: Sequelize.STRING,
         allowNull: false
       },
-      detail: {
-        type: Sequelize.STRING
+      card_number: {
+        type: Sequelize.STRING,
+        allowNull: false
       },
       createdAt: {
         allowNull: false,
@@ -40,6 +41,6 @@ module.exports = {
     });
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable("addresses");
+    return queryInterface.dropTable("account_cards");
   }
 };
