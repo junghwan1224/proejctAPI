@@ -23,15 +23,6 @@ module.exports = (sequelize, DataTypes) => {
       hooks: {
         afterBulkUpdate: async options => {
           if(options.attributes.status === "paid") {
-            const roster = await sequelize.models.roster.findAll({
-              where: {
-                departure: { [Op.gt]: new Date() }
-              },
-              attributes: ["arrival"],
-              limit: 1,
-              transaction: options.transaction
-            });
-
             const {
               account_id,
               merchant_uid,
@@ -49,7 +40,6 @@ module.exports = (sequelize, DataTypes) => {
               shipping_postcode,
               shipping_primary,
               shipping_detail,
-              arrived_at: roster[0].dataValues.arrival
             }, {
               transaction: options.transaction
             });
@@ -64,15 +54,6 @@ module.exports = (sequelize, DataTypes) => {
           } = options;
 
           if(status === "credit not paid") {
-            const roster = await sequelize.models.roster.findAll({
-              where: {
-                departure: { [Op.gt]: new Date() }
-              },
-              attributes: ["arrival"],
-              limit: 1,
-              transaction: options.transaction
-            });
-
             await sequelize.models.delivery.create({
               account_id,
               delivery_num: merchant_uid.slice(7),
@@ -82,7 +63,6 @@ module.exports = (sequelize, DataTypes) => {
               shipping_postcode,
               shipping_primary,
               shipping_detail,
-              arrived_at: roster[0].dataValues.arrival
             }, {
               transaction: options.transaction
             });
