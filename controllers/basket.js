@@ -1,6 +1,6 @@
 "use strict";
 
-const Basket = require("../models").basket;
+const Cart = require("../models").cart;
 const Product = require("../models").product;
 const Account = require("../models").account;
 const AccountLevel = require("../models").account_level;
@@ -31,7 +31,7 @@ exports.readByUser = async (req, res) => {
       USER_DISCOUNT = parseFloat(account.level_detail.discount_rate);
     }
 
-    const response = await Basket.findAll({
+    const response = await Cart.findAll({
       where: {
         account_id,
       },
@@ -109,7 +109,7 @@ exports.createOrUpdateByUser = async (req, res) => {
     for (const product_id of Object.keys(products)) {
       const quantity = products[product_id];
 
-      const isProductExist = await Basket.count({
+      const isProductExist = await Cart.count({
         where: {
           account_id,
           product_id,
@@ -117,7 +117,7 @@ exports.createOrUpdateByUser = async (req, res) => {
       });
       if (quantity === 0) {
         // Delete if quantity is 0:
-        await Basket.destroy({
+        await Cart.destroy({
           where: {
             account_id,
             product_id,
@@ -125,21 +125,21 @@ exports.createOrUpdateByUser = async (req, res) => {
         });
       } else if (!isProductExist) {
         // Create producut
-        await Basket.create({
+        await Cart.create({
           account_id,
           product_id,
           quantity,
         });
       } else {
         // Update if quantity is not zero and product exists
-        const basket = await Basket.findOne({
+        const cart = await Cart.findOne({
           where: {
             account_id,
             product_id,
           },
         });
 
-        await basket.update({
+        await cart.update({
           quantity,
         });
       }
@@ -158,7 +158,7 @@ exports.deleteByUser = async (req, res) => {
   try {
     const { account_id } = req;
 
-    await Basket.destroy({
+    await Cart.destroy({
       where: { account_id },
     });
 
