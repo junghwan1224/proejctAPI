@@ -5,9 +5,8 @@ module.exports = (sequelize, DataTypes) => {
   const domestic_purchase = sequelize.define(
     "domestic_purchase",
     {
-        supplier_id: DataTypes.UUID,
+        mapper_id: DataTypes.UUID,
         product_id: DataTypes.UUID,
-        staff_id: DataTypes.UUID,
         quantity: DataTypes.INTEGER,
         price: DataTypes.INTEGER,
     },
@@ -98,22 +97,10 @@ module.exports = (sequelize, DataTypes) => {
   );
   domestic_purchase.associate = function(models) {
     // associations can be defined here
-    domestic_purchase.belongsTo(models.supplier, {
-      foreignKey: "supplier_id",
+    domestic_purchase.belongsTo(models.purchase_mapper, {
+      foreignKey: "mapper_id",
       onDelete: "cascade",
       onUpdate: "cascade"
-    });
-
-    domestic_purchase.belongsTo(models.product, {
-      foreignKey: "product_id",
-      onDelete: "cascade",
-      onUpdate: "cascade"
-    });
-
-    domestic_purchase.belongsTo(models.staff, {
-        foreignKey: "staff_id",
-        onDelete: "cascade",
-        onUpdate: "cascade"
     });
   };
 

@@ -11,31 +11,21 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      supplier_id: {
-          type: Sequelize.UUID,
-          allowNull: false,
-          references: {
-              model: "suppliers",
-              key: "id"
-          },
-          onDelete: "CASCADE",
-          onUpdate: "CASCADE"
+      mapper_id: {
+        type: Sequelize.UUID,
+        allowNull: false,
+        references: {
+          model: "purchase_mappers",
+          key: "id"
+        },
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE"
       },
       product_id: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
             model: "products",
-            key: "id"
-        },
-        onDelete: "CASCADE",
-        onUpdate: "CASCADE"
-      },
-      staff_id: {
-        type: Sequelize.UUID,
-        allowNull: false,
-        references: {
-            model: "staffs",
             key: "id"
         },
         onDelete: "CASCADE",

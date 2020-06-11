@@ -76,6 +76,7 @@
 ### Fields
 
 - id: UUID
+- mapper_id
 - product_id
 - quantity
 - price
