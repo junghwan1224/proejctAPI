@@ -1,13 +1,13 @@
 "use strict";
 
-const Address = require("../models").address;
+const AccountAddress = require("../models").account_address;
 const models = require("../models");
 
 exports.readByUser = async (req, res) => {
   try {
     const { account_id } = req;
 
-    const address = await Address.findAll({
+    const address = await AccountAddress.findAll({
       where: { account_id },
     });
 
@@ -32,7 +32,7 @@ exports.createByUser = async (req, res) => {
 
     const transaction = await models.sequelize.transaction();
 
-    const address = await Address.findOne({
+    const address = await AccountAddress.findOne({
       where: { account_id },
       transaction,
     });
@@ -53,7 +53,7 @@ exports.createByUser = async (req, res) => {
       };
 
       if (!Object.is(JSON.stringify(obj), JSON.stringify(addr))) {
-        await Address.update(
+        await AccountAddress.update(
           {
             postcode: addr_postcode,
             primary: addr_primary,
@@ -70,7 +70,7 @@ exports.createByUser = async (req, res) => {
         return res.status(200).send({ message: "update success" });
       }
     } else {
-      await Address.create(
+      await AccountAddress.create(
         {
           account_id,
           postcode: addr_postcode,
@@ -98,7 +98,7 @@ exports.createByUser = async (req, res) => {
 exports.readByAdmin = async (req, res) => {
   const account_id = req.query.account_id;
   try {
-    const response = await Address.findAll({
+    const response = await AccountAddress.findAll({
       where: {
         account_id: account_id,
       },
@@ -124,7 +124,7 @@ exports.createByAdmin = async (req, res) => {
       return res.status(400).send();
     }
  
-    await Address.create({
+    await AccountAddress.create({
         account_id,
         postcode,
         primary,
@@ -150,7 +150,7 @@ exports.updateByAdmin = async (req, res) => {
 
     const { account_id } = req.body;
 
-    await Address.update(newData,
+    await AccountAddress.update(newData,
       {
         where: { account_id },
       }

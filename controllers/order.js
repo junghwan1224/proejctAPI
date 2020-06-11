@@ -7,7 +7,7 @@ const { Op } = Sequelize;
 const Order = require("../models").order;
 const Delivery = require("../models").delivery;
 const Account = require("../models").account;
-const Address = require("../models").address;
+const AccountAddress = require("../models").account_address;
 const Product = require("../models").product;
 const models = require("../models");
 
@@ -139,7 +139,7 @@ exports.createByUser = async (req, res) => {
     const parsedAddr = addrArray.split("&");
     // 입력된 주소가 없을 경우
     if (!parseInt(address_id)) {
-      await Address.create(
+      await AccountAddress.create(
         {
           account_id,
           primary: parsedAddr[0],
@@ -153,7 +153,7 @@ exports.createByUser = async (req, res) => {
     }
     // 입력된 주소가 있는 경우
     else {
-      const addr = await Address.findOne({
+      const addr = await AccountAddress.findOne({
         where: {
           id: address_id,
           account_id
@@ -175,7 +175,7 @@ exports.createByUser = async (req, res) => {
           JSON.stringify(optionInfoObj)
         )
       ) {
-        await Address.update(
+        await AccountAddress.update(
           {
             postcode: buyer_postcode,
             primary: parsedAddr[0],
