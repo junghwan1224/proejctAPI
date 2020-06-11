@@ -100,7 +100,7 @@ exports.readByAdmin = async (req, res) => {
     const deliveryInfo = delivery.map((d) => d.dataValues);
 
     if (!deliveryInfo.length) {
-      return res.status(200).send();
+      return res.status(200).send([]);
     }
 
     const orderInfo = deliveryInfo.map((d) => {
