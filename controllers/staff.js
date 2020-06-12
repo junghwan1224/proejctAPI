@@ -15,7 +15,8 @@ exports.createByAdmin = async (req, res) => {
       req.body.name &&
       req.body.phone &&
       req.body.department &&
-      req.body.rank
+      req.body.rank &&
+      req.body.permission
     )
   ) {
     return res.status(400).send({
@@ -37,6 +38,21 @@ exports.createByAdmin = async (req, res) => {
       .send({ message: "에러가 발생했습니다. 잠시 후 다시 시도해주세요." });
   }
 
+  // Convert permission string to numeric string:
+  let permissionValue = "1";
+  const permissions = req.body.permission.split(",").map((item) => item.trim());
+  for (const key of permissions) {
+    if (PERMISSION_TYPE[key] === undefined)
+      return res.status(400).send({ message: "잘못된 권한을 입력하셨습니다." });
+
+    permissionValue = multiply(
+      permissionValue,
+      PERMISSION_TYPE[key].toString()
+    );
+  }
+  if (permissionValue === 1)
+    return res.status(400).send({ message: "잘못된 permission 키값입니다." });
+
   /* Create account, with level set to "UNCONFIRMED" : */
   try {
     await Staff.create({
@@ -46,7 +62,7 @@ exports.createByAdmin = async (req, res) => {
       phone: req.body.phone,
       department: req.body.department,
       rank: req.body.rank,
-      permission: req.body.permission,
+      permission: permissionValue,
     });
     return res.status(201).send();
   } catch (error) {
