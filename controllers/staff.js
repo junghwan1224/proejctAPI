@@ -151,20 +151,22 @@ exports.updateByAdmin = async (req, res) => {
   }
 
   // Convert permission string to numeric string:
-  let permissionValue = "1";
-  const permissions = newData.permission.split(",").map((item) => item.trim());
-  for (const key of permissions) {
-    if (PERMISSION_TYPE[key] === undefined)
-      return res.status(400).send({ message: "잘못된 권한을 입력하셨습니다." });
+  if(newData.permission) {
+    let permissionValue = "1";
+    const permissions = newData.permission.split(",").map((item) => item.trim());
+    for (const key of permissions) {
+      if (PERMISSION_TYPE[key] === undefined)
+        return res.status(400).send({ message: "잘못된 권한을 입력하셨습니다." });
 
-    permissionValue = multiply(
-      permissionValue,
-      PERMISSION_TYPE[key].toString()
-    );
+      permissionValue = multiply(
+        permissionValue,
+        PERMISSION_TYPE[key].toString()
+      );
+    }
+    if (permissionValue === 1)
+      return res.status(400).send({ message: "잘못된 permission 키값입니다." });
+    newData.permission = permissionValue;
   }
-  if (permissionValue === 1)
-    return res.status(400).send({ message: "잘못된 permission 키값입니다." });
-  newData.permission = permissionValue;
 
   /* Return attributes based on the user request(parameters): */
   try {
