@@ -97,7 +97,7 @@ module.exports = (sequelize, DataTypes) => {
   );
   domestic_purchase.associate = function(models) {
     // associations can be defined here
-    domestic_purchase.belongsTo(models.purchase_mapper, {
+    domestic_purchase.belongsTo(models.product, {
       foreignKey: "product_id",
       onDelete: "cascade",
       onUpdate: "cascade"
