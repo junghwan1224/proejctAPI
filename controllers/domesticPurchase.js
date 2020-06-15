@@ -1,6 +1,7 @@
 "use strict";
 
 const DomesticPurchase = require("../models").domestic_purchase;
+const PurchaseMapper = require("../models").purchase_mapper;
 const models = require("../models");
 const Product = require("../models").product;
 const Staff = require("../models").staff;
@@ -39,32 +40,37 @@ exports.readByAdmin = async (req, res) => {
 
 exports.createByAdmin = async (req, res) => {
   try {
-    const { supplier_id, product_id, staff_id, quantity, price } = req.body;
-
-    if (!(supplier_id && product_id && staff_id && quantity && price)) {
-      return res
-        .status(400)
-        .send({ message: "필요한 정보를 모두 입력해주세요." });
-    }
+    const {
+      supplier_id,
+      date,
+      verified,
+      memo,
+      products
+    } = req.body;
 
     const transaction = await models.sequelize.transaction();
+    const { staff_id } = req;
 
-    await DomesticPurchase.create(
-      {
-        supplier_id,
-        product_id,
-        staff_id,
-        quantity,
-        price,
-      },
-      {
-        transaction,
-      }
-    );
+    const newPurchase = await PurchaseMapper.create({
+      supplier_id,
+      staff_id,
+      date,
+      verified,
+      memo 
+    });
+    const { id: mapper_id } = newPurchase.dataValues;
+
+    const addProductToDomesticPurchase = products.map(product => {
+      const { product_id, quantity, price } = product;
+      return DomesticPurchase.create({
+        mapper_id, product_id, quantity, price
+      });
+    });
+    await Promise.all(addProductToDomesticPurchase);
 
     await transaction.commit();
 
-    return res.status(201).send();
+    return res.status(201).send(newPurchase);
   } catch (err) {
     console.log(err);
     return res.status(400).send();
