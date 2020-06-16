@@ -55,8 +55,8 @@ exports.createByAdmin = async (req, res) => {
       supplier_id,
       staff_id,
       date,
-      verified,
-      memo 
+      verified: verified === "수령" ? true : false,
+      memo: memo ? memo : null
     });
     const { id: mapper_id } = newPurchase.dataValues;
 
