@@ -1,9 +1,10 @@
 "use strict";
 
+const uuid = require("uuid/v4");
 
 module.exports = (sequelize, DataTypes) => {
   const puchase_mapper = sequelize.define(
-    "domestic_purchase",
+    "purchase_mapper",
     {
         staff_id: DataTypes.UUID,
         supplier_id: DataTypes.UUID,
@@ -12,7 +13,13 @@ module.exports = (sequelize, DataTypes) => {
         memo: DataTypes.TEXT
     },
     {
-        hooks: {}
+        hooks: {
+          beforeCreate: (purchase_mapper, options) => {
+            {
+              purchase_mapper.id = uuid();
+            }
+          }
+        }
     }
   );
   puchase_mapper.associate = function(models) {
