@@ -205,7 +205,7 @@ exports.readByAdmin = async (req, res) => {
 exports.updateByAdmin = async (req, res) => {
   try {
     /* Allow pre-defined attributes only:  */
-    const POSSIBLE_ATTRIBUTES = ["email", "crn", "name", "type", "mileage", "password", "level"];
+    const POSSIBLE_ATTRIBUTES = ["phone", "email", "crn", "name", "type", "mileage", "password", "level"];
     let newData = {};
     POSSIBLE_ATTRIBUTES.map(
       (attribute) => (newData[attribute] = req.body[attribute])
