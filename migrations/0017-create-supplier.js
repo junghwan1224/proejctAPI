@@ -43,6 +43,10 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true,
       },
+      staff_id: {
+        type: Sequelize.UUID,
+        allowNull: true,
+      },
       memo: {
         type: Sequelize.TEXT,
         allowNull: true,

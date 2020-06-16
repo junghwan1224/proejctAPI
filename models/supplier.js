@@ -13,6 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       alias: DataTypes.STRING,
       worker: DataTypes.STRING,
       worker_poc: DataTypes.STRING,
+      staff_id: DataTypes.UUID,
       memo: DataTypes.TEXT,
     },
     {
@@ -25,6 +26,12 @@ module.exports = (sequelize, DataTypes) => {
       },
     }
   );
-  supplier.associate = function (models) {};
+  supplier.associate = function (models) {
+    supplier.belongsTo(models.staff, {
+      foreignKey: "staff_id",
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    });
+  };
   return supplier;
 };
