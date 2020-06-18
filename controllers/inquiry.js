@@ -3,6 +3,7 @@
 const nodemailer = require("nodemailer");
 
 const S3 = require("../controllers/common/s3");
+const verifyToken = require("../routes/verifyToken").verifyToken;
 const Inquiry = require("../models").inquiry;
 const Staff = require("../models").staff;
 
@@ -133,9 +134,9 @@ exports.createByUser = async (req, res) => {
 
       fileList = await S3.getFileList(s3Path);
     }
-
     if (flag) {
       await Inquiry.create({
+        account_id: await verifyToken(req.headers.authorization, "user"),
         phone: fabricatedPhone,
         email: poc,
         type,
@@ -164,20 +165,19 @@ exports.readByAdmin = async (req, res) => {
     });
 
     let staff = null;
-    if(inquiry.dataValues.staff_id) {
+    if (inquiry.dataValues.staff_id) {
       staff = await Staff.findOne({
         where: { id: inquiry.dataValues.staff_id },
-        attributes: ["name"]
+        attributes: ["name"],
       });
     }
 
     return res.status(200).send({
       inquiry,
       staff,
-      separator: Separator
+      separator: Separator,
     });
-  }
-  catch(err) {
+  } catch (err) {
     console.log(err);
     return res.status(400).send();
   }
@@ -190,15 +190,14 @@ exports.updateByAdmin = async (req, res) => {
 
     const data = {};
     data["staff_id"] = staff_id;
-    if(req.body.status) data["status"] = req.body.status;
+    if (req.body.status) data["status"] = req.body.status;
 
     await Inquiry.update(data, {
-      where: { id: inquiry_id }
+      where: { id: inquiry_id },
     });
 
     return res.status(200).send();
-  }
-  catch(err) {
+  } catch (err) {
     console.log(err);
     return res.status(400).send();
   }
