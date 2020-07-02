@@ -8,6 +8,8 @@ module.exports = (app) => {
   const staff = require("../controllers/staff");
   const staffList = require("../controllers/staffList");
 
+  const warehouse = require("../controllers/warehouse");
+
   const ADMIN_ROUTE = "/admin";
   /**
    * @name CORE
@@ -33,4 +35,16 @@ module.exports = (app) => {
     .get(permission.verify(staffList.readByAdmin, PTYPE.READ_STAFF));
   /* ----------------------------------------------------------------------- */
 
+  /**
+   * @name WAREHOUSE
+   * @description Warehouse Related Routes
+   * ----------------------------------------------------------------------- */
+  app
+    .route(ADMIN_ROUTE + "/warehouse")
+    .all(verifyToken.authStaff)
+    .get(permission.verify(warehouse.readByAdmin, PTYPE.READ_WAREHOUSE))
+    .post(permission.verify(warehouse.createByAdmin, PTYPE.CREATE_WAREHOUSE))
+    .put(permission.verify(warehouse.updateByAdmin, PTYPE.EDIT_WAREHOUSE))
+    .delete(permission.verify(warehouse.deleteByAdmin, PTYPE.EDIT_WAREHOUSE));
+  /* ----------------------------------------------------------------------- */
 };
