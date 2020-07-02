@@ -46,11 +46,6 @@ const calculateMod = (str, mod) => {
 };
 
 const TYPE = {
-  /* 쇼핑몰 계정 관리 권한: */
-  CREATE_ACCOUNT: 2,
-  READ_ACCOUNT: 3,
-  EDIT_ACCOUNT: 5,
-
   /* 제품 관리 권한: */
   CREATE_PRODUCT: 7,
   READ_PRODUCT: 11,
@@ -61,25 +56,20 @@ const TYPE = {
   READ_STAFF: 19,
   EDIT_STAFF: 23,
 
-  /* 주문, 배송 관련 권한: */
+  /* 주문 관련 권한: */
   CREATE_ORDER: 29,
   READ_ORDER: 31,
   EDIT_ORDER: 37,
 
   /* 거래처 관련 권한: */
-  CREATE_SUPPLIER: 41,
-  READ_SUPPLIER: 43,
-  EDIT_SUPPLIER: 47,
+  CREATE_CLIENT: 41,
+  READ_CLIENT: 43,
+  EDIT_CLIENT: 47,
 
-  /* 국내 매입 관리 권한: */
-  CREATE_DPURCHASE: 53,
-  READ_DPURCHASE: 59,
-  EDIT_DPURCHASE: 61,
-
-  /* 쇼핑몰 문의하기 관련 권한: */
-  CREATE_INQUIRY: 67,
-  READ_INQUIRY: 71,
-  EDIT_INQUIRY: 73,
+  /* 창고 관리 권한: */
+  CREATE_WAREHOUSE: 53,
+  READ_WAREHOUSE: 59,
+  EDIT_WAREHOUSE: 61,
 };
 
 const multiply = (a, b) => {
