@@ -22,14 +22,14 @@ module.exports = (app) => {
    * ----------------------------------------------------------------------- */
   app
     .route(ADMIN_ROUTE + "/staff")
-    .all(verifyToken.authAdmin)
+    .all(verifyToken.authStaff)
     .post(permission.verify(staff.createByAdmin, PTYPE.CREATE_STAFF))
     .get(permission.verify(staff.readByAdmin, PTYPE.READ_STAFF))
     .put(permission.verify(staff.updateByAdmin, PTYPE.EDIT_STAFF))
     .delete(permission.verify(staff.deleteByAdmin, PTYPE.EDIT_STAFF));
   app
     .route(ADMIN_ROUTE + "/staff-list")
-    .all(verifyToken.authAdmin)
+    .all(verifyToken.authStaff)
     .get(permission.verify(staffList.readByAdmin, PTYPE.READ_STAFF));
   /* ----------------------------------------------------------------------- */
 
