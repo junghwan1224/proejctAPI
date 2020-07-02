@@ -5,8 +5,8 @@ module.exports = (sequelize, DataTypes) => {
   const inventory = sequelize.define(
     "inventory",
     {
-      product: DataTypes.UUID,
-      warehouse: DataTypes.UUID,
+      product_id: DataTypes.UUID,
+      warehouse_id: DataTypes.UUID,
       sector: DataTypes.STRING,
       quantity: DataTypes.INTEGER,
       ea_per_unit: DataTypes.INTEGER
@@ -24,13 +24,13 @@ module.exports = (sequelize, DataTypes) => {
   );
   inventory.associate = function (models) {
     inventory.belongsTo(models.product, {
-        foreignKey: "product",
+        foreignKey: "product_id",
         onDelete: "cascade",
         onUpdate: "cascade"
     });
 
     inventory.belongsTo(models.warehouse, {
-        foreignKey: "warehouse",
+        foreignKey: "warehouse_id",
         onDelete: "cascade",
         onUpdate: "cascade"
     });

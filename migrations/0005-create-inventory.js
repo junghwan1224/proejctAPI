@@ -11,7 +11,7 @@ module.exports = {
         defaultValue: () => uuid(),
         type: Sequelize.UUID,
       },
-      product: {
+      product_id: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
@@ -21,7 +21,7 @@ module.exports = {
         onDelete: "CASCADE",
         onUpdate: "CASCADE"
       },
-      warehouse: {
+      warehouse_id: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
