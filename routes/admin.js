@@ -41,6 +41,10 @@ module.exports = (app) => {
    * ----------------------------------------------------------------------- */
   app
     .route(ADMIN_ROUTE + "/warehouse")
-    .post(warehouse.createByAdmin);
+    .all(verifyToken.authStaff)
+    .get(permission.verify(warehouse.readByAdmin, PTYPE.READ_WAREHOUSE))
+    .post(permission.verify(warehouse.createByAdmin, PTYPE.CREATE_WAREHOUSE))
+    .put(permission.verify(warehouse.updateByAdmin, PTYPE.EDIT_WAREHOUSE))
+    .delete(permission.verify(warehouse.deleteByAdmin, PTYPE.EDIT_WAREHOUSE));
   /* ----------------------------------------------------------------------- */
 };
