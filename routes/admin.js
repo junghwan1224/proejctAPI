@@ -8,6 +8,8 @@ module.exports = (app) => {
   const staff = require("../controllers/staff");
   const staffList = require("../controllers/staffList");
 
+  const warehouse = require("../controllers/warehouse");
+
   const ADMIN_ROUTE = "/admin";
   /**
    * @name CORE
@@ -33,4 +35,12 @@ module.exports = (app) => {
     .get(permission.verify(staffList.readByAdmin, PTYPE.READ_STAFF));
   /* ----------------------------------------------------------------------- */
 
+  /**
+   * @name WAREHOUSE
+   * @description Warehouse Related Routes
+   * ----------------------------------------------------------------------- */
+  app
+    .route(ADMIN_ROUTE + "/warehouse")
+    .post(warehouse.createByAdmin);
+  /* ----------------------------------------------------------------------- */
 };
