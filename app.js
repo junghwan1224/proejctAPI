@@ -53,10 +53,8 @@ app.use(
 );
 
 // Routes for user and admin:
-const userRouter = require("./routes/user");
 const adminRouter = require("./routes/admin");
 const acmeChallengeRouter = require("./routes/acmeChallenge");
-userRouter(app);
 adminRouter(app);
 acmeChallengeRouter(app);
 
