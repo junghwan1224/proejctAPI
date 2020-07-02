@@ -1,0 +1,46 @@
+"use strict";
+const bcrypt = require("bcryptjs");
+const uuid = require("uuid/v4");
+
+module.exports = (sequelize, DataTypes) => {
+  const client = sequelize.define(
+    "client",
+    {
+      name: DataTypes.STRING,
+      crn: DataTypes.STRING,
+      business_type: DataTypes.STRING,
+      business_item: DataTypes.STRING,
+      representative: DataTypes.STRING,
+      poc1: DataTypes.STRING,
+      poc2: DataTypes.STRING,
+      ƒax: DataTypes.STRING,
+      worker: DataTypes.STRING,
+      worker_email: DataTypes.STRING,
+      worker_poc: DataTypes.STRING,
+      staff_id: DataTypes.UUID,
+      default_price_type: DataTypes.STRING,
+      postcode: DataTypes.STRING,
+      address: DataTypes.STRING,
+      trade_type: DataTypes.STRING,
+      memo: DataTypes.TEXT,
+    },
+    {
+      hooks: {
+        beforeCreate: (client, options) => {
+          {
+            //add uuid for id
+            client.id = uuid();
+          }
+        },
+      },
+    }
+  );
+  client.associate = function (models) {
+      client.belongsTo(models.staff, {
+          foreignKey: "staff_id",
+          onDelete: "set null",
+          onUpdate: "cascade"
+      });
+  };
+  return client;
+};
