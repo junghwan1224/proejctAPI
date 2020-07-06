@@ -61,16 +61,19 @@ module.exports = {
         // 거래처 담당자명
         type: Sequelize.STRING,
         allowNull: false,
+        defaultValue: "",
       },
       worker_email: {
         // 거래처 담당자 이메일
         type: Sequelize.STRING,
         allowNull: false,
+        defaultValue: "",
       },
       worker_poc: {
         // 거래처 담당자 연락처
         type: Sequelize.STRING,
         allowNull: false,
+        defaultValue: "",
       },
       staff_id: {
         // 담당 사원
