@@ -1,4 +1,4 @@
-const fields = [
+module.exports = [
     {
         name: "email",
         type: "str",

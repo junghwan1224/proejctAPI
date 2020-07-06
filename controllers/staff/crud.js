@@ -3,25 +3,15 @@
 const bcrypt = require("bcryptjs");
 const Staff = require("../../models").staff;
 const PERMISSION_TYPE = require("../../routes/permission").TYPE;
+const Fields = require("./fields");
 const calculateMod = require("../../routes/permission").calculateMod;
 const multiply = require("../../routes/permission").multiply;
+const validate = require("../common/validate");
 
 exports.createByAdmin = async (req, res) => {
   /* If phone, password, name are not included, return 400: */
-  if (
-    !(
-      req.body.email &&
-      req.body.password &&
-      req.body.name &&
-      req.body.phone &&
-      req.body.department &&
-      req.body.rank &&
-      req.body.permission
-    )
-  ) {
-    return res.status(400).send({
-      message: "필요한 정보를 모두 입력해주세요.",
-    });
+  if(! validate(Fields, req.body)) {
+    return res.status(400).send();
   }
 
   /* If the email is already registered, raise 400: */
