@@ -5,7 +5,7 @@ module.exports = (app) => {
 
   const login = require("../controllers/login");
 
-  const staff = require("../controllers/staff");
+  const staff = require("../controllers/staff/crud");
   const staffList = require("../controllers/staffList");
 
   const warehouse = require("../controllers/warehouse");
