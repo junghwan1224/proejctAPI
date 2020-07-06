@@ -1,10 +1,10 @@
 "use strict";
 
 const bcrypt = require("bcryptjs");
-const Staff = require("../models").staff;
-const PERMISSION_TYPE = require("../routes/permission").TYPE;
-const calculateMod = require("../routes/permission").calculateMod;
-const multiply = require("../routes/permission").multiply;
+const Staff = require("../../models").staff;
+const PERMISSION_TYPE = require("../../routes/permission").TYPE;
+const calculateMod = require("../../routes/permission").calculateMod;
+const multiply = require("../../routes/permission").multiply;
 
 exports.createByAdmin = async (req, res) => {
   /* If phone, password, name are not included, return 400: */
