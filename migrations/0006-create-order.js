@@ -34,22 +34,25 @@ module.exports = {
       },
       client_id: {
         // 거래처 ID 혹은 상호명 문자열
-        allowNull: true,
-        type: Sequelize.UUID,
+        allowNull: false,
+        defaultValue: "",
+        type: Sequelize.STRING,
       },
       staff_id: {
         // 거래 등록 사원 외래키
-        allowNull: true,
+        allowNull: false,
         type: Sequelize.STRING,
       },
       foreign_info: {
         // 해외 거래일 경우 관련 정보, 환율 등...
-        allowNull: true,
+        allowNull: false,
+        defaultValue: {},
         type: Sequelize.JSON,
       },
       memo: {
         // 메모
-        allowNull: true,
+        allowNull: false,
+        defaultValue: "",
         type: Sequelize.TEXT,
       },
       classification: {
@@ -64,12 +67,14 @@ module.exports = {
       },
       attachments: {
         // 첨부파일
-        allowNull: true,
+        allowNull: false,
+        defaultValue: {},
         type: Sequelize.JSON,
       },
       reference: {
         // 참고자료, 통관일 경우 어떤 주문에 대한 통관인지 등록할 수 있음
-        allowNull: true,
+        allowNull: false,
+        defaultValue: {},
         type: Sequelize.JSON,
       },
       createdAt: {

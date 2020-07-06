@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
       items: DataTypes.JSON,
       vat: DataTypes.BOOLEAN,
       paid_amount: DataTypes.INTEGER,
-      client_id: DataTypes.UUID,
+      client_id: DataTypes.STRING,
       staff_id: DataTypes.STRING,
       foreign_info: DataTypes.JSON,
       memo: DataTypes.TEXT,
