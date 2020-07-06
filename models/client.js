@@ -17,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
       worker: DataTypes.STRING,
       worker_email: DataTypes.STRING,
       worker_poc: DataTypes.STRING,
-      staff_id: DataTypes.UUID,
+      staff_id: DataTypes.STRING,
       default_price_type: DataTypes.STRING,
       postcode: DataTypes.STRING,
       address: DataTypes.STRING,
@@ -36,11 +36,11 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
   client.associate = function (models) {
-      client.belongsTo(models.staff, {
-          foreignKey: "staff_id",
-          onDelete: "set null",
-          onUpdate: "cascade"
-      });
+    client.belongsTo(models.staff, {
+      foreignKey: "staff_id",
+      onDelete: "set null",
+      onUpdate: "cascade",
+    });
   };
   return client;
 };

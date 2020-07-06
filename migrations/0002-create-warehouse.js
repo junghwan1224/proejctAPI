@@ -21,7 +21,8 @@ module.exports = {
       },
       memo: {
         type: Sequelize.TEXT,
-        allowNull: true,
+        allowNull: false,
+        defaultValue: "",
       },
       createdAt: {
         allowNull: false,
