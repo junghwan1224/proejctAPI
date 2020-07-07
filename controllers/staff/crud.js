@@ -5,9 +5,7 @@ import permission from "../../routes/permission";
 import Fields from './fields';
 import validate from '../common/validate';
 
-const PERMISSION_TYPE = permission.TYPE;
-const calculateMod = permission.calculateMod;
-const multiply = permission.multiply;
+const { TYPE: PERMISSION_TYPE, calculateMod, multiply } = permission;
 
 const createByAdmin = async (req, res) => {
   /* If phone, password, name are not included, return 400: */
