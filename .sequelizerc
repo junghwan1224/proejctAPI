@@ -1,0 +1,9 @@
+# npx sequelize-cli db:migrate --url 'mysql://root@localhost/ark'
+
+"use strict";
+
+const path = require("path");
+
+module.exports = {
+  "migrations-path": path.join(__dirname, "migrations"),
+};
