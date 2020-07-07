@@ -1,10 +1,10 @@
 import verifyToken from './verifyToken';
 import permission from './permission';
 
-import login from '../controllers/login';
+import login from '../controllers/core/login';
 import staff from '../controllers/staff/crud';
-import staffList from '../controllers/staffList';
-import warehouse from '../controllers/warehouse';
+import staffList from '../controllers/list/staff';
+import warehouse from '../controllers/warehouse/crud';
 
 module.exports = (app) => {
   const PTYPE = permission.TYPE;

@@ -1,6 +1,6 @@
 "use strict";
 
-const WareHouse = require("../models").warehouse;
+const WareHouse = require("../../models").warehouse;
 
 exports.createByAdmin = async (req, res) => {
     try {

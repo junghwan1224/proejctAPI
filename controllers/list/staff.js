@@ -1,6 +1,6 @@
 "use strict";
 
-const Staff = require("../models").staff;
+const Staff = require("../../models").staff;
 
 exports.readByAdmin = async (req, res) => {
   try {
