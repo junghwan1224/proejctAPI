@@ -3,12 +3,12 @@ module.exports = (app) => {
   const permission = require("./permission");
   const PTYPE = permission.TYPE;
 
-  const login = require("../controllers/login");
+  const login = require("../controllers/core/login");
 
   const staff = require("../controllers/staff/crud");
-  const staffList = require("../controllers/staffList");
+  const staffList = require("../controllers/list/staff");
 
-  const warehouse = require("../controllers/warehouse");
+  const warehouse = require("../controllers/warehouse/crud");
 
   const ADMIN_ROUTE = "/admin";
   /**
