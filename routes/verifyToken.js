@@ -45,4 +45,4 @@ const authStaff = async (req, res, next) => {
   }
 };
 
-module.exports = { authStaff };
+export default authStaff;
