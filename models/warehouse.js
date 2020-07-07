@@ -1,6 +1,6 @@
-"use strict";
-const uuid = require("uuid/v4");
-module.exports = (sequelize, DataTypes) => {
+import uuid from "uuid";
+
+export default (sequelize, DataTypes) => {
   const warehouse = sequelize.define(
     "warehouse",
     {
@@ -12,13 +12,13 @@ module.exports = (sequelize, DataTypes) => {
       hooks: {
         beforeCreate: (warehouse, options) => {
           {
-            warehouse.id = uuid();
+            warehouse.id = uuid.v4();
           }
-        }
-      }
+        },
+      },
     }
   );
-  warehouse.associate = function(models) {
+  warehouse.associate = function (models) {
     // associations can be defined here
   };
   return warehouse;

@@ -1,7 +1,6 @@
-"use strict";
-const uuid = require("uuid/v4");
+import uuid from "uuid";
 
-module.exports = (sequelize, DataTypes) => {
+export default (sequelize, DataTypes) => {
   const order = sequelize.define(
     "order",
     {
@@ -23,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
         beforeCreate: (order, options) => {
           {
             //add uuid for id
-            order.id = uuid();
+            order.id = uuid.v4();
           }
         },
       },

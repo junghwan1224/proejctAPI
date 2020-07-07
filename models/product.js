@@ -1,5 +1,4 @@
-"use strict";
-const uuid = require("uuid/v4");
+import uuid from "uuid";
 
 module.exports = (sequelize, DataTypes) => {
   const product = sequelize.define(
@@ -16,14 +15,14 @@ module.exports = (sequelize, DataTypes) => {
       price_e: DataTypes.INTEGER,
       essential_stock: DataTypes.INTEGER,
       memo: DataTypes.TEXT,
-      image: DataTypes.TEXT
+      image: DataTypes.TEXT,
     },
     {
       hooks: {
         beforeCreate: (product, options) => {
           {
             //add uuid for id
-            product.id = uuid();
+            product.id = uuid.v4();
           }
         },
       },
