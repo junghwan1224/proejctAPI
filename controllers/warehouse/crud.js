@@ -1,8 +1,6 @@
-"use strict";
+import models from "../../models";
 
-const WareHouse = require("../../models").warehouse;
-
-exports.createByAdmin = async (req, res) => {
+const createByAdmin = async (req, res) => {
     try {
         const { name, location, memo } = req.body;
 
@@ -12,7 +10,7 @@ exports.createByAdmin = async (req, res) => {
         const data = { name, location };
         if(memo) data.memo = memo;
 
-        await WareHouse.create(data);
+        await models.warehouse.create(data);
 
         return res.status(201).send();
     }
@@ -22,11 +20,11 @@ exports.createByAdmin = async (req, res) => {
     }
 };
 
-exports.readByAdmin = async (req, res) => {
+const readByAdmin = async (req, res) => {
     try {
         const { warehouse_id } = req.query;
 
-        const warehouseInfo = await WareHouse.findOne({
+        const warehouseInfo = await models.warehouse.findOne({
             where: { id: warehouse_id },
             attributes: {
                 exclude: ["createdAt", "updatedAt"]
@@ -41,7 +39,7 @@ exports.readByAdmin = async (req, res) => {
     }
 };
 
-exports.updateByAdmin = async (req, res) => {
+const updateByAdmin = async (req, res) => {
     try {
         const POSSIBLE_ATTRIBUTES = ["name", "location", "memo"];
         const newData = {};
@@ -51,7 +49,7 @@ exports.updateByAdmin = async (req, res) => {
 
         const { warehouse_id } = req.body;
 
-        await WareHouse.update(newData, {
+        await models.warehouse.update(newData, {
             where: { id: warehouse_id }
         });
 
@@ -63,11 +61,11 @@ exports.updateByAdmin = async (req, res) => {
     }
 };
 
-exports.deleteByAdmin = async (req, res) => {
+const deleteByAdmin = async (req, res) => {
     try {
         const { warehouse_id } = req.query;
         
-        await WareHouse.destroy({
+        await models.warehouse.destroy({
             where: { id: warehouse_id }
         });
 
@@ -78,3 +76,5 @@ exports.deleteByAdmin = async (req, res) => {
         return res.status(400).send();
     }
 };
+
+export default { readByAdmin, createByAdmin, updateByAdmin, deleteByAdmin };

@@ -1,11 +1,11 @@
-const AWS = require("aws-sdk");
+import AWS from 'aws-sdk';
 
 AWS.config.update({
   accessKeyId: process.env.S3_KEY,
   secretAccessKey: process.env.S3_SECRET,
 });
 
-exports.uploadFile = async (fileContent, mimeType, key) => {
+const uploadFile = async (fileContent, mimeType, key) => {
   /**
    * Params:
    *   - fileContent: filedata Buffer
@@ -31,7 +31,7 @@ exports.uploadFile = async (fileContent, mimeType, key) => {
   }
 };
 
-exports.readFile = async (key) => {
+const readFile = async (key) => {
   /**
    * Params:
    *   - key: the absolute path of the remote file.
@@ -53,7 +53,7 @@ exports.readFile = async (key) => {
   }
 };
 
-exports.getFileList = async (prefix) => {
+const getFileList = async (prefix) => {
   /**
    * Params:
    *   - prefix: prefix for the data. (e.g. It can be the name of directory)
@@ -76,7 +76,7 @@ exports.getFileList = async (prefix) => {
   }
 };
 
-exports.deleteFile = async (key) => {
+const deleteFile = async (key) => {
   /**
    * Params:
    *   - key: the absolute path of the remote file.
@@ -97,3 +97,5 @@ exports.deleteFile = async (key) => {
   }
   return;
 };
+
+export default { uploadFile, readFile, getFileList, deleteFile };

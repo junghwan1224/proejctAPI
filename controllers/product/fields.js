@@ -1,4 +1,4 @@
-module.exports = [
+export default [
     {
         // 제품명
         name: "name",

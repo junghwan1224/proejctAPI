@@ -1,14 +1,15 @@
-"use strict";
+import bcrypt from 'bcryptjs';
 
-const bcrypt = require("bcryptjs");
-const Staff = require("../../models").staff;
-const PERMISSION_TYPE = require("../../routes/permission").TYPE;
-const Fields = require("./fields");
-const calculateMod = require("../../routes/permission").calculateMod;
-const multiply = require("../../routes/permission").multiply;
-const validate = require("../common/validate");
+import models from "../../models";
+import permission from "../../routes/permission";
+import Fields from './fields';
+import validate from '../common/validate';
 
-exports.createByAdmin = async (req, res) => {
+const PERMISSION_TYPE = permission.TYPE;
+const calculateMod = permission.calculateMod;
+const multiply = permission.multiply;
+
+const createByAdmin = async (req, res) => {
   /* If phone, password, name are not included, return 400: */
   if(! validate(Fields, req.body)) {
     return res.status(400).send();
@@ -16,7 +17,7 @@ exports.createByAdmin = async (req, res) => {
 
   /* If the email is already registered, raise 400: */
   try {
-    const response = await Staff.findOne({
+    const response = await models.staff.findOne({
       where: { email: req.body.email },
     });
     if (response) {
@@ -45,7 +46,7 @@ exports.createByAdmin = async (req, res) => {
 
   /* Create account, with level set to "UNCONFIRMED" : */
   try {
-    await Staff.create({
+    await models.staff.create({
       email: req.body.email,
       password: req.body.password,
       name: req.body.name,
@@ -63,9 +64,9 @@ exports.createByAdmin = async (req, res) => {
   }
 };
 
-exports.readByAdmin = async (req, res) => {
+const readByAdmin = async (req, res) => {
   try {
-    const response = await Staff.findOne({
+    const response = await models.staff.findOne({
       where: { id: req.query.staff_id },
       attributes: {
         exclude: ["password"],
@@ -95,7 +96,7 @@ exports.readByAdmin = async (req, res) => {
   }
 };
 
-exports.updateByAdmin = async (req, res) => {
+const updateByAdmin = async (req, res) => {
   /* Allow pre-defined attributes only:  */
   const POSSIBLE_ATTRIBUTES = [
     "email",
@@ -124,7 +125,7 @@ exports.updateByAdmin = async (req, res) => {
 
   /* Verify whether the staff exists: */
   try {
-    const response = await Staff.findOne({
+    const response = await models.staff.findOne({
       where: {
         id: req.body.staff_id,
       },
@@ -160,7 +161,7 @@ exports.updateByAdmin = async (req, res) => {
 
   /* Return attributes based on the user request(parameters): */
   try {
-    await Staff.update(newData, {
+    await models.staff.update(newData, {
       where: {
         id: req.body.staff_id,
       },
@@ -175,7 +176,7 @@ exports.updateByAdmin = async (req, res) => {
   }
 };
 
-exports.deleteByAdmin = async (req, res) => {
+const deleteByAdmin = async (req, res) => {
   /* Send 400 if account_id is not given: */
   try {
     const { staff_id } = req.query;
@@ -186,7 +187,7 @@ exports.deleteByAdmin = async (req, res) => {
       });
     }
     /* Verify whether the user exists: */
-    const response = await Staff.findOne({
+    const response = await models.staff.findOne({
       where: { id: staff_id },
     });
     if (!response) {
@@ -196,7 +197,7 @@ exports.deleteByAdmin = async (req, res) => {
     }
 
     /* Delete account data from the DB: */
-    await Staff.destroy({
+    await models.staff.destroy({
       where: { id: staff_id },
       limit: 1,
     });
@@ -207,3 +208,5 @@ exports.deleteByAdmin = async (req, res) => {
       .send({ message: "에러가 발생했습니다. 다시 시도해주세요." });
   }
 };
+
+export default { readByAdmin, createByAdmin, updateByAdmin, deleteByAdmin };
