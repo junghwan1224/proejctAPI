@@ -1,8 +1,8 @@
 "use strict";
 
-import models from "../models";
+import models from "../../models";
 
-exports.readByAdmin = async (req, res) => {
+const readByAdmin = async (req, res) => {
   try {
     const response = await models.staff.findAll({
       attributes: {
@@ -16,3 +16,5 @@ exports.readByAdmin = async (req, res) => {
       .send({ message: "에러가 발생했습니다. 잠시 후 다시 시도해주세요." });
   }
 };
+
+export default { readByAdmin };

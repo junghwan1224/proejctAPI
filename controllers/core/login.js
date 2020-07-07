@@ -1,64 +1,11 @@
-"use strict";
+import bcrypt from 'bcryptjs';
+import { sign as JwtSign } from "jsonwebtoken";
 
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-
-const Staff = require("../models").staff;
-const Account = require("../models").account;
+import models from "../../models";
 
 const JWT_STAFF_SECRET = process.env.JWT_STAFF_SECRET;
-const JWT_SECRET = process.env.JWT_SECRET;
 
-exports.loginByUser = async (req, res) => {
-  const { phone, password } = req.body;
-
-  if (phone === undefined || phone === null || phone.length === 0) {
-    return res.status(400).send({ message: "연락처를 입력해주세요." });
-  }
-  if (password === undefined || password === null || password.length === 0) {
-    return res.status(400).send({ message: "비밀번호를 입력해주세요." });
-  }
-
-  try {
-    const account = await Account.findOne({
-      where: {
-        phone,
-      },
-    });
-
-    if (account) {
-      const { id, name, level } = account.dataValues;
-      if (bcrypt.compareSync(password, account.dataValues.password)) {
-        // create JWT and send data.
-        let token = jwt.sign({ id }, JWT_SECRET, {
-          expiresIn: "15 days",
-        });
-
-        res.cookie("user", token);
-        return res.status(200).send({
-          id,
-          name,
-          phone,
-          level,
-          token,
-        });
-      } else {
-        return res
-          .status(400)
-          .send({ message: "아이디 또는 비밀번호가 일치하지 않습니다." });
-      }
-    } else {
-      return res.status(400).send({ message: "가입되지 않은 전화번호입니다." });
-    }
-  } catch (err) {
-    console.log(err);
-    return res.status(400).send({
-      message: "에러가 발생했습니다. 잠시 후 다시 시도해주세요.",
-    });
-  }
-};
-
-exports.loginByAdmin = async (req, res) => {
+const loginByAdmin = async (req, res) => {
   const { email, password } = req.body;
 
   if (email === undefined || email === null || email.length === 0) {
@@ -70,7 +17,7 @@ exports.loginByAdmin = async (req, res) => {
   }
 
   try {
-    const staff = await Staff.findOne({
+    const staff = await models.staff.findOne({
       where: {
         email,
       },
@@ -80,7 +27,7 @@ exports.loginByAdmin = async (req, res) => {
       const { id, name, department } = staff.dataValues;
       if (bcrypt.compareSync(password, staff.dataValues.password)) {
         // create JWT and send data.
-        let token = jwt.sign({ id }, JWT_STAFF_SECRET, {
+        let token = JwtSign({ id }, JWT_STAFF_SECRET, {
           expiresIn: "15 days",
         });
 
@@ -107,3 +54,5 @@ exports.loginByAdmin = async (req, res) => {
       .send({ message: "에러가 발생했습니다. 잠시 후 다시 시도해주세요." });
   }
 };
+
+export default loginByAdmin;

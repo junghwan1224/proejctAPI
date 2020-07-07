@@ -1,4 +1,4 @@
-import verifyToken from './verifyToken';
+import { authStaff } from './verifyToken';
 import permission from './permission';
 
 import login from '../controllers/core/login';
@@ -14,7 +14,7 @@ module.exports = (app) => {
    * @name CORE
    * @description Core Routes:
    * ----------------------------------------------------------------------- */
-  app.route(ADMIN_ROUTE + "/login").post(login.loginByAdmin);
+  app.route(ADMIN_ROUTE + "/login").post(login);
   /* ----------------------------------------------------------------------- */
 
   /**
@@ -23,14 +23,14 @@ module.exports = (app) => {
    * ----------------------------------------------------------------------- */
   app
     .route(ADMIN_ROUTE + "/staff")
-    .all(verifyToken.authStaff)
+    .all(authStaff)
     .post(permission.verify(staff.createByAdmin, PTYPE.CREATE_STAFF))
     .get(permission.verify(staff.readByAdmin, PTYPE.READ_STAFF))
     .put(permission.verify(staff.updateByAdmin, PTYPE.EDIT_STAFF))
     .delete(permission.verify(staff.deleteByAdmin, PTYPE.EDIT_STAFF));
   app
     .route(ADMIN_ROUTE + "/staff-list")
-    .all(verifyToken.authStaff)
+    .all(authStaff)
     .get(permission.verify(staffList.readByAdmin, PTYPE.READ_STAFF));
   /* ----------------------------------------------------------------------- */
 
@@ -40,7 +40,7 @@ module.exports = (app) => {
    * ----------------------------------------------------------------------- */
   app
     .route(ADMIN_ROUTE + "/warehouse")
-    .all(verifyToken.authStaff)
+    .all(authStaff)
     .get(permission.verify(warehouse.readByAdmin, PTYPE.READ_WAREHOUSE))
     .post(permission.verify(warehouse.createByAdmin, PTYPE.CREATE_WAREHOUSE))
     .put(permission.verify(warehouse.updateByAdmin, PTYPE.EDIT_WAREHOUSE))
