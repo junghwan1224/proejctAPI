@@ -1,16 +1,15 @@
+import verifyToken from './verifyToken';
+import permission from './permission';
+
+import login from '../controllers/core/login';
+import staff from '../controllers/staff/crud';
+import staffList from '../controllers/list/staff';
+import warehouse from '../controllers/warehouse/crud';
+
 module.exports = (app) => {
-  const verifyToken = require("./verifyToken");
-  const permission = require("./permission");
   const PTYPE = permission.TYPE;
-
-  const login = require("../controllers/login");
-
-  const staff = require("../controllers/staff/crud");
-  const staffList = require("../controllers/staffList");
-
-  const warehouse = require("../controllers/warehouse");
-
   const ADMIN_ROUTE = "/admin";
+  
   /**
    * @name CORE
    * @description Core Routes:
