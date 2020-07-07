@@ -3,8 +3,6 @@ import { sign as JwtSign } from "jsonwebtoken";
 
 import models from "../../models";
 
-const Staff = models.staff;
-
 const JWT_STAFF_SECRET = process.env.JWT_STAFF_SECRET;
 
 const loginByAdmin = async (req, res) => {
@@ -19,7 +17,7 @@ const loginByAdmin = async (req, res) => {
   }
 
   try {
-    const staff = await Staff.findOne({
+    const staff = await models.staff.findOne({
       where: {
         email,
       },
