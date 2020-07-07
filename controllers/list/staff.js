@@ -1,6 +1,6 @@
 "use strict";
 
-import models from "../models";
+import models from "../../models";
 
 exports.readByAdmin = async (req, res) => {
   try {
