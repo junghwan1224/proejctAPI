@@ -8,8 +8,8 @@ import warehouse from '../controllers/warehouse';
 
 module.exports = (app) => {
   const PTYPE = permission.TYPE;
-
   const ADMIN_ROUTE = "/admin";
+  
   /**
    * @name CORE
    * @description Core Routes:
