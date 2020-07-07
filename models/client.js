@@ -1,8 +1,6 @@
-"use strict";
-const bcrypt = require("bcryptjs");
-const uuid = require("uuid/v4");
+import uuid from "uuid";
 
-module.exports = (sequelize, DataTypes) => {
+export default (sequelize, DataTypes) => {
   const client = sequelize.define(
     "client",
     {
@@ -29,7 +27,7 @@ module.exports = (sequelize, DataTypes) => {
         beforeCreate: (client, options) => {
           {
             //add uuid for id
-            client.id = uuid();
+            client.id = uuid.v4();
           }
         },
       },

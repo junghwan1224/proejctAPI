@@ -1,5 +1,5 @@
-const jwt = require("jsonwebtoken");
-const Staff = require("../models").staff;
+import jwt from "jsonwebtoken";
+import models from "../models";
 
 const JWT_STAFF_SECRET = process.env.JWT_STAFF_SECRET;
 /**
@@ -15,7 +15,7 @@ const verifyToken = async (token, type) => {
   });
 
   if (staff_id) {
-    const response = await Staff.findOne({
+    const response = await models.staff.findOne({
       where: { id: staff_id },
     });
     const { id, permission } = response.dataValues;
