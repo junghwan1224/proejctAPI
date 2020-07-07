@@ -1,6 +1,6 @@
 import uuid from "uuid";
 
-module.exports = (sequelize, DataTypes) => {
+export default (sequelize, DataTypes) => {
   const product = sequelize.define(
     "product",
     {

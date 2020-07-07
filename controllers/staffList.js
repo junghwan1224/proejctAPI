@@ -1,10 +1,10 @@
 "use strict";
 
-const Staff = require("../models").staff;
+import models from "../models";
 
 exports.readByAdmin = async (req, res) => {
   try {
-    const response = await Staff.findAll({
+    const response = await models.staff.findAll({
       attributes: {
         exclude: ["password"],
       },
