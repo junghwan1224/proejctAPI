@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken";
+import { verify as JwtVerify } from "jsonwebtoken";
 import models from "../models";
 
 const JWT_STAFF_SECRET = process.env.JWT_STAFF_SECRET;
@@ -7,7 +7,7 @@ const JWT_STAFF_SECRET = process.env.JWT_STAFF_SECRET;
  */
 
 const verifyToken = async (token, type) => {
-  const staff_id = jwt.verify(token, JWT_STAFF_SECRET, (err, decoded) => {
+  const staff_id = JwtVerify(token, JWT_STAFF_SECRET, (err, decoded) => {
     if (err) {
       return null;
     }
@@ -33,7 +33,7 @@ const verifyToken = async (token, type) => {
 };
 
 // authenticate admin
-const authStaff = async (req, res, next) => {
+export const authStaff = async (req, res, next) => {
   const { authorization } = req.headers;
   const data = await verifyToken(authorization, "admin");
   if (data) {
@@ -44,5 +44,3 @@ const authStaff = async (req, res, next) => {
     return res.status(403).send();
   }
 };
-
-export default authStaff;
