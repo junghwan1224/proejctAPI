@@ -1,5 +1,5 @@
 
-exports.createByAdmin = async (req, res) => {
+const createByAdmin = async (req, res) => {
     try {}
     catch(err) {
         console.log(err);
@@ -7,7 +7,7 @@ exports.createByAdmin = async (req, res) => {
     }
 };
 
-exports.readByAdmin = async (req, res) => {
+const readByAdmin = async (req, res) => {
     try {}
     catch(err) {
         console.log(err);
@@ -15,7 +15,7 @@ exports.readByAdmin = async (req, res) => {
     }
 };
 
-exports.updateByAdmin = async (req, res) => {
+const updateByAdmin = async (req, res) => {
     try {}
     catch(err) {
         console.log(err);
@@ -23,10 +23,12 @@ exports.updateByAdmin = async (req, res) => {
     }
 };
 
-exports.deleteByAdmin = async (req, res) => {
+const deleteByAdmin = async (req, res) => {
     try {}
     catch(err) {
         console.log(err);
         return res.status(400).send();
     }
 };
+
+export default { readByAdmin, createByAdmin, updateByAdmin, deleteByAdmin };

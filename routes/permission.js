@@ -87,4 +87,4 @@ const multiply = (a, b) => {
   return product.join("").replace(/^0*(\d)/, "$1");
 };
 
-module.exports = { verify, TYPE, calculateMod, multiply };
+export default { verify, TYPE, calculateMod, multiply };

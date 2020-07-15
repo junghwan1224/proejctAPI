@@ -1,4 +1,4 @@
-module.exports = [
+export default [
     {
         name: "product_id",
         type: "str",

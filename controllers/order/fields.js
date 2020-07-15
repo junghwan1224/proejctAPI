@@ -1,4 +1,4 @@
-module.exports = [
+export default [
     {
         // 주문 시각
         name: "date",

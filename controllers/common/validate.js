@@ -70,4 +70,4 @@ const isValidJSON = (value) => {
 // Date 타입 검증
 const isValidDate = (value) => Boolean(Date.parse(value));
 
-module.exports = validateField;
+export default validateField;
