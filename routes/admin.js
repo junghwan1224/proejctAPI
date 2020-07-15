@@ -1,15 +1,15 @@
-import { authStaff } from './verifyToken';
-import permission from './permission';
+import { authStaff } from "./verifyToken";
+import permission from "./permission";
 
-import login from '../controllers/core/login';
-import staff from '../controllers/staff/crud';
-import staffList from '../controllers/list/staff';
-import warehouse from '../controllers/warehouse/crud';
+import login from "../controllers/core/login";
+import staff from "../controllers/staff/crud";
+import staffList from "../controllers/list/staff";
+import warehouse from "../controllers/warehouse/crud";
 
 module.exports = (app) => {
   const PTYPE = permission.TYPE;
   const ADMIN_ROUTE = "/admin";
-  
+
   /**
    * @name CORE
    * @description Core Routes:
@@ -23,6 +23,7 @@ module.exports = (app) => {
    * ----------------------------------------------------------------------- */
   app
     .route(ADMIN_ROUTE + "/staff")
+    // .post(staff.createByAdmin)
     .all(authStaff)
     .post(permission.verify(staff.createByAdmin, PTYPE.CREATE_STAFF))
     .get(permission.verify(staff.readByAdmin, PTYPE.READ_STAFF))
