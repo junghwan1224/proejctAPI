@@ -10,7 +10,7 @@ const { TYPE: PERMISSION_TYPE, calculateMod, multiply } = permission;
 const createByAdmin = async (req, res) => {
   /* If phone, password, name are not included, return 400: */
   if(! validate(Fields, req.body)) {
-    return res.status(400).send();
+    return res.status(400).send({ message: "필수로 입력해야 하는 정보를 입력하지 않으셨습니다." });
   }
 
   /* If the email is already registered, raise 400: */
@@ -116,7 +116,7 @@ const updateByAdmin = async (req, res) => {
     newData.password = bcrypt.hashSync(newData.password, 10);
   }
 
-  if (!req.body.staff_id)
+  if (!req.body.staff_id || !validate(Fields, req.body))
     return res
       .status(400)
       .send({ message: "필요한 정보를 모두 입력해주세요." });
