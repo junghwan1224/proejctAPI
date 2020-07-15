@@ -116,7 +116,7 @@ const updateByAdmin = async (req, res) => {
     newData.password = bcrypt.hashSync(newData.password, 10);
   }
 
-  if (!req.body.staff_id)
+  if (!req.body.staff_id || !validate(Fields, req.body))
     return res
       .status(400)
       .send({ message: "필요한 정보를 모두 입력해주세요." });
