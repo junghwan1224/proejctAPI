@@ -40,9 +40,9 @@ const updateByAdmin = async (req, res) => {
             return res.status(400).send({ message: "필수로 입력해야 하는 정보를 입력하지 않으셨습니다." });
         }
 
-        const response = await models.staff.findOne({
+        const response = await models.product.findOne({
             where: {
-            id: req.body.staff_id,
+            id: req.body.product_id,
             },
         });
         if (!response) {
