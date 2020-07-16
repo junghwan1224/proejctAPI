@@ -5,6 +5,7 @@ import login from '../controllers/core/login';
 import staff from '../controllers/staff/crud';
 import staffList from '../controllers/list/staff';
 import warehouse from '../controllers/warehouse/crud';
+import inventory from '../controllers/inventory/crud';
 
 module.exports = (app) => {
   const PTYPE = permission.TYPE;
@@ -45,5 +46,18 @@ module.exports = (app) => {
     .post(permission.verify(warehouse.createByAdmin, PTYPE.CREATE_WAREHOUSE))
     .put(permission.verify(warehouse.updateByAdmin, PTYPE.EDIT_WAREHOUSE))
     .delete(permission.verify(warehouse.deleteByAdmin, PTYPE.EDIT_WAREHOUSE));
+  /* ----------------------------------------------------------------------- */
+
+  /**
+   * @name INVENTORY
+   * @description Inventory Related Routes
+   */
+  app
+    .route(ADMIN_ROUTE + "/inventory")
+    .all(authStaff)
+    .get(permission.verify(inventory.readByAdmin, PTYPE.READ_WAREHOUSE))
+    .post(permission.verify(inventory.createByAdmin, PTYPE.EDIT_WAREHOUSE))
+    .put(permission.verify(inventory.updateByAdmin, PTYPE.EDIT_WAREHOUSE))
+    .delete(permission.verify(inventory.deleteByAdmin, PTYPE.EDIT_WAREHOUSE))
   /* ----------------------------------------------------------------------- */
 };
