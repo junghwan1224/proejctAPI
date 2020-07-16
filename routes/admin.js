@@ -6,8 +6,7 @@ import staff from '../controllers/staff/crud';
 import staffList from '../controllers/list/staff';
 import warehouse from '../controllers/warehouse/crud';
 import product from "../controllers/product/crud";
-import productUpload from "../controllers/product/upload";
-import upload from '../controllers/product/upload';
+import uploadProductImage from "../controllers/product/uploadImage";
 import verify from 'jsonwebtoken/verify';
 
 module.exports = (app) => {
@@ -64,7 +63,7 @@ module.exports = (app) => {
     .delete(permission.verify(product.deleteByAdmin, PTYPE.EDIT_PRODUCT));
 
   app
-    .route(ADMIN_ROUTE + "/upload")
-    .post(permission.verify(upload, PTYPE.EDIT_PRODUCT));
+    .route(ADMIN_ROUTE + "/upload-image")
+    .post(permission.verify(uploadProductImage, PTYPE.EDIT_PRODUCT));
   /* ----------------------------------------------------------------------- */
 };
