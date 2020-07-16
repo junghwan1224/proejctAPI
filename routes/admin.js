@@ -5,6 +5,10 @@ import login from '../controllers/core/login';
 import staff from '../controllers/staff/crud';
 import staffList from '../controllers/list/staff';
 import warehouse from '../controllers/warehouse/crud';
+import product from "../controllers/product/crud";
+import productUpload from "../controllers/product/upload";
+import upload from '../controllers/product/upload';
+import verify from 'jsonwebtoken/verify';
 
 module.exports = (app) => {
   const PTYPE = permission.TYPE;
@@ -45,5 +49,22 @@ module.exports = (app) => {
     .post(permission.verify(warehouse.createByAdmin, PTYPE.CREATE_WAREHOUSE))
     .put(permission.verify(warehouse.updateByAdmin, PTYPE.EDIT_WAREHOUSE))
     .delete(permission.verify(warehouse.deleteByAdmin, PTYPE.EDIT_WAREHOUSE));
+  /* ----------------------------------------------------------------------- */
+
+  /**
+   * @name PRODUCT
+   * @description Product Related Routes
+   */
+  app
+    .route(ADMIN_ROUTE + "/product")
+    .all(authStaff)
+    .get(permission.verify(product.readByAdmin, PTYPE.READ_PRODUCT))
+    .post(permission.verify(product.createByAdmin, PTYPE.CREATE_PRODUCT))
+    .put(permission.verify(product.updateByAdmin, PTYPE.EDIT_PRODUCT))
+    .delete(permission.verify(product.deleteByAdmin, PTYPE.EDIT_PRODUCT));
+
+  app
+    .route(ADMIN_ROUTE + "/upload")
+    .post(permission.verify(upload, PTYPE.EDIT_PRODUCT));
   /* ----------------------------------------------------------------------- */
 };
