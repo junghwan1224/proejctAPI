@@ -24,21 +24,19 @@ const readByAdmin = async (req, res) => {
 
         const inventory = await models.inventory.findOne({
             where: { id: inventory_id },
+            include: [
+                {
+                    model: models.product,
+                    required: true
+                },
+                {
+                    model: models.warehouse,
+                    required: true
+                }
+            ]
         });
 
-        const { product_id, warehouse_id } = inventory.dataValues;
-
-        const product = await models.product.findOne({
-            where: { id: product_id }
-        });
-
-        const warehouse = await models.warehouse.findOne({
-            where: { id: warehouse_id }
-        });
-
-        return res.status(200).send({
-            inventory, product, warehouse
-        });
+        return res.status(200).send(inventory);
     }
     catch(err) {
         console.log(err);
