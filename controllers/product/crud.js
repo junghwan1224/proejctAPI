@@ -40,12 +40,12 @@ const updateByAdmin = async (req, res) => {
             return res.status(400).send({ message: "필수로 입력해야 하는 정보를 입력하지 않으셨습니다." });
         }
 
-        const response = await models.product.findOne({
+        const product = await models.product.findOne({
             where: {
-            id: req.body.product_id,
+                id: req.body.product_id,
             },
         });
-        if (!response) {
+        if (!product) {
             return res
                 .status(400)
                 .send({ message: "해당 ID에 대한 유저 데이터가 존재하지 않습니다." });
@@ -71,9 +71,7 @@ const updateByAdmin = async (req, res) => {
             (attribute) => (newData[attribute] = req.body[attribute])
         );
 
-        await models.product.udpate(newData, {
-            where: { id: req.body.product_id }
-        });
+        await product.update(newData);
 
         return res.status(200).send();
     }
