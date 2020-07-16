@@ -1,16 +1,14 @@
 import models from "../../models";
+import Fields from './fields';
+import validate from '../common/validate';
 
 const createByAdmin = async (req, res) => {
     try {
-        const { name, location, memo } = req.body;
+        if(! validate(Fields, req.body)) {
+            return res.status(400).send({ message: "필수로 입력해야 하는 정보를 입력하지 않으셨습니다." });
+        }
 
-        if(!name || !location)
-            return res.status(400).send({ message: "필수 정보를 기입해주세요." });
-
-        const data = { name, location };
-        if(memo) data.memo = memo;
-
-        await models.warehouse.create(data);
+        await models.warehouse.create(req.body);
 
         return res.status(201).send();
     }
@@ -41,6 +39,10 @@ const readByAdmin = async (req, res) => {
 
 const updateByAdmin = async (req, res) => {
     try {
+        if(! validate(Fields, req.body)) {
+            return res.status(400).send({ message: "필수로 입력해야 하는 정보를 입력하지 않으셨습니다." });
+        }
+
         const POSSIBLE_ATTRIBUTES = ["name", "location", "memo"];
         const newData = {};
         POSSIBLE_ATTRIBUTES.map(
