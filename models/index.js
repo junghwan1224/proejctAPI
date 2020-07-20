@@ -26,4 +26,10 @@ const models = {
   sequelize: sequelize,
 };
 
+Object.keys(models).forEach(model => {
+  if(models[model].associate) {
+    models[model].associate(models);
+  }
+});
+
 export default models;
