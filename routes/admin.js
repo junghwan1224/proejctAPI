@@ -6,6 +6,9 @@ import staff from '../controllers/staff/crud';
 import staffList from '../controllers/list/staff';
 import warehouse from '../controllers/warehouse/crud';
 import inventory from '../controllers/inventory/crud';
+import product from "../controllers/product/crud";
+import uploadProductImage from "../controllers/product/uploadImage";
+import verify from 'jsonwebtoken/verify';
 
 module.exports = (app) => {
   const PTYPE = permission.TYPE;
@@ -59,5 +62,22 @@ module.exports = (app) => {
     .post(permission.verify(inventory.createByAdmin, PTYPE.EDIT_WAREHOUSE))
     .put(permission.verify(inventory.updateByAdmin, PTYPE.EDIT_WAREHOUSE))
     .delete(permission.verify(inventory.deleteByAdmin, PTYPE.EDIT_WAREHOUSE))
+  /* ----------------------------------------------------------------------- */
+
+  /**
+   * @name PRODUCT
+   * @description Product Related Routes
+   */
+  app
+    .route(ADMIN_ROUTE + "/product")
+    .all(authStaff)
+    .get(permission.verify(product.readByAdmin, PTYPE.READ_PRODUCT))
+    .post(permission.verify(product.createByAdmin, PTYPE.CREATE_PRODUCT))
+    .put(permission.verify(product.updateByAdmin, PTYPE.EDIT_PRODUCT))
+    .delete(permission.verify(product.deleteByAdmin, PTYPE.EDIT_PRODUCT));
+
+  app
+    .route(ADMIN_ROUTE + "/upload-image")
+    .post(permission.verify(uploadProductImage, PTYPE.EDIT_PRODUCT));
   /* ----------------------------------------------------------------------- */
 };
