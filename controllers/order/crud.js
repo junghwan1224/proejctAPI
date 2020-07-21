@@ -43,7 +43,8 @@ const readByAdmin = async (req, res) => {
         const data = {};
         data.order = order;
 
-        if(client_id) {
+        const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+        if(client_id && uuidRegex.test(client_id)) {
             const client = await models.client.findOne({
                 where: { id: client_id }
             });
