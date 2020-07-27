@@ -53,7 +53,7 @@ module.exports = {
         // 메모
         allowNull: false,
         defaultValue: "",
-        type: Sequelize.TEXT,
+        type: Sequelize.STRING(4095),
       },
       classification: {
         // 범주 - INCOME / EXPENSE

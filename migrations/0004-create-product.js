@@ -70,13 +70,13 @@ module.exports = {
       },
       memo: {
         // 메모
-        type: Sequelize.TEXT,
+        type: Sequelize.STRING(4095),
         allowNull: false,
         defaultValue: "",
       },
       image: {
         // 제품 이미지 URL
-        type: Sequelize.TEXT,
+        type: Sequelize.STRING(4095),
         allowNull: false,
         defaultValue: "",
       },

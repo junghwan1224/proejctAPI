@@ -16,11 +16,11 @@ module.exports = {
         allowNull: false,
       },
       location: {
-        type: Sequelize.TEXT,
+        type: Sequelize.STRING(4095),
         allowNull: false,
       },
       memo: {
-        type: Sequelize.TEXT,
+        type: Sequelize.STRING(4095),
         allowNull: false,
         defaultValue: "",
       },
