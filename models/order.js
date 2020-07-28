@@ -20,10 +20,15 @@ export default (sequelize, DataTypes) => {
     {
       hooks: {
         beforeCreate: (order, options) => {
-          {
-            //add uuid for id
-            order.id = uuid.v4();
-          }
+          //add uuid for id
+          order.id = uuid.v4();
+          console.log(order);
+          console.log();
+          console.log(options);
+          // order.items = {};
+          // order.foreign_info = {};
+          // order.attachments = {};
+          // order.reference = {};
         },
       },
     }

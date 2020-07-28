@@ -9,10 +9,15 @@ import inventory from '../controllers/inventory/crud';
 import product from "../controllers/product/crud";
 import uploadProductImage from "../controllers/product/uploadImage";
 import verify from 'jsonwebtoken/verify';
+import client from '../controllers/client/crud';
 
 module.exports = (app) => {
   const PTYPE = permission.TYPE;
   const ADMIN_ROUTE = "/admin";
+
+  app
+    .route(ADMIN_ROUTE + '/client')
+    .post(client.createByAdmin)
   
   /**
    * @name CORE
