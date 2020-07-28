@@ -20,7 +20,7 @@ export default (sequelize, DataTypes) => {
       postcode: DataTypes.STRING,
       address: DataTypes.STRING,
       trade_type: DataTypes.STRING,
-      memo: DataTypes.TEXT,
+      memo: DataTypes.STRING,
     },
     {
       hooks: {

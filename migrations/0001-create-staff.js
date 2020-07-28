@@ -36,7 +36,7 @@ module.exports = {
         allowNull: false,
       },
       permission: {
-        type: Sequelize.TEXT,
+        type: Sequelize.STRING(4095),
         allowNull: false,
       },
       createdAt: {

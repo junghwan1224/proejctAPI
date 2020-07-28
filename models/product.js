@@ -14,8 +14,8 @@ export default (sequelize, DataTypes) => {
       price_d: DataTypes.INTEGER,
       price_e: DataTypes.INTEGER,
       essential_stock: DataTypes.INTEGER,
-      memo: DataTypes.TEXT,
-      image: DataTypes.TEXT,
+      memo: DataTypes.STRING,
+      image: DataTypes.STRING,
     },
     {
       hooks: {

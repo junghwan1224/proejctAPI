@@ -5,8 +5,8 @@ export default (sequelize, DataTypes) => {
     "warehouse",
     {
       name: DataTypes.STRING,
-      location: DataTypes.TEXT,
-      memo: DataTypes.TEXT,
+      location: DataTypes.STRING,
+      memo: DataTypes.STRING,
     },
     {
       hooks: {
