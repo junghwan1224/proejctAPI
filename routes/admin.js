@@ -8,7 +8,7 @@ import warehouse from '../controllers/warehouse/crud';
 import inventory from '../controllers/inventory/crud';
 import product from "../controllers/product/crud";
 import uploadProductImage from "../controllers/product/uploadImage";
-import verify from 'jsonwebtoken/verify';
+import order from '../controllers/order/crud';
 
 module.exports = (app) => {
   const PTYPE = permission.TYPE;
@@ -80,5 +80,18 @@ module.exports = (app) => {
   app
     .route(ADMIN_ROUTE + "/upload-image")
     .post(permission.verify(uploadProductImage, PTYPE.EDIT_PRODUCT));
+  /* ----------------------------------------------------------------------- */
+
+  /**
+   * @name ORDER
+   * @description Order Related Routes
+   */
+  app
+    .route(ADMIN_ROUTE + "/order")
+    .all(authStaff)
+    .get(permission.verify(order.readByAdmin, PTYPE.READ_ORDER))
+    .post(permission.verify(order.createByAdmin, PTYPE.CREATE_ORDER))
+    .put(permission.verify(order.updateByAdmin, PTYPE.EDIT_ORDER))
+    .delete(permission.verify(order.deleteByAdmin, PTYPE.EDIT_ORDER))
   /* ----------------------------------------------------------------------- */
 };
