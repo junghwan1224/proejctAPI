@@ -22,13 +22,12 @@ export default (sequelize, DataTypes) => {
         beforeCreate: (order, options) => {
           //add uuid for id
           order.id = uuid.v4();
-          console.log(order);
-          console.log();
-          console.log(options);
-          // order.items = {};
-          // order.foreign_info = {};
-          // order.attachments = {};
-          // order.reference = {};
+
+          // add default json value if field does not exist
+          order.items = order.dataValues.items ? order.dataValues.items : {};
+          order.foreign_info = order.dataValues.foreign_info ? order.dataValues.foreign_info : {};
+          order.attachments = order.dataValues.attachments ? order.dataValues.attachments : {};
+          order.reference = order.dataValues.reference ? order.dataValues.reference : {};
         },
       },
     }
