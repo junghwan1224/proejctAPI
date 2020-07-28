@@ -46,7 +46,6 @@ module.exports = {
       foreign_info: {
         // 해외 거래일 경우 관련 정보, 환율 등...
         allowNull: false,
-        defaultValue: {},
         type: Sequelize.JSON,
       },
       memo: {
@@ -68,13 +67,11 @@ module.exports = {
       attachments: {
         // 첨부파일
         allowNull: false,
-        defaultValue: {},
         type: Sequelize.JSON,
       },
       reference: {
         // 참고자료, 통관일 경우 어떤 주문에 대한 통관인지 등록할 수 있음
         allowNull: false,
-        defaultValue: {},
         type: Sequelize.JSON,
       },
       createdAt: {
