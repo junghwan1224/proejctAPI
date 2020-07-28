@@ -11,7 +11,7 @@ export default (sequelize, DataTypes) => {
       client_id: DataTypes.STRING,
       staff_id: DataTypes.STRING,
       foreign_info: DataTypes.JSON,
-      memo: DataTypes.TEXT,
+      memo: DataTypes.STRING,
       classification: DataTypes.STRING,
       type: DataTypes.STRING,
       attachments: DataTypes.JSON,

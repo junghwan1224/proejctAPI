@@ -11,7 +11,7 @@ export default (sequelize, DataTypes) => {
       phone: DataTypes.STRING,
       department: DataTypes.STRING,
       rank: DataTypes.STRING,
-      permission: DataTypes.TEXT,
+      permission: DataTypes.STRING,
     },
     {
       hooks: {
