@@ -15,12 +15,12 @@ class ControlWrapper {
     this.value = undefined;
   }
 
-  terminate() {
-    if (this.value !== undefined) return true;
-  }
-
-  through(_function) {
-    !this.terminate() ? _function() : null;
+  /**
+   * Callback을 위한 함수
+   * @param {function} _function
+   */
+  async through(_function) {
+    if (this.value === undefined) _function();
     return this;
   }
 
@@ -41,7 +41,7 @@ class ControlWrapper {
   /**
    * 해당 클래스 연산 종료 및 response 반환
    */
-  _end() {
+  end() {
     return this.value;
   }
 
@@ -76,7 +76,7 @@ class ControlWrapper {
   /**
    * 입력받은 데이터가 기준을 충족하지 않을 경우 - 400 반환
    */
-  validateFields() {
+  validate() {
     return this.through(async () => {
       if (!_validateFields(this.fields, this.req.body))
         this.value = this.res
@@ -117,7 +117,40 @@ class ControlWrapper {
     });
   }
 
-  put() {
+  post() {
+    return this.through(async () => {
+      try {
+        const response = await this.model.create(this.req.body);
+        this.value = this.res.status(201).send({ message: response.id });
+      } catch (err) {
+        console.log(err);
+        this.value = this.res
+          .status(400)
+          .send({ message: "에러가 발생했습니다." });
+      }
+    });
+  }
+
+  get() {
+    return this.through(async () => {
+      try {
+        const response = await this.model.findOne({ where: this.locator });
+        if (!response) {
+          this.value = this.res
+            .status(400)
+            .send({ message: "데이터가 존재하지 않습니다." });
+        }
+        this.value = this.res.status(200).send(response);
+      } catch (err) {
+        console.log(err);
+        this.value = this.res
+          .status(400)
+          .send({ message: "에러가 발생했습니다." });
+      }
+    });
+  }
+
+  patch() {
     return this.through(async () => {
       try {
         await this.model.update(this.req.body, {
@@ -132,7 +165,22 @@ class ControlWrapper {
           .status(400)
           .send({ message: "에러가 발생했습니다." });
       }
-      this._end();
+    });
+  }
+
+  delete() {
+    return this.through(async () => {
+      try {
+        await this.model.destroy({
+          where: this.locator,
+        });
+        this.value = this.res.status(200).send();
+      } catch (err) {
+        console.log(err);
+        this.value = this.res
+          .status(400)
+          .send({ message: "에러가 발생했습니다." });
+      }
     });
   }
 }
